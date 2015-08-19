@@ -1,0 +1,26 @@
+# These is the complete local file and directory locations for SSL elements.
+
+# Secure directory
+d_root_ssl=/root/.ssl
+export d_root_ssl
+
+# The host passphrase.
+f_host_passphrase=${d_root_ssl}/$(hostname -s)_passphrase.txt
+export f_host_passphrase
+
+# The host key.
+f_host_key=${d_root_ssl}/$(hostname -s)_key.pem
+export f_host_key
+
+# The host certificate file.
+f_host_cert=/etc/pki/tls/certs/$(hostname -s)_cert.pem
+export f_host_cert
+
+# The CA certificate.
+f_ca_cert=/etc/pki/tls/certs/ca_cert.pem
+
+
+# PKCS12-formatted host certificate
+f_host_p12=/etc/pki/tls/certs/$(hostname -s)_cert.p12
+export f_host_p12
+
