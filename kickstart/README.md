@@ -1,4 +1,4 @@
-This is a set ofg kickstart files that present a hardened system on completion.
+This is a set of kickstart files that present a hardened system on completion.
 
 I'm working a little bit from [Red Hat Government's github repository][1], and a lot from the [Defense Information Systems Agency (DISA) Security Technical Implementation Guides (STIG)][2].
 
