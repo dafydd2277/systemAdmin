@@ -1,8 +1,8 @@
-This is a set of kickstart files that present a hardened system on completion.
+This is a set ofg kickstart files that present a hardened system on completion.
 
 I'm working a little bit from [Red Hat Government's github repository][1], and a lot from the [Defense Information Systems Agency (DISA) Security Technical Implementation Guides (STIG)][2].
 
-I want to do one for CentOS 6 and one for CentOS 7. They should be reasonably transferrable to any RHEL-derived Linux.
+The CentOS 6 kickstart is functional. I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
 [1]: http://github.com/RedHatGov/
 [2]: http://iase.disa.mil/stigs/Pages/index.aspx
