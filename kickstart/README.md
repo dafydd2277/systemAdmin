@@ -2,10 +2,15 @@ This is a set of kickstart files that present a hardened system on completion.
 
 I'm working a little bit from [Red Hat Government's github repository][1], and a lot from the [Defense Information Systems Agency (DISA) Security Technical Implementation Guides (STIG)][2].
 
-The CentOS 6 kickstart is functional. I'll do one for CentOS 7 as soon as the DISA STIG is released.
+The CentOS 6 kickstart is functional. However, several items can't be fixed through a generic kickstart script, like having log and audit records transmitted to a remote server. Also, some of the tests appear to look for specific audit rule strings. They don't catch the combinations I set up using the recommendations from the [audit.rules(7)][3] man page, which suggests combining syscall elements into as few rules as practicable.
+
+
+
+I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
 [1]: http://github.com/RedHatGov/
 [2]: http://iase.disa.mil/stigs/Pages/index.aspx
+[3]: http://linux.die.net/man/7/audit.rules
 
 ## References
 
