@@ -4,8 +4,6 @@ I'm working a little bit from [Red Hat Government's github repository][1], and a
 
 The CentOS 6 kickstart is functional. However, several items can't be fixed through a generic kickstart script, like having log and audit records transmitted to a remote server. Also, some of the tests appear to look for specific audit rule strings. They don't catch the combinations I set up using the recommendations from the [audit.rules(7)][3] man page, which suggests combining syscall elements into as few rules as practicable.
 
-
-
 I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
 [1]: http://github.com/RedHatGov/
