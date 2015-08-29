@@ -28,11 +28,12 @@ These instructions take advantage of bash security features outlined in [BASH-01
 
 - In the last few steps, where you actually create a user account in LDAP, you'll note that I give that user a UID of 20001. I strongly recommend UIDs and GIDs for centralized users and groups *start* at a five-digit number. This allows an enormous pool of UIDs and GIDs between 501 and 9999 for local users and groups.
 - Which users and groups should be local? Which should be centralized/LDAP?
-    My opinion is that interactive, flesh-and-blood users should always be managed via a remote service like LDAP/Kerberos. This, along with [Kerberos-aware NFS][knfs], will allow a user to log in to any controlled host. On the other hand, I prefer to keep "application users" (eg. `oracle`, `puppet`, or `splunk`) local. That way, those services or applications continue to run even if contact with the LDAP/Kerberos implementation is lost. A significant exception are automated users for privileged remote access, like for [Tripwire][] or [Nessus][]. Those should be handled centrally, with privileges defined by sudo.
+
+    My opinion is that interactive, flesh-and-blood users should always be managed via a remote service like LDAP/Kerberos. This, along with [Kerberos-aware NFS][knfs], will allow a user to log in to any controlled host. On the other hand, I prefer to keep "application users" (Those users that actually "own" application binaries and libraries, like `oracle`, `puppet`, or `splunk`) local. That way, those services or applications continue to run even if contact with the LDAP/Kerberos implementation is lost. A significant exception would be those automated users ("service accounts") for automated remote access. Examples would be [Tripwire][] or [UC4][], where an external automation "logs in" to the host. Those should be handled centrally, with privileges defined by sudo.
     
 [knfs]: http://sadiquepp.blogspot.com/2009/02/how-to-configure-nfsv4-with-kerberos-in.html
 [tripwire]: http://www.tripwire.com/
-[nessus]: http://www.tenable.com/
+[UC4]: http://automic.com/
 
 ## Install EPEL
 
@@ -45,69 +46,51 @@ yum repolist
 
 ```
 
-(The current EPEL release package for RHEL6 clones is `epel-release-6-8.noarch.rpm`. Obviously, that will change over time. So, I can't give you an explicit yum install command.)
-
 
 [epelRelease]: https://fedoraproject.org/wiki/EPEL#How_can_I_use_these_extra_packages.3F
 [fedoraWiki]: https://fedoraproject.org/wiki/Fedora_Project_Wiki
+
 
 ## Install the packages.
 
 Once the EPEL package is installed, you should be able to download the 389-ds wrapper package. Again, let's just do a `yum install`, instead of fussing with which version of 389-ds might already be installed.
 
 ```bash
-yum install 389-ds
+yum install 389-ds-base 389-admin 389-adminutil
 
 ```
 
 ## Create a local settings file.
 
-First, does `${HOSTNAME}` exist as a normal environment variable?
-
-```bash
-echo ${HOSTNAME}
-
-
-```
-
-Did you get your host's name as output? If so, you're good. If not, let's set the variable.
-
-```bash
-HOSTNAME=$(hostname -s)
-export HOSTNAME
-
-```
-
-([Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082])
 
 Create a sysconfig file to keep track of local customization. One item I'll point out to you: my `${ROOTDN}` is not actually "`cn=Directory Manager`." If I'm going to publicize the name of my Directory Manager, it should be something not the default, right? Similarly, if you're setting up your 389-ds for Production service, consider changing the name of your RootDN.
 
 ```bash
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ds_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
 
-cat <<EOT >${f_ds_sysconfig}
+cat <<EOT >${df_ds_sysconfig}
 d_389ds_root=/root/.389ds
 export d_389ds_root
 
-f_dsadmin_passphrase=\${d_389ds_root}/dsadmin_passphrase.txt
-f_dirmgr_passphrase=\${d_389ds_root}/dirmgr_passphrase.txt
-f_389ds_setup=\${d_389ds_root}/setup-ds-admin.inf
+df_dsadmin_passphrase=\${d_389ds_root}/dsadmin_passphrase.txt
+df_dirmgr_passphrase=\${d_389ds_root}/dirmgr_passphrase.txt
+df_389ds_setup=\${d_389ds_root}/setup-ds-admin.inf
 
-export f_dsadmin_passphrase f_dirmgr_passphrase f_389ds_setup
+export df_dsadmin_passphrase df_dirmgr_passphrase df_389ds_setup
 
-# Directory Server Instance Name: slapd-\${l_instance}
-l_instance="ds01"
-l_basedn="dc=example,dc=com"
-l_domain="example.com"
-l_dirmgr="cn=Directory Manager"
+# Directory Server Instance Name: slapd-\${s_instance}
+s_instance="ds01"
+s_basedn="dc=example,dc=com"
+s_domain="example.com"
+s_dirmgr="cn=Directory Manager"
 
-export l_instance l_basedn l_domain l_dirmgr
+export s_instance s_basedn s_domain s_dirmgr
 
 d_admin_etc=/etc/dirsrv/admin-serv
-d_instance_etc=/etc/dirsrv/slapd-\${l_instance}
-d_instance_usr=/usr/lib64/dirsrv/slapd-\${l_instance}
-d_instance_var=/var/lib/dirsrv/slapd-\${l_instance}
+d_instance_etc=/etc/dirsrv/slapd-\${s_instance}
+d_instance_usr=/usr/lib64/dirsrv/slapd-\${s_instance}
+d_instance_var=/var/lib/dirsrv/slapd-\${s_instance}
 
 export d_admin_etc d_instance_etc d_instance_usr d_instance_var
 
@@ -115,10 +98,12 @@ EOT
 
 ```
 
+([Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082])
+
 Then, call the file to load the variables into the shell.
 
 ```bash
-. ${f_ds_sysconfig}
+. ${df_ds_sysconfig}
 
 ```
 
@@ -167,7 +152,7 @@ Alternately, you can use `setup-ds-admin.pl --keepcache` to save a `.inf` file f
 
 **IMPORTANT**: clear-text passwords are kept in this file. So, let's keep it in `root`'s home directory, along with the passphrase files, themselves.
 
-One other trick: you'll note that I'm again using `sha1sum` to create random 40-character passphrases from random 2048-character strings generated by `/dev/urandom`. This is still better security, but using this method will be hard if you just to run `setup-ds-admin.pl` by hand. My suggestion for that case is that you have a second terminal window open to allow you to copy and paste the passphrases into the appropriate places. If you go this route, the contents of `${f_dsadmin_passphrase}` are requested first by `setup-ds-admin.pl`, followed by the contents of `${f_dirmgr_passphrase}`.
+One other trick: you'll note that I'm again using `sha1sum` to create random 40-character passphrases from random 2048-character strings generated by `/dev/urandom`. This is still better security, but using this method will be hard if you just to run `setup-ds-admin.pl` by hand. My suggestion for that case is that you have a second terminal window open to allow you to copy and paste the passphrases into the appropriate places. If you go this route, the contents of `${df_dsadmin_passphrase}` are requested first by `setup-ds-admin.pl`, followed by the contents of `${df_dirmgr_passphrase}`.
 
 (Having said that, one limitation of `sha1sum` is that it's a string of 40 hexadecimal characters. I've actually stopped using it, in favor of using a larger set of `tr`anslation characters than `A-Za-z0-9` and combining several `head -c` and `tail -c` trims of that initial output. My password strings are not 40 characters, and are not limited to `0-9a-f`.)
 
@@ -178,60 +163,60 @@ tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_dsadmin_passphrase}
-chown root:root ${f_dsadmin_passphrase}
-chmod 0400 ${f_dsadmin_passphrase}
+  > ${df_dsadmin_passphrase}
+chown root:root ${df_dsadmin_passphrase}
+chmod 0400 ${df_dsadmin_passphrase}
 
 
 tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_dirmgr_passphrase}
-chown root:root ${f_dirmgr_passphrase}
-chmod 0400 ${f_dirmgr_passphrase}
+  > ${df_dirmgr_passphrase}
+chown root:root ${df_dirmgr_passphrase}
+chmod 0400 ${df_dirmgr_passphrase}
 
 ```
 
 These files will be used repeatedly, later on. So, they're separate. Here's the rest of the manually created .inf file.
 
 ```bash
-l_admin_user="admin"
-l_server_ip=111.111.111.111
-export l_admin_user l_server_ip
+s_admin_user="admin"
+s_server_ip=111.111.111.111
+export s_admin_user s_server_ip
 
-cat <<EOT >${f_389ds_setup}
+cat <<EOT >${df_389ds_setup}
 [General] 
-FullMachineName= ${HOSTNAME}.${l_domain}
+FullMachineName= ${HOSTNAME}.${s_domain}
 SuiteSpotUserID= nobody 
 SuiteSpotGroup= nobody 
-AdminDomain= ${l_domain}
-ConfigDirectoryAdminID= ${l_admin_user}
-ConfigDirectoryAdminPwd= $(cat ${f_dsadmin_passphrase})
-ConfigDirectoryLdapURL= ldap://${HOSTNAME}.${l_domain}:389/o=NetscapeRoot 
+AdminDomain= ${s_domain}
+ConfigDirectoryAdminID= ${s_admin_user}
+ConfigDirectoryAdminPwd= $(cat ${df_dsadmin_passphrase})
+ConfigDirectoryLdapURL= ldap://${HOSTNAME}.${s_domain}:389/o=NetscapeRoot 
 
 [slapd] 
 SlapdConfigForMC= Yes 
 UseExistingMC= 0 
 ServerPort= 389 
-ServerIdentifier= ${l_instance} 
-Suffix= ${l_basedn}
+ServerIdentifier= ${s_instance} 
+Suffix= ${s_basedn}
 RootDN= ${ROOTDN}
-RootDNPwd= $(cat ${f_dirmgr_passphrase})
+RootDNPwd= $(cat ${df_dirmgr_passphrase})
 ds_bename=exampleDB 
 AddSampleEntries= No
 AddOrgEntries= No
 
 [admin] 
 Port= 9830
-ServerIpAddress= ${l_server_ip}
-ServerAdminID= ${l_admin_user} 
+ServerIpAddress= ${s_server_ip}
+ServerAdminID= ${s_admin_user} 
 ServerAdminPwd= $(cat ${DS_PASSPHRASE})
 
 EOT
 
-chown root:root ${f_389ds_setup}
-chmod 0400 ${f_389ds_setup}
+chown root:root ${df_389ds_setup}
+chmod 0400 ${df_389ds_setup}
 
 ```
 
@@ -249,19 +234,19 @@ Now that your system configuration is recorded, execute the startup script. You 
 
 ```
 
-The resulting `.inf` file will appear in `/tmp`. Don't forget to rename it to `${f_389ds_setup}`!
+The resulting `.inf` file will appear in `/tmp`. Don't forget to rename it to `${df_389ds_setup}`!
 
 The second method assumes you have a `.inf` and still want to iterate through the script questions. Except for the passwords, all settings from the `.inf` file will show up as the default values. The passwords will need to be re-entered by hand.
 
 ```bash
-/usr/sbin/setup-ds-admin.pl --file=${f_389ds_setup}
+/usr/sbin/setup-ds-admin.pl --file=${df_389ds_setup}
 
 ```
 
 The third method is to execute the `.inf` file without direct user input. Here, the passwords given in the `.inf` file are used.
 
 ```bash
-/usr/sbin/setup-ds-admin.pl --file=${f_389ds_setup} --silent
+/usr/sbin/setup-ds-admin.pl --file=${df_389ds_setup} --silent
 
 ```
 
@@ -271,36 +256,36 @@ The third method is to execute the `.inf` file without direct user input. Here, 
 You might have noted that I set `AddOrgEntries` to "No" in the `.inf` file. We can add our Organizational Units by hand. The setup script still gives us a bunch of default groups and a `People` OU that we don't need.
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=Special Users,${l_basedn}
+ ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: ou=Special Users,${s_basedn}
 changetype: delete
 
-dn: cn=Accounting Managers,ou=Groups,${l_basedn}
+dn: cn=Accounting Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=HR Managers,ou=Groups,${l_basedn}
+dn: cn=HR Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=QA Managers,ou=Groups,${l_basedn}
+dn: cn=QA Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=PD Managers,ou=Groups,${l_basedn}
+dn: cn=PD Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: ou=Groups,${l_basedn}
+dn: ou=Groups,${s_basedn}
 changetype: delete
 
-dn: ou=People,${l_basedn}
+dn: ou=People,${s_basedn}
 changetype: delete
 
-dn: ou=users,${l_basedn}
+dn: ou=users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
 ou: users
 
-dn: ou=groups,${l_basedn}
+dn: ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
@@ -318,8 +303,8 @@ Here's the initial password hashing scheme, "out of the box."
  ldapsearch \
 -v \
 -H ldap://localhost:389 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
 -b "cn=config" \
 -s base \
 passwordStorageScheme
@@ -329,8 +314,8 @@ passwordStorageScheme
 You should have received a bunch of text. The key line is `passwordStorageScheme: SSHA`. This means the default password hashing scheme is Salted SHA, which uses 140 bits. (See [Section 3.1.1.162][sec311162].) We'll change that to Salted SHA256, just to make things harder on crackers. Here's the command to do that.
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
+ ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
 dn: cn=config
 changeType: modify
 replace: passwordStorageScheme
@@ -348,9 +333,9 @@ EOT
 Here, we'll add a user to the LDAP database, then add two groups, listing that user as a member. In the next section, we'll then query for that user, to verify he was correctly added.
 
 ```bash
- ldapmodify -v -x -H ldap://localhost:389 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: cn=jdoe,ou=users,${l_basedn}
+ ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: cn=jdoe,ou=users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: person
@@ -371,29 +356,29 @@ loginShell: /bin/bash
 
 EOT
 
- ldapmodify -v -x -H ldap://localhost:389 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: cn=wheel,ou=groups,${l_basedn}
+ ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: cn=wheel,ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: wheel
 gidNumber: 10
-member: cn=jdoe,ou=users,${l_basedn}
+member: cn=jdoe,ou=users,${s_basedn}
 
 EOT
 
- ldapmodify -v -x -H ldap://localhost:389 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: cn=users,ou=groups,${l_basedn}
+ ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: cn=users,ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: users
 gidNumber: 100
-member: cn=jdoe,ou=users,,${l_basedn}
+member: cn=jdoe,ou=users,,${s_basedn}
 
 EOT
 
@@ -413,9 +398,9 @@ And, how does our user look?
  ldapsearch \
 -v \
 -H ldap://localhost:389 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=users,${l_basedn}"
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=users,${s_basedn}"
 
 ```
 
@@ -425,9 +410,9 @@ How about the groups?
  ldapsearch \
 -v \
 -H ldap://localhost:389 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=groups,${l_basedn}"
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=groups,${s_basedn}"
 
 ```
 
