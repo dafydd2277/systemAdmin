@@ -41,36 +41,30 @@ For the most part, you may take blank lines in the code blocks as separators for
 df_ds_sysconfig=/etc/sysconfig/local-ds
 export df_ds_sysconfig
 
-cat <<EOT >>${df_ds_sysconfig}
+cat <<EOT >>${df_ssl_sysconfig}
 
-# Secure directory
-d_root_ssl=/root/.ssl
-export d_root_ssl
+# The CA certificate.
+df_ca_cert=${d_cert_root}/ca_cert.pem
+export df_ca_cert
 
-# The host passphrase.
-f_host_passphrase=${d_root_ssl}/$(hostname -s)_passphrase.txt
-export f_host_passphrase
-
-# The host key.
-f_host_key=${d_root_ssl}/$(hostname -s)_key.pem
-export f_host_key
-
-# The host certificate file.
-f_host_cert=/etc/pki/tls/certs/$(hostname -s)_cert.pem
-export f_host_cert
 
 # PKCS12-formatted host certificate
-df_host_p12=/etc/pki/tls/certs/host_cert.p12
+df_host_p12=${d_cert_root}/$(hostname -s)_cert.p12
 export df_host_p12
+
 
 s_ca_name="CA certificate"
 s_ds_cert_name="Domain Server certificate"
-s_ds_subj="CN=\${s_hostname}.\${s_domain},O=\${s_domain},L=\${s_cert_city},ST=\${s_cert_state},C=\${s_cert_country_code}"
+s_ds_subj="CN=\${s_hostname_s}.\${s_domain},O=\${s_domain},L=\${s_cert_city},ST=\${s_cert_state},C=\${s_cert_country_code}"
 export s_ca_name s_ds_cert_name s_ds_subj
 
 # The location of the NSS database
 d_nssdb=\${d_instance_etc}/nssdb
 export d_nssdb
+
+EOT
+
+cat <<EOT >>${df_ds_sysconfig}
 
 # The passphrase location for DS SSL startup. It must be in the instance etc
 # directory.
@@ -92,6 +86,8 @@ EOT
 And, source this and the SSL sysconfig files.
 
 ```bash
+. ${df_ssl_sysconfig}
+
 . ${df_ds_sysconfig}
  
 ```

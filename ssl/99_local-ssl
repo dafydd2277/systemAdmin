@@ -1,26 +1,32 @@
-# These is the complete local file and directory locations for SSL elements.
+# This is the complete set of local file and directory locations for SSL
+# elements.
+
+# Create a short hostname variable.
+s_hostname_s=$(hostname -s)
 
 # Secure directory
 d_root_ssl=/root/.ssl
+d_cert_root=/etc/pki/tls/certs
 export d_root_ssl
 
 # The host passphrase.
-f_host_passphrase=${d_root_ssl}/$(hostname -s)_passphrase.txt
-export f_host_passphrase
+df_host_passphrase=${d_root_ssl}/${s_hostname_s}_passphrase.txt
+export df_host_passphrase
 
 # The host key.
-f_host_key=${d_root_ssl}/$(hostname -s)_key.pem
-export f_host_key
+df_host_key=${d_root_ssl}/${s_hostname_s}_key.pem
+export df_host_key
 
 # The host certificate file.
-f_host_cert=/etc/pki/tls/certs/$(hostname -s)_cert.pem
-export f_host_cert
+df_host_cert=${d_cert_root}/${s_hostname_s}_cert.pem
+export df_host_cert
 
 # The CA certificate.
-f_ca_cert=/etc/pki/tls/certs/ca_cert.pem
+df_ca_cert=${d_cert_root}/ca_cert.pem
+export df_ca_cert
 
 
 # PKCS12-formatted host certificate
-f_host_p12=/etc/pki/tls/certs/$(hostname -s)_cert.p12
-export f_host_p12
+df_host_p12=${d_cert_root}/$(hostname -s)_cert.p12
+export df_host_p12
 

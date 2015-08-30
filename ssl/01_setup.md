@@ -47,25 +47,29 @@ export f_ssl_sysconfig
 cat <<EOT >${f_ssl_sysconfig}
 # These are local file and directory locations for SSL elements.
 
+# Create a short hostname variable.
+s_hostname_s=$(hostname -s)
+
 # Secure directory
 d_root_ssl=/root/.ssl
-export d_root_ssl
+d_cert_root=/etc/pki/tls/certs
+export d_root_ssl d_cert_root
 
 # Passphrase to encrypt the host key.
-f_host_passphrase=\${d_root_ssl}/host_passphrase.txt
-export f_host_passphrase
+df_host_passphrase=\${d_root_ssl}/host_passphrase.txt
+export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-f_host_key=\${d_root_ssl}/host_key.pem
-export f_host_key
+df_host_key=\${d_root_ssl}/${s_hostname_s}_key.pem
+export df_host_key
 
 # The host certificate request.
-f_host_req=/etc/pki/tls/certs/host_req.pem
-export f_host_req
+df_host_req=\${d_cert_root}/${s_hostname_s}_req.pem
+export df_host_req
 
 # The host certificate file.
-f_host_cert=/etc/pki/tls/certs/host_cert.pem
-export f_host_cert
+df_host_cert=\${d_cert_root}/${s_hostname_s}_cert.pem
+export df_host_cert
 
 EOT
 ```
