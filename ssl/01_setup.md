@@ -41,10 +41,10 @@ SSL is a starting point for security in many areas of computer communication. Le
 Let's start the local configuration file.
 
 ```bash
-f_ssl_sysconfig=/etc/sysconfig/local-ssl
-export f_ssl_sysconfig
+df_ssl_sysconfig=/etc/sysconfig/local-ssl
+export df_ssl_sysconfig
 
-cat <<EOT >${f_ssl_sysconfig}
+cat <<"EOSYSCONFIG" >${df_ssl_sysconfig}
 # These are local file and directory locations for SSL elements.
 
 # Create a short hostname variable.
@@ -56,44 +56,48 @@ d_cert_root=/etc/pki/tls/certs
 export d_root_ssl d_cert_root
 
 # Passphrase to encrypt the host key.
-df_host_passphrase=\${d_root_ssl}/host_passphrase.txt
+df_host_passphrase=${d_root_ssl}/host_passphrase.txt
 export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-df_host_key=\${d_root_ssl}/${s_hostname_s}_key.pem
+df_host_key=${d_root_ssl}/${s_hostname_s}_key.pem
 export df_host_key
 
 # The host certificate request.
-df_host_req=\${d_cert_root}/${s_hostname_s}_req.pem
+df_host_req=${d_cert_root}/${s_hostname_s}_req.pem
 export df_host_req
 
 # The host certificate file.
-df_host_cert=\${d_cert_root}/${s_hostname_s}_cert.pem
+df_host_cert=${d_cert_root}/${s_hostname_s}_cert.pem
 export df_host_cert
 
-EOT
+# The CA certificate, once we get it.
+df_ca_cert=${d_cert_root}/ca_cert.pem
+export df_ca_cert
+
+EOSYSCONFIG
 ```
 
 
 Now, let's add another set of lines to the file. This is the information that will be used to identify your host certificate to the world. If you're developing your SSL skills and techniques, entering this information interactively every time you generate a Certificate Signing Request is a pain. So, let's set it in a variable.
 
 ```bash
-cat <<EOT >>${f_ssl_sysconfig}
+cat <<"EOSYSCONFIG" >>${df_ssl_sysconfig}
 
 # X.509 information for the host certificate.
-l_cert_country_code="US"
-l_cert_state="WA"
-l_cert_city="Seattle"
-l_domain="example.com"
-export l_cert_country_code l_cert_state l_cert_city l_domain
+s_cert_country_code="US"
+s_cert_state="WA"
+s_cert_city="Seattle"
+s_domain="example.com"
+export s_cert_country_code s_cert_state s_cert_city s_domain
 
-l_host_cert_subj="/C=\${l_cert_country_code}/ST=\${l_cert_state}/L=\${l_cert_city}/CN=\$(hostname -s).\${l_domain}/organizationName=\${l_domain}"
-export l_host_cert_subj
+s_host_cert_subj="/C=${s_cert_country_code}/ST=${s_cert_state}/L=${s_cert_city}/CN=$(hostname -s).${s_domain}/organizationName=${s_domain}"
+export s_host_cert_subj
 
-EOT
+EOSYSCONFIG
 ```
 
-([Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082] Also, in this particular case, `$(hostname)` might return and FQDN or might return a simple hostname. So, using `$(hostname -s).${l_domain} will get me a good answer in any case.)
+([Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082] Also, in this particular case, `$(hostname)` might return and FQDN or might return a simple hostname. So, using `$(hostname -s).${s_domain} will get me a good answer in any case.)
 
 The backslashes in front of the dollar signs, here, mean the variable strings are going to be copied into the file without any attempts at substitution. The variables don't actually exist, yet! They won't until we actually source the sysconfig file. Let's do that next.
 
@@ -109,14 +113,20 @@ chown root:root ${d_root_ssl}
 Next, create the host key. Some references recommend encrypting the key with a passphrase. However, generally, the existance of the certificate is sufficient to authenticate the host. That is, you only need a certificate and a matching hostname to authenticate. The existance or lack of a passphrase for the key won't change that. So, a passphrase isn't strictly necessary. Here's the key creation command without a passphrase.
 
 ```bash
+if [ ! -d "${d_cert_root}" ]
+then
+  yum -y install openssl
+fi
+
+
 openssl genpkey \
 -algorithm RSA \
 -pkeyopt rsa_keygen_bits:4096 \
 -outform PEM \
--out ${f_host_key}
+-out ${df_host_key}
 
-chown root:root ${f_host_key}
-chmod 0400 ${f_host_key}
+chown root:root ${df_host_key}
+chmod 0400 ${df_host_key}
 ```
 
 ([`genpkey` has superceded `genrsa`.][openssl_man])
@@ -130,21 +140,21 @@ tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_host_passphrase}
+  > ${df_host_passphrase}
 
-chown root:root ${f_host_passphrase}
-chmod 0400 ${f_host_passphrase}
+chown root:root ${df_host_passphrase}
+chmod 0400 ${df_host_passphrase}
 
 openssl genpkey \
 -aes256 \
 -algorithm RSA \
--pass file:${f_host_passphrase} \
+-pass file:${df_host_passphrase} \
 -pkeyopt rsa_keygen_bits:4096 \
 -outform PEM \
--out ${f_host_key}
+-out ${df_host_key}
 
-chown root:root ${f_host_key}
-chmod 0400 ${f_host_key}
+chown root:root ${df_host_key}
+chmod 0400 ${df_host_key}
 ```
 
 Now, let's generate the request. Here's the command for an unencrypted private key.
@@ -152,14 +162,14 @@ Now, let's generate the request. Here's the command for an unencrypted private k
 ```bash
 openssl req \
 -new \
--key ${f_host_key} \
+-key ${df_host_key} \
 -days 730 \
--subj ${l_host_cert_subj} \
+-subj ${s_host_cert_subj} \
 -outform PEM \
--out ${f_host_req}
+-out ${df_host_req}
 
-chown root:root ${f_host_req}
-chmod 0400 ${f_host_req}
+chown root:root ${df_host_req}
+chmod 0400 ${df_host_req}
 ```
 
 And, here's the command when the private key has been encrypted.
@@ -167,15 +177,15 @@ And, here's the command when the private key has been encrypted.
 ```bash
 openssl req \
 -new \
--key ${f_host_key} \
--passin file:${f_host_passphrase} \
+-key ${df_host_key} \
+-passin file:${df_host_passphrase} \
 -days 730 \
--subj ${l_host_cert_subj} \
+-subj ${s_host_cert_subj} \
 -outform PEM \
--out ${f_host_req}
+-out ${df_host_req}
 
-chown root:root ${f_host_req}
-chmod 0400 ${f_host_req}
+chown root:root ${df_host_req}
+chmod 0400 ${df_host_req}
 ```
 
 

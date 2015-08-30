@@ -36,35 +36,34 @@ For the most part, you may take blank lines in the code blocks as separators for
 First, let's add to the local SSL sysconfig file, and re-source it.
 
 ```bash
-cat <<EOT >>${f_ssl_sysconfig}
+df_ssl_sysconfig=/etc/sysconfig/local-ssl
+export df_ssl_sysconfig
+
+cat <<EOT >>${df_ssl_sysconfig}
 
 # The private key for a internal Certificate Authority running on
 # this host.
-f_ca_key=\${d_root_ssl}/ca_key.pem
-export f_ca_key
+df_ca_key=\${d_root_ssl}/ca_key.pem
+export df_ca_key
 
 # The file holding the passphrase for the CA's private key.
-f_ca_passphrase=\${d_root_ssl}/ca_passphrase.txt
-export f_ca_passphrase
+df_ca_passphrase=\${d_root_ssl}/ca_passphrase.txt
+export df_ca_passphrase
 
 # The base directory for the internal Certificate Authority.
 d_ca=/etc/pki/CA
 export d_ca
 
-# The filename for Certificate Authority's certificate.
-f_ca_cert=/etc/pki/tls/certs/ca_cert.pem
-export f_ca_cert
-
 # The -subj line for creating the CA certificate.
-l_ca_email="abuse@gmail.com"
+s_ca_email="abuse@gmail.com"
 
-l_ca_cert_subj="/C=\${l_cert_country_code}/ST=\${l_cert_state}/L=\${l_cert_city}/CN=ca.\${l_domain}\/emailAddress=\${l_ca_email}/organizationName=\${l_domain}"
-export l_ca_cert_subj
+s_ca_cert_subj="/C=\${s_cert_country_code}/ST=\${s_cert_state}/L=\${s_cert_city}/CN=ca.\${s_domain}\/emailAddress=\${s_ca_email}/organizationName=\${s_domain}"
+export s_ca_cert_subj
 
 EOT
 
 
-. ${f_ssl_sysconfig}
+. ${df_ssl_sysconfig}
 ```
 
 ## Create directories.
@@ -99,10 +98,10 @@ tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_ca_passphrase}
+  > ${df_ca_passphrase}
 
-chown root:root ${f_ca_passphrase}
-chmod 0400 ${f_ca_passphrase}
+chown root:root ${df_ca_passphrase}
+chmod 0400 ${df_ca_passphrase}
 ```
 
 Then, create the key.
@@ -111,13 +110,13 @@ Then, create the key.
 openssl genpkey \
 -aes256 \
 -algorithm RSA \
--pass file:${f_ca_passphrase} \
+-pass file:${df_ca_passphrase} \
 -pkeyopt rsa_keygen_bits:4096 \
 -outform PEM \
--out ${f_ca_key}
+-out ${df_ca_key}
 
-chown root:root ${f_ca_key}
-chmod 0400 ${f_ca_key}
+chown root:root ${df_ca_key}
+chmod 0400 ${df_ca_key}
 ```
 
 And, with the key, create the CA certificate. (1825 days is 5 years.)
@@ -127,21 +126,21 @@ openssl req \
 -new \
 -x509 \
 -extensions v3_ca \
--key ${f_ca_key} \
--passin file:${f_ca_passphrase} \
+-key ${df_ca_key} \
+-passin file:${df_ca_passphrase} \
 -days 1825 \
--subj ${l_ca_cert_subj} \
--out ${f_ca_cert}
+-subj ${s_ca_cert_subj} \
+-out ${ddf_ca_cert}
 
-chown root:root ${f_ca_cert}
-chmod 0644 ${f_ca_cert}
+chown root:root ${df_ca_cert}
+chmod 0644 ${df_ca_cert}
 ```
 
 Per the [spectlog.com][spectlog] page in the References section and the `-CApath` argument to [openssl verify][verify] man page, create a symbolic link of the CA certificate's hash to the certificate itself.
 
 ```bash
-l_hash=$(openssl x509 -noout -hash -in ${f_ca_cert})
-ln -s ${f_ca_cert} /etc/pki/tls/certs/${l_hash}.0
+s_hash=$(openssl x509 -noout -hash -in ${df_ca_cert})
+ln -s ${df_ca_cert} ${d_cert_root}/${s_hash}.0
 ```
 
 [spectlog]: http://spectlog.com/content/Create_Certificate_Authority_%28CA%29_instead_of_using_self-signed_Certificates
@@ -155,11 +154,11 @@ Finally, sign the request you created in [SSL-01_setup.md][SSL-01] with the new 
 ```bash
  openssl ca \
 -verbose \
--keyfile ${f_ca_key} \
--key $(cat ${f_ca_passphrase}) \
--cert ${f_ca_cert} \
--in ${f_host_req} \
--out ${f_host_cert}
+-keyfile ${df_ca_key} \
+-key $(cat ${df_ca_passphrase}) \
+-cert ${df_ca_cert} \
+-in ${df_host_req} \
+-out ${df_host_cert}
 ```
 
 
@@ -169,9 +168,9 @@ This last command will verify that the new certificate has been successfully sig
 
 ```bash
 openssl verify \
--CApath /etc/pki/tls/certs/ \
+-CApath ${d_cert_root} \
 -verbose \
-${f_host_cert}
+${df_host_cert}
 ```
 
 And, you're done.
