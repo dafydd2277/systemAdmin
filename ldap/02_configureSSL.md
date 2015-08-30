@@ -38,25 +38,35 @@ For the most part, you may take blank lines in the code blocks as separators for
 389-DS doesn't work with regular text certificates. It has been designed to function with a [Netscape Security Services][nss] database. To simplify importing keys into an NSS database, let's add some naming variables to our local sysconfig files.
 
 ```bash
-f_ssl_sysconfig=/etc/sysconfig/local-ssl
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ssl_sysconfig f_ds_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
 
-cat <<EOT >>${f_ssl_sysconfig}
+cat <<EOT >>${df_ds_sysconfig}
+
+# Secure directory
+d_root_ssl=/root/.ssl
+export d_root_ssl
+
+# The host passphrase.
+f_host_passphrase=${d_root_ssl}/$(hostname -s)_passphrase.txt
+export f_host_passphrase
+
+# The host key.
+f_host_key=${d_root_ssl}/$(hostname -s)_key.pem
+export f_host_key
+
+# The host certificate file.
+f_host_cert=/etc/pki/tls/certs/$(hostname -s)_cert.pem
+export f_host_cert
 
 # PKCS12-formatted host certificate
-f_host_p12=/etc/pki/tls/certs/host_cert.p12
-export f_host_p12
+df_host_p12=/etc/pki/tls/certs/host_cert.p12
+export df_host_p12
 
-EOT
-
-
-cat <<EOT >>${f_ds_sysconfig}
-
-l_ca_name="CA certificate"
-l_ds_cert_name="Domain Server certificate"
-l_ds_subj="CN=\${HOSTNAME}.\${l_domain},O=\${l_domain},L=\${l_cert_city},ST=\${l_cert_state},C=\${l_cert_country_code}"
-export l_ca_name l_ds_cert_name l_ds_subj
+s_ca_name="CA certificate"
+s_ds_cert_name="Domain Server certificate"
+s_ds_subj="CN=\${s_hostname}.\${s_domain},O=\${s_domain},L=\${s_cert_city},ST=\${s_cert_state},C=\${s_cert_country_code}"
+export s_ca_name s_ds_cert_name s_ds_subj
 
 # The location of the NSS database
 d_nssdb=\${d_instance_etc}/nssdb
@@ -64,16 +74,16 @@ export d_nssdb
 
 # The passphrase location for DS SSL startup. It must be in the instance etc
 # directory.
-f_ds_pinfile=\${d_nssdb}/pin.txt
-export f_ds_pinfile
+df_ds_pinfile=\${d_nssdb}/pin.txt
+export df_ds_pinfile
 
 # NSS database format.
 # Modern versions of NSS support SQLite databases. To set NSS up to use
-# SQLite, set l_sql_prefix="sql:". However, 389-DS is not yet configured to use an
+# SQLite, set s_sql_prefix="sql:". However, 389-DS is not yet configured to use an
 # SQLite database. See https://fedorahosted.org/389/ticket/47681 for more
 # information.
-l_sql_prefix=""
-export l_sql_prefix
+s_sql_prefix=""
+export s_sql_prefix
 
 EOT
 
@@ -82,9 +92,7 @@ EOT
 And, source this and the SSL sysconfig files.
 
 ```bash
-. ${f_ssl_sysconfig}
-
-. ${f_ds_sysconfig}
+. ${df_ds_sysconfig}
  
 ```
 
@@ -105,10 +113,10 @@ When 389DS is configured for SSL, it will look in the PIN file for the password 
 
 
 ```bash
- echo "Internal (Software) Token:$(cat ${f_dsadmin_passphrase})" > ${f_ds_pinfile}
+ echo "Internal (Software) Token:$(cat ${df_dsadmin_passphrase})" > ${df_ds_pinfile}
 
-chown nobody:nobody ${f_ds_pinfile}
-chmod 0400 ${f_ds_pinfile}
+chown nobody:nobody ${df_ds_pinfile}
+chmod 0400 ${df_ds_pinfile}
 
 ```
 
@@ -122,12 +130,12 @@ PKCS12 certificates incorporate keys and certificates into a single file. Since 
 ```bash
 openssl pkcs12 \
 -export \
--in ${f_host_cert} \
--inkey ${f_host_key} \
--passin pass:$(cat ${f_host_passphrase}) \
--name "${l_ds_cert_name}" \
--passout file:${f_dsadmin_passphrase} \
--out ${f_host_p12}
+-in ${df_host_cert} \
+-inkey ${df_host_key} \
+-passin pass:$(cat ${df_host_passphrase}) \
+-name "${s_ds_cert_name}" \
+-passout file:${df_dsadmin_passphrase} \
+-out ${df_host_p12}
 
 ```
 
@@ -140,27 +148,27 @@ Create the database by adding the CA certificate. The `-f` switch is for a file 
 
 ```bash
  /usr/bin/certutil -A \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "${l_ca_name}" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "${s_ca_name}" \
 -t CT,C,C \
 -a \
--i ${f_ca_cert}
+-i ${df_ca_cert}
 
 ```
 
 Then, add the host certificate, with keys. For `pk12util`, the `-w` argument is the PKCS#12 file's passphrase and the `-k` argument is NSS database's passphrase. (I think. The document calls `-k` the "slot" password, but doesn't define what a "slot" is.)
 
 ```bash
-pk12util -i ${f_host_p12} \
--W $(cat ${f_dsadmin_passphrase}) \
--d ${l_sql_prefix}${d_nssdb} \
--K $(cat ${f_dsadmin_passphrase})
+pk12util -i ${df_host_p12} \
+-W $(cat ${df_dsadmin_passphrase}) \
+-d ${s_sql_prefix}${d_nssdb} \
+-K $(cat ${df_dsadmin_passphrase})
 
 certutil -M \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "${l_ds_cert_name}" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "${s_ds_cert_name}" \
 -t Pu,Pu,Pu \
 -5 sslClient \
 -5 sslServer
@@ -170,9 +178,9 @@ certutil -M \
 Validate that the keys and certificates, respectively, have been successfully entered into the database.
 
 ```bash
-certutil -K -d ${l_sql_prefix}${d_nssdb} -f ${f_dsadmin_passphrase}
+certutil -K -d ${s_sql_prefix}${d_nssdb} -f ${df_dsadmin_passphrase}
 
-certutil -L -d ${l_sql_prefix}${d_nssdb} -f ${f_dsadmin_passphrase}
+certutil -L -d ${s_sql_prefix}${d_nssdb} -f ${df_dsadmin_passphrase}
 
 ```
 
@@ -180,9 +188,9 @@ And verify the NSSDS is aware the host certificate has been signed by the CA cer
 
 ```bash
 certutil -V \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "${l_ds_cert_name}" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "${s_ds_cert_name}" \
 -e \
 -u V
 
@@ -203,8 +211,8 @@ In October of 2014, the [Poodlebleed Vulnerability][poodlebleed] in SSLv3 was an
 [config3]: https://access.redhat.com/documentation/en-US/Red_Hat_Directory_Server/9.0/html/Configuration_Command_and_File_Reference/Core_Server_Configuration_Reference.html#cnencryption-nsTLS1
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
+ ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
 dn: cn=config
 replace: nsslapd-security
 nsslapd-security: on
@@ -245,7 +253,7 @@ changetype: add
 objectclass: top
 objectclass: nsEncryptionModule
 cn: RSA
-nsSSLPersonalitySSL: ${l_ds_cert_name}
+nsSSLPersonalitySSL: ${s_ds_cert_name}
 nsSSLToken: internal (software)
 nsSSLActivation: on
 
@@ -263,8 +271,8 @@ Here are some additional configuration changes:
 
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
+ ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
 dn: cn=config
 replace: nsslapd-require-secure-binds
 nsslapd-require-secure-binds: on
@@ -306,10 +314,10 @@ sed --in-place \
 's%^URI.*%URI ldaps://localhost:636%' /etc/openldap/ldap.conf
 
 sed --in-place \
-"s%^BASE.*%BASE ${l_basedn}" /etc/openldap/ldap.conf
+"s%^BASE.*%BASE ${s_basedn}" /etc/openldap/ldap.conf
 
 sed --in-place \
-"s%^BINDDN.*%BINDDN \"${l_dirmgr}\"" /etc/openldap/ldap.conf
+"s%^BINDDN.*%BINDDN \"${s_dirmgr}\"" /etc/openldap/ldap.conf
 
 ```
 
@@ -319,9 +327,9 @@ Next, let's try a query. This command assumes we're on the same host, where the 
  ldapsearch \
 -v \
 -H ldaps://localhost:636 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=groups,${l_basedn}" \
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=groups,${s_basedn}" \
 -s sub
 
 ```
@@ -334,7 +342,7 @@ Did you get a list of the groups you created? Good!
 
 ## Configure the clients
 
-If you added a `userPassword` attribute to your test users, we're now ready to set up a client and attempt to log in. Copy the CA certificate used to create your LDAP server's host certificate to an appropriate place on the client. Using [`${f_ca_cert}`][SSL-02] gives you a common location on all hosts. Also, execute the `sed` commands above on the client if you haven't already done so. Then, execute this [`authconfig` command][authconfig] to configure your clients authentication profile. (`authconfig -h` also gives a good summary of all available arguments to the command.)
+If you added a `userPassword` attribute to your test users, we're now ready to set up a client and attempt to log in. Copy the CA certificate used to create your LDAP server's host certificate to an appropriate place on the client. Using [`${df_ca_cert}`][SSL-02] gives you a common location on all hosts. Also, execute the `sed` commands above on the client if you haven't already done so. Then, execute this [`authconfig` command][authconfig] to configure your clients authentication profile. (`authconfig -h` also gives a good summary of all available arguments to the command.)
 
 ```bash
  authconfig \
@@ -346,10 +354,10 @@ If you added a `userPassword` attribute to your test users, we're now ready to s
 --enableldap \
 --enableldapauth \
 --ldapserver=ldaps://localhost:636 \
---ldapbasedn=${l_basedn} \
+--ldapbasedn=${s_basedn} \
 --enableldaptls \
 --enablerfc2307bis \
---ldaploadcacert=file://${f_ca_cert} \
+--ldaploadcacert=file://${df_ca_cert} \
 --disablekrb5 \
 --disablewinbind \
 --disableipav2 \
@@ -373,7 +381,7 @@ sed  --in-place=.$(date +%Y%m%d) "%^\[domain/default]% a\
 ldap_default_bind_dn = cn=svcAuthenticator,ou=serviceAccounts,dc=localdomain" /etc/sssd/sssd.conf
 
 sed --in-place "%^ldap_default_bind_dn% a\
-ldap_default_authtok = $(cat ${f_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
+ldap_default_authtok = $(cat ${df_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
 
 ```
 
