@@ -39,7 +39,7 @@ First, let's add to the local SSL sysconfig file, and re-source it.
 df_ssl_sysconfig=/etc/sysconfig/local-ssl
 export df_ssl_sysconfig
 
-cat <<EOT >>${df_ssl_sysconfig}
+cat <<"EOSSL" >>${df_ssl_sysconfig}
 
 # The private key for a internal Certificate Authority running on
 # this host.
@@ -57,10 +57,10 @@ export d_ca
 # The -subj line for creating the CA certificate.
 s_ca_email="abuse@gmail.com"
 
-s_ca_cert_subj="/C=\${s_cert_country_code}/ST=\${s_cert_state}/L=\${s_cert_city}/CN=ca.\${s_domain}\/emailAddress=\${s_ca_email}/organizationName=\${s_domain}"
+s_ca_cert_subj="/C=${s_cert_country_code}/ST=${s_cert_state}/L=${s_cert_city}/CN=ca.${s_domain}\/emailAddress=${s_ca_email}/organizationName=${s_domain}"
 export s_ca_cert_subj
 
-EOT
+EOSSL
 
 
 . ${df_ssl_sysconfig}
