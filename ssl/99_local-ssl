@@ -30,3 +30,22 @@ export df_ca_cert
 df_host_p12=${d_cert_root}/$(hostname -s)_cert.p12
 export df_host_p12
 
+# The private key for a internal Certificate Authority running on
+# this host.
+df_ca_key=${d_root_ssl}/ca_key.pem
+export df_ca_key
+
+# The file holding the passphrase for the CA's private key.
+df_ca_passphrase=${d_root_ssl}/ca_passphrase.txt
+export df_ca_passphrase
+
+# The base directory for the internal Certificate Authority.
+d_ca=/etc/pki/CA
+export d_ca
+
+# The -subj line for creating the CA certificate.
+s_ca_email="abuse@gmail.com"
+
+s_ca_cert_subj="/C=${s_cert_country_code}/ST=${s_cert_state}/L=${s_cert_city}/CN=ca.${s_domain}\/emailAddress=${s_ca_email}/organizationName=${s_domain}"
+export s_ca_cert_subj
+

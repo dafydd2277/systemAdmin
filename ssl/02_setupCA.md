@@ -43,11 +43,11 @@ cat <<"EOSSL" >>${df_ssl_sysconfig}
 
 # The private key for a internal Certificate Authority running on
 # this host.
-df_ca_key=\${d_root_ssl}/ca_key.pem
+df_ca_key=${d_root_ssl}/ca_key.pem
 export df_ca_key
 
 # The file holding the passphrase for the CA's private key.
-df_ca_passphrase=\${d_root_ssl}/ca_passphrase.txt
+df_ca_passphrase=${d_root_ssl}/ca_passphrase.txt
 export df_ca_passphrase
 
 # The base directory for the internal Certificate Authority.

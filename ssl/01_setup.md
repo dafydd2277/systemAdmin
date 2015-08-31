@@ -97,9 +97,10 @@ export s_host_cert_subj
 EOSYSCONFIG
 ```
 
-([Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082] Also, in this particular case, `$(hostname)` might return and FQDN or might return a simple hostname. So, using `$(hostname -s).${s_domain} will get me a good answer in any case.)
+- [Why do I use dollar-parentheses instead of backticks in bash command expansion like `$(hostname -s)`?][faq082]
+-Also, in this particular case, `$(hostname)` might return and FQDN or might return a simple hostname. So, using `$(hostname -s).${s_domain} will get me a good answer in any case.
+- And, see [Example 19-6 of the bash guide at TLDP][bash196] for why I'm quoting my heredoc limit string.
 
-The backslashes in front of the dollar signs, here, mean the variable strings are going to be copied into the file without any attempts at substitution. The variables don't actually exist, yet! They won't until we actually source the sysconfig file. Let's do that next.
 
 ```bash
 . ${f_ssl_sysconfig}
@@ -193,5 +194,6 @@ Now, you can send off your Certificate Signing Request to an established and wel
 
  
 [faq082]: http://mywiki.wooledge.org/BashFAQ/082
+[bash196]: http://tldp.org/LDP/abs/html/here-docs.html
 [openssl_man]: https://www.openssl.org/docs/apps/openssl.html
 
