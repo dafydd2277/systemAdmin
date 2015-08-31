@@ -182,10 +182,10 @@ chmod 0400 ${df_ds_pinfile}
 /usr/bin/certutil -A \
 -d ${s_sql_prefix}${d_nssdb} \
 -f ${df_dsadmin_passphrase} \
--n "$s_ca_name" \
+-n "${s_ca_name}" \
 -t CT,C,C \
 -a \
--i $df_ca_cert
+-i ${df_ca_cert}
 
 /usr/bin/pk12util -i ${df_host_p12} \
 -w ${df_dsadmin_passphrase} \

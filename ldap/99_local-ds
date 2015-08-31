@@ -5,30 +5,30 @@
 d_389ds_root=/root/.389ds
 export d_389ds_root
 
-f_dsadmin_passphrase=${d_389ds_root}/dsadmin_passphrase.txt
-f_dirmgr_passphrase=${d_389ds_root}/dirmgr_passphrase.txt
-f_389ds_setup=${d_389ds_root}/setup-ds-admin.inf
+df_dsadmin_passphrase=${d_389ds_root}/dsadmin_passphrase.txt
+df_dirmgr_passphrase=${d_389ds_root}/dirmgr_passphrase.txt
+df_389ds_setup=${d_389ds_root}/setup-ds-admin.inf
 
-export f_dsadmin_passphrase f_dirmgr_passphrase f_389ds_setup
+export df_dsadmin_passphrase df_dirmgr_passphrase df_389ds_setup
 
-# Directory Server Instance Name: slapd-${l_instance}
-l_instance="ds01"
-l_basedn="dc=example,dc=com"
-l_domain="example.com"
-l_dirmgr="cn=Directory Manager"
+# Directory Server Instance Name: slapd-${s_instance}
+s_instance="ds01"
+s_basedn="dc=example,dc=com"
+s_domain="example.com"
+s_dirmgr="cn=Directory Manager"
 
-export l_instance l_basedn l_domain l_dirmgr
+export s_instance s_basedn s_domain s_dirmgr
 
 d_admin_etc=/etc/dirsrv/admin-serv
-d_instance_etc=/etc/dirsrv/slapd-${l_instance}
-d_instance_usr=/usr/lib64/dirsrv/slapd-${l_instance}
-d_instance_var=/var/lib/dirsrv/slapd-${l_instance}
+d_instance_etc=/etc/dirsrv/slapd-${s_instance}
+d_instance_usr=/usr/lib64/dirsrv/slapd-${s_instance}
+d_instance_var=/var/lib/dirsrv/slapd-${s_instance}
 
 export d_admin_etc d_instance_etc d_instance_usr d_instance_var
 
-l_ca_name="CA certificate"
-l_ds_cert_name="Domain Server certificate"
-export l_ca_name l_ds_cert_name
+s_ca_name="CA certificate"
+s_ds_cert_name="Domain Server certificate"
+export s_ca_name s_ds_cert_name
 
 
 # The location of the NSS database
@@ -37,30 +37,30 @@ export d_nssdb
 
 # The passphrase location for DS SSL startup. It must be in the instance etc
 # directory.
-f_ds_pinfile=${d_nssdb}/pin.txt
-export f_ds_pinfile
+df_ds_pinfile=${d_nssdb}/pin.txt
+export df_ds_pinfile
 
 # NSS database format.
 # Modern versions of NSS support SQLite databases. To set NSS up to use
-# SQLite, set l_sql_prefix="sql:". However, 389-DS is not yet configured to use
+# SQLite, set s_sql_prefix="sql:". However, 389-DS is not yet configured to use
 # an SQLite database. See https://fedorahosted.org/389/ticket/47681 for more
 # information.
-l_sql_prefix=""
-export l_sql_prefix
-
-l_cn=jdoe
-l_sn=Doe
-l_givenName=John
-l_uidNumber=5001
-l_gidNumber=5001
-l_homeDirectory=/home/users/${l_cn}
-l_loginShell="/bin/bash"
-export l_cn l_sn l_givenName l_uidNumber l_gidNumber l_loginShell
+s_sql_prefix=""
+export s_sql_prefix
 
 
-f_svcAuthenticator_passphrase=/root/.389ds/svcAuthenticator_passphrase.txt
-export f_svcAuthenticator_passphrase
+df_svcAuthenticator_passphrase=/root/.389ds/svcAuthenticator_passphrase.txt
+export df_svcAuthenticator_passphrase
 
-f_svcSUDO_passphrase=/root/.389ds/svcSUDO_passphrase.txt
-export f_svcSUDO_passphrase
+df_svcSUDO_passphrase=/root/.389ds/svcSUDO_passphrase.txt
+export df_svcSUDO_passphrase
+
+s_cn=jdoe
+s_sn=Doe
+s_givenName=John
+s_uidNumber=5001
+s_gidNumber=5001
+s_homeDirectory=/home/users/${s_cn}
+s_loginShell="/bin/bash"
+export s_cn s_sn s_givenName s_uidNumber s_gidNumber s_loginShell
 
