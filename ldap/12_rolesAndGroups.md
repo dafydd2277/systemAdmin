@@ -59,10 +59,10 @@ For the most part, you may take blank lines in the code blocks as separators for
 First, let's export our configuration variables.
 
 ```bash
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ds_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
 
-. ${f_ds_sysconfig}
+. ${df_ds_sysconfig}
 
 ```
 
@@ -72,7 +72,7 @@ export f_ds_sysconfig
 What do we want to set our ACL for? We're trying to create a "user" for PAM on the clients to use to Authenticate and Authorize users. Additionally, PAM can change password and other settings on behalf of those users. So, the authentication user needs significant access to `ou=users` and `ou=groups`, but not much access elsewhere. Let's try this:
 
 ```bash
-aci: (target="ldap:///ou=users,${l_basedn}")(version 3.0; acl "userAuth"; allow (read,write,search,compare)    )
+aci: (target="ldap:///ou=users,${s_basedn}")(version 3.0; acl "userAuth"; allow (read,write,search,compare)    )
 ```
 
 ## Adding the roles OU.
@@ -81,14 +81,14 @@ Now, create the container OU and our Authentication/Authorization role, as per [
 
 ```bash
  ldapmodify -x -H ldap://localhost:389 -c -D "cn=Directory Manager" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=roles,${l_basedn}
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: ou=roles,${s_basedn}
 changetype: add
 objectClass: top
 objectClass: organizationalUnit
 ou=roles
 
-dn: cn=pamAuthenticator,ou=roles,${l_basedn}
+dn: cn=pamAuthenticator,ou=roles,${s_basedn}
 changetype: add
 objectclass: top
 objectclass: LdapSubEntry
@@ -113,15 +113,15 @@ Now, let's add a new OU for service accounts and a specific Authentication/Autho
 
 ```bash
  ldapmodify -x -H ldap://localhost:389 -c -D "cn=Directory Manager" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=serviceAccounts,${l_basedn}
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: top
 objectClass: organizationalUnit
 ou=serviceAccounts
 description: Container for no-login service accounts.
 
-dn: cn=Authenticator,ou=serviceAccounts,${l_basedn}
+dn: cn=Authenticator,ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: person
 objectClass: organizationalPerson
@@ -129,7 +129,7 @@ objectClass: inetorgperson
 objectClass: inetUser
 cn=Authenticator
 description: Service account for LDAP/KRB5 Authentication and Authorization.
-nsRoleDN: cn=pamAuthenticator,ou=roles,${l_basedn}
+nsRoleDN: cn=pamAuthenticator,ou=roles,${s_basedn}
 userPassword: ${SVC_AUTH_PASSWORD}
 
 EOT

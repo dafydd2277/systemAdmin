@@ -32,9 +32,9 @@ For the most part, you may take blank lines in the code blocks as separators for
 We going to be referring to the 389 DS local configuration throughout these steps. So, let's make the reference general:
 
 ```bash
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ds_sysconfig
-. ${f_ds_sysconfig}
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
+. ${df_ds_sysconfig}
 
 ```
 
@@ -49,8 +49,8 @@ Before we change the setting, let's see what they look like "out of the box."
  ldapsearch \
 -v \
 -H ldap://localhost:389 \
--D "${l_dirmgr}" \
--y ${f_dirmgr_passphrase} \
+-D "${s_dirmgr}" \
+-y ${df_dirmgr_passphrase} \
 -b "cn=MemberOf Plugin,cn=plugins,cn=config"
 
 ```
@@ -58,8 +58,8 @@ Before we change the setting, let's see what they look like "out of the box."
 Now, let's make the change and check again.
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--y ${f_dirmgr_passphrase} <<EOT
+ ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
+-y ${df_dirmgr_passphrase} <<EOT
 dn: cn=MemberOf Plugin,cn=plugins,cn=config
 changetype: modify
 replace: nsslapd-pluginEnabled
@@ -77,8 +77,8 @@ EOT
  ldapsearch \
 -v \
 -H ldap://localhost:389 \
--D "${l_dirmgr}" \
--y ${f_dirmgr_passphrase} \
+-D "${s_dirmgr}" \
+-y ${df_dirmgr_passphrase} \
 -b "cn=MemberOf Plugin,cn=plugins,cn=config"
 
 service dirsrv restart
@@ -90,9 +90,9 @@ So, the service is now running. However, any users already entered won't be upda
 ```bash
 ${d_instance_usr}/fixup-memberof.pl \
 -v \
--D "${l_dirmgr}" \
--j ${f_dirmgr_passphrase} \
--b ${l_basedn}
+-D "${s_dirmgr}" \
+-j ${df_dirmgr_passphrase} \
+-b ${s_basedn}
 
 ```
 

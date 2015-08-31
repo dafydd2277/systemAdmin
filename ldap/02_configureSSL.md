@@ -38,37 +38,40 @@ For the most part, you may take blank lines in the code blocks as separators for
 389-DS doesn't work with regular text certificates. It has been designed to function with a [Netscape Security Services][nss] database. To simplify importing keys into an NSS database, let's add some naming variables to our local sysconfig files.
 
 ```bash
+df_ssl_sysconfig=/etc/sysconfig/local-ssl
 df_ds_sysconfig=/etc/sysconfig/local-ds
-export df_ds_sysconfig
+export df_ssl_sysconfig df_ds_sysconfig
 
-cat <<EOT >>${df_ssl_sysconfig}
-
-# The CA certificate.
-df_ca_cert=${d_cert_root}/ca_cert.pem
-export df_ca_cert
+cat <<"EOSSL" >>${df_ssl_sysconfig}
 
 
 # PKCS12-formatted host certificate
 df_host_p12=${d_cert_root}/$(hostname -s)_cert.p12
 export df_host_p12
 
+# X.509 information for the host certificate.
+s_cert_country_code="US"
+s_cert_state="WA"
+s_cert_city="Vancouver"
+s_domain="localdomain"
+export s_cert_country_code s_cert_state s_cert_city s_domain
 
 s_ca_name="CA certificate"
 s_ds_cert_name="Domain Server certificate"
-s_ds_subj="CN=\${s_hostname_s}.\${s_domain},O=\${s_domain},L=\${s_cert_city},ST=\${s_cert_state},C=\${s_cert_country_code}"
+s_ds_subj="CN=${s_hostname_s}.${s_domain},O=${s_domain},L=${s_cert_city},ST=${s_cert_state},C=${s_cert_country_code}"
 export s_ca_name s_ds_cert_name s_ds_subj
 
+EOSSL
+
+cat <<"EODS" >>${df_ds_sysconfig}
+
 # The location of the NSS database
-d_nssdb=\${d_instance_etc}/nssdb
+d_nssdb=${d_instance_etc}/nssdb
 export d_nssdb
-
-EOT
-
-cat <<EOT >>${df_ds_sysconfig}
 
 # The passphrase location for DS SSL startup. It must be in the instance etc
 # directory.
-df_ds_pinfile=\${d_nssdb}/pin.txt
+df_ds_pinfile=${d_nssdb}/pin.txt
 export df_ds_pinfile
 
 # NSS database format.
@@ -79,7 +82,7 @@ export df_ds_pinfile
 s_sql_prefix=""
 export s_sql_prefix
 
-EOT
+EODS
 
 ```
 
@@ -208,7 +211,7 @@ In October of 2014, the [Poodlebleed Vulnerability][poodlebleed] in SSLv3 was an
 
 ```bash
  ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
 dn: cn=config
 replace: nsslapd-security
 nsslapd-security: on
@@ -233,15 +236,15 @@ nsSSL3Ciphers: -tls_rsa_export1024_with_rc4_56_sha,
  -rsa_rc4_56_sha,
  -tls_rsa_export1024_with_des_cbc_sha,
  -rsa_des_56_sha,
- +tls_rsa_aes_128_sha,
- +tls_dhe_dss_aes_128_sha,
- +tls_dhe_rsa_aes_128_sha,
+ -tls_rsa_aes_128_sha,
+ -tls_dhe_dss_rc4_128_sha,
  +tls_rsa_aes_256_sha,
  +rsa_aes_256_sha,
+ +tls_dhe_dss_aes_128_sha,
  +tls_dhe_dss_aes_256_sha,
+ +tls_dhe_rsa_aes_128_sha,
  +tls_dhe_rsa_aes_256_sha,
- +tls_dhe_dss_1024_rc4_sha,
- +tls_dhe_dss_rc4_128_sha
+ +tls_dhe_dss_1024_rc4_sha
 
 
 dn: cn=RSA,cn=encryption,cn=config
@@ -253,7 +256,7 @@ nsSSLPersonalitySSL: ${s_ds_cert_name}
 nsSSLToken: internal (software)
 nsSSLActivation: on
 
-EOT
+EOMODIFY
 
 ```
 
@@ -268,7 +271,7 @@ Here are some additional configuration changes:
 
 ```bash
  ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
 dn: cn=config
 replace: nsslapd-require-secure-binds
 nsslapd-require-secure-binds: on
@@ -281,7 +284,7 @@ nsslapd-securelistenhost: ${HOSTNAME}
 -
 replace: nsslapd-minssf
 nsslapd-minssf: 128
-EOT
+EOMODIFY
 ```
 
 
@@ -310,10 +313,10 @@ sed --in-place \
 's%^URI.*%URI ldaps://localhost:636%' /etc/openldap/ldap.conf
 
 sed --in-place \
-"s%^BASE.*%BASE ${s_basedn}" /etc/openldap/ldap.conf
+"s%^BASE.*%BASE ${s_basedn}%" /etc/openldap/ldap.conf
 
 sed --in-place \
-"s%^BINDDN.*%BINDDN \"${s_dirmgr}\"" /etc/openldap/ldap.conf
+"s%^BINDDN.*%BINDDN \"${s_dirmgr}\"%" /etc/openldap/ldap.conf
 
 ```
 

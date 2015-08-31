@@ -1,0 +1,44 @@
+# This is the complete set of local file and directory locations for SSL
+# elements.
+
+# Create a short hostname variable.
+s_hostname_s=$(hostname -s)
+
+# Secure directory
+d_root_ssl=/root/.ssl
+d_cert_root=/etc/pki/tls/certs
+export d_root_ssl
+
+# The host passphrase.
+df_host_passphrase=${d_root_ssl}/${s_hostname_s}_passphrase.txt
+export df_host_passphrase
+
+# The host key.
+df_host_key=${d_root_ssl}/${s_hostname_s}_key.pem
+export df_host_key
+
+# The host certificate file.
+df_host_cert=${d_cert_root}/${s_hostname_s}_cert.pem
+export df_host_cert
+
+# The CA certificate.
+df_ca_cert=${d_cert_root}/ca_cert.pem
+export df_ca_cert
+
+
+# PKCS12-formatted host certificate
+df_host_p12=${d_cert_root}/$(hostname -s)_cert.p12
+export df_host_p12
+
+# X.509 information for the host certificate.
+s_cert_country_code="US"
+s_cert_state="WA"
+s_cert_city="Vancouver"
+s_domain="localdomain"
+export s_cert_country_code s_cert_state s_cert_city s_domain
+
+s_ca_name="CA certificate"
+s_ds_cert_name="Domain Server certificate"
+s_ds_subj="CN=${s_hostname_s}.${s_domain},O=${s_domain},L=${s_cert_city},ST=${s_cert_state},C=${s_cert_country_code}"
+export s_ca_name s_ds_cert_name s_ds_subj
+

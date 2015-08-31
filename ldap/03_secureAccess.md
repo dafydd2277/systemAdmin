@@ -37,30 +37,30 @@ For the most part, you may take blank lines in the code blocks as separators for
 By default, 389-DS allows anonymous connections to search everything except [`cn=config`][cnconfig]. Passwords are not visible, but all other information on all users can be seen. This is still insecure. So, we need to turn it off. Before we do that, though, we need to create a user for SSS or PAM to use for access. This access doesn't need to be privileged, since the services are accustomed to making anonymous connections. They're not going to need to see password entries, etc.
 
 ```bash
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ds_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
 
-cat <<EOT >>${f_ds_sysconfig}
+cat <<"EODS" >>${df_ds_sysconfig}
 
-f_svcAuthenticator_passphrase=${d_389ds_root}/svcAuthenticator_passphrase.txt
-export f_svcAuthenticator_passphrase
+df_svcAuthenticator_passphrase=${d_389ds_root}/svcAuthenticator_passphrase.txt
+export df_svcAuthenticator_passphrase
 
-EOT
+EODS
 
-. ${f_ds_sysconfig}
+. ${df_ds_sysconfig}
 
 tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_svcAuthenticator_passphrase}
-chown root:root ${f_svcAuthenticator_passphrase}
-chmod 0400 ${f_svcAuthenticator_passphrase}
+  > ${df_svcAuthenticator_passphrase}
+chown root:root ${df_svcAuthenticator_passphrase}
+chmod 0400 ${df_svcAuthenticator_passphrase}
 
 
- ldapmodify -v -H ldaps://localhost:636 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=serviceAccounts,${l_basedn}
+ ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
+dn: ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: organizationalUnit
 objectClass: top
@@ -68,23 +68,23 @@ ou: serviceAccounts
 description: Container for service accounts. Some will have shell access 
  (objectClass: posixUser), most won't.
 
-dn: cn=svcAuthenticator,ou=serviceAccounts,${l_basedn}
+dn: cn=svcAuthenticator,ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: top
 objectClass: person
 cn: svcAuthenticator
 sn: svcAuthenticator
-userPassword: $(cat ${f_svcAuthenticator_passphrase})
+userPassword: $(cat ${df_svcAuthenticator_passphrase})
 description: Service account to allow PAM/SSS to search the LDAP database.
-EOT
+EOMODIFY
 
 ```
 
 Next, let's [turn off anonymous access][noanon] and [turn on secure binding][securebind]. The latter requires that all connections be secure. This helps prevent password sniffing off of the network.
 
 ```bash
- ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
+ ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
 dn: cn=config
 changetype: modify
 replace: nsslapd-allow-anonymous-access
@@ -92,35 +92,35 @@ nsslapd-allow-anonymous-access: off
 -
 replace: nsslapd-require-secure-binds
 nsslapd-require-secure-binds: on
-EOT
+EOMODIFY
 
 ```
 
 Invoking this change to anonymity requires a reboot. So, let's do that next.
 
 ```bash
-service dirsrv restart ${l_instance}
+service dirsrv restart ${s_instance}
 ```
 
 The `authconfig` command we ran in [02_configureSSL.md][LDAP-02] is sufficient for this change. We do need to tell PAM and SSS about the new service account though. (If `/etc/pam_ldap.conf` doesn't exist, verify the `pam_ldap` RPM package is installed.)
 
 ```bash
-sed --in-place=.$(date +%Y%m%d) "s/^base.*/base ${l_basedn}/g" /etc/pam_ldap.conf
+sed --in-place=.$(date +%Y%m%d) "s/^base.*/base ${s_basedn}/g" /etc/pam_ldap.conf
 
 sed --in-place "/#binddn.*/ a\
-binddn cn=svcAuthenticator,ou=serviceAccounts,${l_basedn}" /etc/pam_ldap.conf
+binddn cn=svcAuthenticator,ou=serviceAccounts,${s_basedn}" /etc/pam_ldap.conf
 
 sed --in-place "/#bindpw.*/ a\
-bindpw $(cat ${f_svcAuthenticator_passphrase})" /etc/pam_ldap.conf
+bindpw $(cat ${df_svcAuthenticator_passphrase})" /etc/pam_ldap.conf
 
 chmod 640 /etc/pam_ldap.conf*
 
 sed --in-place=.$(date +%Y%m%d) "/; ldap_uri/\
 {s/.*/&\nldap_default_bind_dn = cn=svcAuthenticator,ou=serviceAccounts,\
-${l_basedn}/;:a;n;ba}" /etc/sssd/sssd.conf
+${s_basedn}/;:a;n;ba}" /etc/sssd/sssd.conf
 
 sed --in-place "/^ldap_default_bind_dn.*/ a\
-ldap_default_authtok = $(cat ${f_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
+ldap_default_authtok = $(cat ${df_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
 
 ```
 
@@ -145,8 +145,8 @@ Combining this with `nsslapd-require-secure-binds`, above, pretty much ensures t
 ```bash
  ldapmodify -H ldaps://localhost:636 \
 -v -c \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
 dn: cn=config
 changetype: modify
 replace: nsslapd-listenhost
@@ -157,7 +157,7 @@ nsslapd-securelistenhost: ${HOSTNAME}
 -
 replace: nsslapd-minssf
 nsslapd-minssf: 128
-EOT
+EOMODIFY
 
 ```
 

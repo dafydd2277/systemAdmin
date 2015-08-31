@@ -34,37 +34,37 @@ For the most part, you may take blank lines in the code blocks as separators for
 Let's start by giving `sudo` its own service account, like with did with `svcAuthenticator`.
 
 ```bash
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ds_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+export df_ds_sysconfig
 
-cat <<EOT >>${f_ds_sysconfig}
-f_svcSUDO_passphrase=${d_389ds_root}/svcSUDO_passphrase.txt
-export f_svcSUDO_passphrase
+cat <<"EODS" >>${df_ds_sysconfig}
+df_svcSUDO_passphrase=${d_389ds_root}/svcSUDO_passphrase.txt
+export df_svcSUDO_passphrase
 
-EOT
+EODS
 
-. ${f_ds_sysconfig}
+. ${df_ds_sysconfig}
 
 tr -dc A-Za-z0-9 </dev/urandom \
   | head -c 2048 \
   | sha1sum \
   | awk '{print $1}' \
-  > ${f_svcSUDO_passphrase}
-chown root:root ${f_svcSUDO_passphrase}
-chmod 0400 ${f_svcSUDO_passphrase}
+  > ${df_svcSUDO_passphrase}
+chown root:root ${df_svcSUDO_passphrase}
+chmod 0400 ${df_svcSUDO_passphrase}
 
 
- ldapmodify -v -H ldaps://localhost:636 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: cn=svcSUDO,ou=serviceAccounts,${l_basedn}
+ ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
+dn: cn=svcSUDO,ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: top
 objectClass: person
 cn: svcSUDO
 sn: svcSUDO
-userPassword: $(cat ${f_svcSUDO_passphrase})
+userPassword: $(cat ${df_svcSUDO_passphrase})
 description: Service account to allow SUDO to search the LDAP database.
-EOT
+EOMODIFY
 
 ```
 
@@ -74,10 +74,10 @@ EOT
 Create the containers.
 
 ```bash
-ldapmodify -v -x -h localhost -c -D "${l_dirmgr}" \
--y ${f_dirmgr_passphrase} <<EOT
+ ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOMODIFY
 
-dn: ou=SUDOers,${l_basedn}
+dn: ou=SUDOers,${s_basedn}
 changeType: add
 description: Container for sudoer privileges.
 objectClass: organizationalUnit
@@ -85,7 +85,7 @@ objectClass: top
 ou: SUDOers
 
 
-dn: cn=defaults,ou=SUDOers,${l_basedn}
+dn: cn=defaults,ou=SUDOers,${s_basedn}
 changeType: add
 cn: defaults
 description: Default sudoOptions
@@ -93,7 +93,7 @@ objectClass: sudoRole
 sudoOption: env_keep+=SSH_AUTH_SOCK
 
 
-dn: cn=wheel,ou=SUDOers,${l_basedn}
+dn: cn=wheel,ou=SUDOers,${s_basedn}
 changeType: add
 cn: wheel
 description: Members of group wheel have access to all privileges.
@@ -103,7 +103,7 @@ sudoCommand: ALL
 sudoHost: ALL
 sudoUser: %wheel
 
-EOT
+EOMODIFY
 
 ```
 
@@ -111,12 +111,11 @@ And verify the change.
 
 ```bash
  ldapsearch \
--Z \
 -v \
 -H ldaps://localhost:636 \
--D "${l_dirmgr}" \
--y ${f_dirmgr_passphrase} \
--b "ou=SUDOers,${l_basedn}" \
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=SUDOers,${s_basedn}" \
 -s sub
 
 ```
@@ -130,10 +129,10 @@ Configure `/etc/sudo-ldap.conf` to connect to the Directory Server. Don't forget
 
 ```bash
 sed --in-place=.$(date +%Y%m%d) "/^#binddn/ a\
-binddn cn=svcSUDO,ou=serviceAccounts,${l_basedn}" /etc/sudo-ldap.conf
+binddn cn=svcSUDO,ou=serviceAccounts,${s_basedn}" /etc/sudo-ldap.conf
 
 sed --in-place "/^#bindpw/ a\
-bindpw $(cat ${f_svcSUDO_passphrase})" /etc/sudo-ldap.conf
+bindpw $(cat ${df_svcSUDO_passphrase})" /etc/sudo-ldap.conf
 
 
 #sed --in-place "/^#tls_cacertfile / a\
@@ -146,7 +145,7 @@ sed --in-place '/^#uri / a\
 uri ldaps://localhost:636' /etc/sudo-ldap.conf
 
 sed --in-place "/^#sudoers_base / a\
-sudoers_base ou=SUDOers,${l_basedn}" /etc/sudo-ldap.conf
+sudoers_base ou=SUDOers,${s_basedn}" /etc/sudo-ldap.conf
 
 ```
 

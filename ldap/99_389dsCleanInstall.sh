@@ -5,17 +5,17 @@ set -x
 #
 # Here's where I put it all together. I run this script to dump my 389-ds
 # installation and reinstall it from scratch. I made one significant change not
-# recorded elsewhere in the documentation. In ${f_ds_sysconfig}, I added
+# recorded elsewhere in the documentation. In ${df_ds_sysconfig}, I added
 # these variables for my local lead user:
 #
-# l_cn=jdoe
-# l_sn=Doe
-# l_givenName=John
-# l_uidNumber=20001
-# l_gidNumber=20001
-# l_homeDirectory=/mnt/users/${l_cn}
-# l_loginShell="/bin/bash"
-# export l_cn l_sn l_givenName l_uidNumber l_gidNumber l_loginShell
+# s_cn=jdoe
+# s_sn=Doe
+# s_givenName=John
+# s_uidNumber=20001
+# s_gidNumber=20001
+# s_homeDirectory=/mnt/users/${s_cn}
+# s_loginShell="/bin/bash"
+# export s_cn s_sn s_givenName s_uidNumber s_gidNumber s_loginShell
 #
 # You'll find these variables referenced starting on line 193 of this script.
 #
@@ -34,12 +34,12 @@ then
   exit 1
 fi
 
-f_ds_sysconfig=/etc/sysconfig/local-ds
-f_ssl_sysconfig=/etc/sysconfig/local-ssl
-export f_ds_sysconfig f_ssl_sysconfig
+df_ds_sysconfig=/etc/sysconfig/local-ds
+df_ssl_sysconfig=/etc/sysconfig/local-ssl
+export df_ds_sysconfig df_ssl_sysconfig
 
-. ${f_ssl_sysconfig}
-. ${f_ds_sysconfig}
+. ${df_ssl_sysconfig}
+. ${df_ds_sysconfig}
 
 service dirsrv stop
 service dirsrv-admin stop
@@ -66,30 +66,30 @@ rm -rf /etc/dirsrv \
 yum -y install 389-ds
 
 
-/usr/sbin/setup-ds-admin.pl --file=${f_389ds_setup} --silent
+/usr/sbin/setup-ds-admin.pl --file=${df_389ds_setup} --silent
 
 
-ldapmodify -x -v -h localhost -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=Special Users,${l_basedn}
+ldapmodify -x -v -h localhost -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: ou=Special Users,${s_basedn}
 changetype: delete
 
-dn: cn=Accounting Managers,ou=Groups,${l_basedn}
+dn: cn=Accounting Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=HR Managers,ou=Groups,${l_basedn}
+dn: cn=HR Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=QA Managers,ou=Groups,${l_basedn}
+dn: cn=QA Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: cn=PD Managers,ou=Groups,${l_basedn}
+dn: cn=PD Managers,ou=Groups,${s_basedn}
 changetype: delete
 
-dn: ou=Groups,${l_basedn}
+dn: ou=Groups,${s_basedn}
 changetype: delete
 
-dn: ou=People,${l_basedn}
+dn: ou=People,${s_basedn}
 changetype: delete
 
 dn: cn=config
@@ -148,7 +148,7 @@ changetype: add
 objectclass: top
 objectclass: nsEncryptionModule
 cn: RSA
-nsSSLPersonalitySSL: ${l_ds_cert_name}
+nsSSLPersonalitySSL: ${s_ds_cert_name}
 nsSSLToken: internal (software)
 nsSSLActivation: on
 
@@ -174,40 +174,40 @@ EOT
 
 mkdir --mode 755 --parents ${d_nssdb}
 
-echo "Internal (Software) Token:$(cat ${f_dsadmin_passphrase})" > ${f_ds_pinfile}
+echo "Internal (Software) Token:$(cat ${df_dsadmin_passphrase})" > ${df_ds_pinfile}
 
-chown nobody:nobody ${f_ds_pinfile}
-chmod 0400 ${f_ds_pinfile}
+chown nobody:nobody ${df_ds_pinfile}
+chmod 0400 ${df_ds_pinfile}
 
 /usr/bin/certutil -A \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "$l_ca_name" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "$s_ca_name" \
 -t CT,C,C \
 -a \
--i $f_ca_cert
+-i $df_ca_cert
 
-/usr/bin/pk12util -i ${f_host_p12} \
--w ${f_dsadmin_passphrase} \
--d ${l_sql_prefix}${d_nssdb} \
--k ${f_dsadmin_passphrase}
+/usr/bin/pk12util -i ${df_host_p12} \
+-w ${df_dsadmin_passphrase} \
+-d ${s_sql_prefix}${d_nssdb} \
+-k ${df_dsadmin_passphrase}
 
 /usr/bin/certutil -M \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "${l_ds_cert_name}" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "${s_ds_cert_name}" \
 -t Pu,Pu,Pu \
 -5 sslClient \
 -5 sslServer
 
-/usr/bin/certutil -K -d ${l_sql_prefix}${d_nssdb} -f ${f_dsadmin_passphrase}
+/usr/bin/certutil -K -d ${s_sql_prefix}${d_nssdb} -f ${df_dsadmin_passphrase}
 
-/usr/bin/certutil -L -d ${l_sql_prefix}${d_nssdb} -f ${f_dsadmin_passphrase}
+/usr/bin/certutil -L -d ${s_sql_prefix}${d_nssdb} -f ${df_dsadmin_passphrase}
 
 /usr/bin/certutil -V \
--d ${l_sql_prefix}${d_nssdb} \
--f ${f_dsadmin_passphrase} \
--n "${l_ds_cert_name}" \
+-d ${s_sql_prefix}${d_nssdb} \
+-f ${df_dsadmin_passphrase} \
+-n "${s_ds_cert_name}" \
 -e \
 -u V
 
@@ -220,7 +220,7 @@ chown nobody:nobody ${d_nssdb}/*
 s_date=$(date +%Y%m%d)
 
 sed --in-place=.${s_date} "/^ldap_default_authtok/ c\
-ldap_default_authtok = $(cat ${f_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
+ldap_default_authtok = $(cat ${df_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
 
 sed --in-place=.${s_date} "/^TLS_CACERTDIR/ c\
 TLS_CACERTDIR /etc/pki/tls/certs" /etc/openldap/ldap.conf
@@ -229,13 +229,13 @@ sed --in-place "/^URI/ c\
 URI ldaps://localhost:636" /etc/openldap/ldap.conf
 
 sed --in-place "/^BASE/ c\
-BASE ${l_basedn}" /etc/openldap/ldap.conf
+BASE ${s_basedn}" /etc/openldap/ldap.conf
 
 sed --in-place=.${s_date} "/^binddn/ c\
 binddn cn=svcSUDO,ou=serviceAccounts,dc=localdomain" /etc/sudo-ldap.conf
 
 sed --in-place "/^bindpw/ c\
-bindpw $(cat ${f_svcSUDO_passphrase})" /etc/sudo-ldap.conf
+bindpw $(cat ${df_svcSUDO_passphrase})" /etc/sudo-ldap.conf
 
 sed --in-place "/^uri/ c\
 uri ldaps://localhost:636" /etc/sudo-ldap.conf
@@ -252,21 +252,21 @@ service dirsrv start
 
 # And make the actual working entries.
 
-ldapmodify -v -H ldaps://localhost:636 -c -D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) <<EOT
-dn: ou=users,${l_basedn}
+ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) <<EOT
+dn: ou=users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
 ou: users
 
-dn: ou=groups,${l_basedn}
+dn: ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
 ou: groups
 
-dn: cn=${l_cn},ou=users,${l_basedn}
+dn: cn=${s_cn},ou=users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: person
@@ -274,50 +274,50 @@ objectClass: organizationalPerson
 objectClass: inetorgperson
 objectClass: posixAccount
 objectClass: inetUser
-cn: ${l_cn}
-homeDirectory: ${l_homeDirectory}
-uid: ${l_cn}
-uidNumber: ${l_uidNumber}
-gidNumber: ${l_uidNumber}
-givenName: ${l_givenName}
-sn: ${l_sn}
-gecos: ${l_givenName} ${l_sn}
-displayName: ${l_givenName} ${l_sn}
-loginShell: ${l_loginShell}
+cn: ${s_cn}
+homeDirectory: ${s_homeDirectory}
+uid: ${s_cn}
+uidNumber: ${s_uidNumber}
+gidNumber: ${s_uidNumber}
+givenName: ${s_givenName}
+sn: ${s_sn}
+gecos: ${s_givenName} ${s_sn}
+displayName: ${s_givenName} ${s_sn}
+loginShell: ${s_loginShell}
 
-dn: cn=${l_cn},ou=groups,${l_basedn}
+dn: cn=${s_cn},ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
-cn: ${l_cn}
-gidNumber: ${l_uidNumber}
-member: cn=${l_cn},ou=users,${l_basedn}
+cn: ${s_cn}
+gidNumber: ${s_uidNumber}
+member: cn=${s_cn},ou=users,${s_basedn}
 
-dn: cn=wheel,ou=groups,${l_basedn}
+dn: cn=wheel,ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: wheel
 gidNumber: 10
-member: cn=${l_cn},ou=users,${l_basedn}
+member: cn=${s_cn},ou=users,${s_basedn}
 
-dn: cn=users,ou=groups,${l_basedn}
+dn: cn=users,ou=groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: users
 gidNumber: 100
-member: cn=${l_cn},ou=users,${l_basedn}
+member: cn=${s_cn},ou=users,${s_basedn}
 
 # Make our example user a Directory Administrator
 
-dn: cn=Directory Administrators,${l_basedn}
+dn: cn=Directory Administrators,${s_basedn}
 changetype: modify
 add: uniqueMember
-uniqueMember: cn=${l_cn},ou=users,${l_basedn}
+uniqueMember: cn=${s_cn},ou=users,${s_basedn}
 
 #
 
@@ -335,36 +335,36 @@ objectClass: top
 objectClass: person
 cn: svcAuthenticator
 sn: svcAuthenticator
-userPassword: $(cat ${f_svcAuthenticator_passphrase})
+userPassword: $(cat ${df_svcAuthenticator_passphrase})
 description: Service account to allow PAM/SSSD to search the LDAP database.
 
-dn: cn=svcSudo,ou=serviceAccounts,${l_basedn}
+dn: cn=svcSudo,ou=serviceAccounts,${s_basedn}
 changetype: add
 objectClass: top
 objectClass: person
 cn: svcSudo
 sn: svcSudo
-userPassword: $(cat ${f_svcSUDO_passphrase})
+userPassword: $(cat ${df_svcSUDO_passphrase})
 description: Service account to allow SUDO to search the LDAP database.
 
 
 #
 
-dn: ou=SUDOers,${l_basedn}
+dn: ou=SUDOers,${s_basedn}
 changeType: add
 description: Container for sudoer privileges.
 objectClass: organizationalUnit
 objectClass: top
 ou: SUDOers
 
-dn: cn=defaults,ou=SUDOers,${l_basedn}
+dn: cn=defaults,ou=SUDOers,${s_basedn}
 changeType: add
 cn: defaults
 description: Default sudoOptions
 objectClass: sudoRole
 sudoOption: env_keep+=SSH_AUTH_SOCK
 
-dn: cn=wheel,ou=SUDOers,${l_basedn}
+dn: cn=wheel,ou=SUDOers,${s_basedn}
 changeType: add
 cn: wheel
 description: Members of group wheel have access to all privileges.
@@ -378,22 +378,22 @@ EOT
 ldapsearch \
 -v \
 -H ldaps://localhost:636 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=users,${l_basedn}"
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=users,${s_basedn}"
 
 ldapsearch \
 -v \
 -H ldaps://localhost:636 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=Groups,${l_basedn}" \
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=Groups,${s_basedn}" \
 -s sub
 
 ldapsearch \
 -v \
 -H ldaps://localhost:636 \
--D "${l_dirmgr}" \
--w $(cat ${f_dirmgr_passphrase}) \
--b "ou=SUDOers,${l_basedn}"
+-D "${s_dirmgr}" \
+-w $(cat ${df_dirmgr_passphrase}) \
+-b "ou=SUDOers,${s_basedn}"
 

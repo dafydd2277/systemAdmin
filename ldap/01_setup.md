@@ -69,17 +69,17 @@ Create a sysconfig file to keep track of local customization. One item I'll poin
 df_ds_sysconfig=/etc/sysconfig/local-ds
 export df_ds_sysconfig
 
-cat <<EOT >${df_ds_sysconfig}
+cat <<"EODS" >${df_ds_sysconfig}
 d_389ds_root=/root/.389ds
 export d_389ds_root
 
-df_dsadmin_passphrase=\${d_389ds_root}/dsadmin_passphrase.txt
-df_dirmgr_passphrase=\${d_389ds_root}/dirmgr_passphrase.txt
-df_389ds_setup=\${d_389ds_root}/setup-ds-admin.inf
+df_dsadmin_passphrase=${d_389ds_root}/dsadmin_passphrase.txt
+df_dirmgr_passphrase=${d_389ds_root}/dirmgr_passphrase.txt
+df_389ds_setup=${d_389ds_root}/setup-ds-admin.inf
 
 export df_dsadmin_passphrase df_dirmgr_passphrase df_389ds_setup
 
-# Directory Server Instance Name: slapd-\${s_instance}
+# Directory Server Instance Name: slapd-${s_instance}
 s_instance="ds01"
 s_basedn="dc=example,dc=com"
 s_domain="example.com"
@@ -88,13 +88,13 @@ s_dirmgr="cn=Directory Manager"
 export s_instance s_basedn s_domain s_dirmgr
 
 d_admin_etc=/etc/dirsrv/admin-serv
-d_instance_etc=/etc/dirsrv/slapd-\${s_instance}
-d_instance_usr=/usr/lib64/dirsrv/slapd-\${s_instance}
-d_instance_var=/var/lib/dirsrv/slapd-\${s_instance}
+d_instance_etc=/etc/dirsrv/slapd-${s_instance}
+d_instance_usr=/usr/lib64/dirsrv/slapd-${s_instance}
+d_instance_var=/var/lib/dirsrv/slapd-${s_instance}
 
 export d_admin_etc d_instance_etc d_instance_usr d_instance_var
 
-EOT
+EODS
 
 ```
 
