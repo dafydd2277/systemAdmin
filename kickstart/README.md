@@ -2,7 +2,7 @@ This is a set of kickstart files that present a hardened system on completion.
 
 I'm working a little bit from [Red Hat Government's github repository][1], and a lot from the [Defense Information Systems Agency (DISA) Security Technical Implementation Guides (STIG)][2].
 
-The CentOS 6 kickstart is functional. However, several items can't be fixed through a generic kickstart script, like having log and audit records transmitted to a remote server. Also, some of the tests appear to look for specific audit rule strings. They don't catch the combinations I set up using the recommendations from the [audit.rules(7)][3] man page, which suggests combining syscall elements into as few rules as practicable.
+The CentOS 5 and 6 kickstart is functional. However, several items can't be fixed through a generic kickstart script, like having log and audit records transmitted to a remote server. Also, some of the tests appear to look for specific audit rule strings. They don't catch the combinations I set up using the recommendations from the [audit.rules(7)][3] man page, which suggests combining syscall elements into as few rules as practicable.
 
 I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
@@ -10,10 +10,10 @@ I'll do one for CentOS 7 as soon as the DISA STIG is released.
 [2]: http://iase.disa.mil/stigs/Pages/index.aspx
 [3]: http://linux.die.net/man/7/audit.rules
 
-## Other Security Enhancements
+## Other Security Enhancements for CentOS 5 and 6
 
-- While not specific to DISA STIG, the [FIPS 140-2 Standard][12] is written in.
-- The main [avahi][11] package is added to the `%packages` list for explicit removal. It was not actually installed in my test case, but including the daemon opens a vulnerability vector. Most environments don't need it, so leave it out.
+- While not specific to DISA STIG, the [FIPS 140-2 Standard][22] is written in.
+- In CentOS 5, `avahi-daemon` must be installed to satisfy dependencies. So, all we can do is turn it off in the `%post` script. In CentOS 6, `avahi-libs` got split into their own package. So, the main [avahi][11] package is added to the `%packages` list for explicit removal. Not having a package installed is better than having to remember to make sure its not running. 
 
 [11]: http://www.avahi.org
 
@@ -22,14 +22,16 @@ I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
 ### Red Hat Documentation
 
-[Red Hat 6 Installation Guide - Kickstart Installations][21]
+[Red Hat 5 Installation Guide - Kickstart Installations][21]
 
-[Red Hat 6 Security Guide - Federal Information Processing Standard (FIPS)][22]
+[Red Hat 6 Installation Guide - Kickstart Installations][22]
+
+[Red Hat 6 Security Guide - Federal Information Processing Standard (FIPS)][23]
 
 
-
-[21]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/ch-kickstart2.html
-[22]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Security_Guide/sect-Security_Guide-Federal_Standards_And_Regulations-Federal_Information_Processing_Standard.html
+[21]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/5/html/Installation_Guide/ch-kickstart2.html
+[22]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Installation_Guide/ch-kickstart2.html
+[23]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Security_Guide/sect-Security_Guide-Federal_Standards_And_Regulations-Federal_Information_Processing_Standard.html
 
 ### Others
 
