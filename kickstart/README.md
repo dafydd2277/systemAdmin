@@ -10,12 +10,19 @@ I'll do one for CentOS 7 as soon as the DISA STIG is released.
 [2]: http://iase.disa.mil/stigs/Pages/index.aspx
 [3]: http://linux.die.net/man/7/audit.rules
 
-## Other Security Enhancements for CentOS 5 and 6
+## Notes about the CentOS 5 kickstart.
 
-- While not specific to DISA STIG, the [FIPS 140-2 Standard][22] is written in.
+- I did this one after the CentOS 6 kickstart, and it was much harder. The STIG descriptions are woefully inspecific. Several of the fixes had to be inserted from the [Aqueduct project][12], and even then some of the scripts won't result in passing tests.
+- As with the CentOS 6 kickstart script, several of the audit rules meet the rules, but don't pass the tests as set by the OVAL test standards.
 - In CentOS 5, `avahi-daemon` must be installed to satisfy dependencies. So, all we can do is turn it off in the `%post` script. In CentOS 6, `avahi-libs` got split into their own package. So, the main [avahi][11] package is added to the `%packages` list for explicit removal. Not having a package installed is better than having to remember to make sure its not running. 
 
+
+## Notes about the CentOS 6 kickstart.
+
+- While not specific to DISA STIG, the [FIPS 140-2 Standard][22] is written in.
+
 [11]: http://www.avahi.org
+[12]: https://fedorahosted.org/aqueduct/
 
 
 ## References
