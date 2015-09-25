@@ -301,3 +301,5 @@ ${e_echo} "Save tables."
 ${e_service} iptables save
 ${e_service} ip6tables save
 
+${e_iptables} -L -v -n --line-numbers
+
