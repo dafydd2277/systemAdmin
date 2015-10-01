@@ -1,5 +1,12 @@
 # Setting up Kerberos 5 for Authentication.
 
+2015-09-30: I'll leave my previous notes below, as they turned out to be a spectacular failure. For the moment, I'm working through [ashrithr's notes][ashrithr] on [GitHub Gist][ggist].
+
+[ashrithr]: https://gist.github.com/ashrithr/4767927948eca70845db
+[ggist]: https://gist.github.com/
+
+* * *
+
 This turned out to be absurdly easy. Just follow the instructions for [Configuring a Kerberos 5 Server][krb5server]. The few hints I have to share with you are more in the nature of customizing `/etc/krb5.conf` and `/var/kerberos/krb5kdc/kdc.conf`.
  
 This is written in [Github-flavored Markdown][gmd]. For the most part, you may take blank lines in the code blocks as separators for selecting lines to copy and paste. The significant exception is when I'm using [bash heredoc][heredoc] to create or add to a file. Then, you need to copy all the way to the `EOT` at the start of a line.
