@@ -19,10 +19,17 @@ I'll do one for CentOS 7 as soon as the DISA STIG is released.
 
 ## Notes about the CentOS 6 kickstart.
 
-- While not specific to DISA STIG, the [FIPS 140-2 Standard][22] is written in.
+- While not specific to DISA STIG, the [FIPS 140-2 Standard][22] is written in to the `hardened` kickstart.
+- As experimentation went on, I had to break pieces out. By the time I was done, I had these.
+- - A FIPS-only kickstart, to figure out why it was crashing my host.
+- - An audit-only kickstart, to figure out why that wasn't working.
+- - An "expanded" kickstart, to add in stuff that's good for security but isn't specific to the DISA STIG or FIPS 140-2. My future work will go in here.
+- - - This file also includes a change in philosophy, where configuration files are predefined, stored, and copied into place in the `%post` script. In an Enterprise environment, where you may have 3-10 different kickstart files, having common files simplifies management of all those files.
+- - - Additionally, [spacewalk][13] is designed to work with "snippets" like this. So, I'll have my environment already half assembled when I get around to my spacewalk installation.
 
 [11]: http://www.avahi.org
 [12]: https://fedorahosted.org/aqueduct/
+[12]: https://fedorahosted.org/spacewalk/
 
 
 ## References
