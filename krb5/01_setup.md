@@ -1,36 +1,28 @@
 # Setting up Kerberos 5 for Authentication.
 
-2015-09-30: I'll leave my previous notes below, as they turned out to be a spectacular failure. For the moment, I'm working through [ashrithr's notes][ashrithr] on [GitHub Gist][ggist].
 
-[ashrithr]: https://gist.github.com/ashrithr/4767927948eca70845db
-[ggist]: https://gist.github.com/
-
-* * *
-
-This turned out to be absurdly easy. Just follow the instructions for [Configuring a Kerberos 5 Server][krb5server]. The few hints I have to share with you are more in the nature of customizing `/etc/krb5.conf` and `/var/kerberos/krb5kdc/kdc.conf`.
+I set up my Kerberos environment by following [ashrithr's notes][ashrithr] on [GitHub Gist][ggist]. The few hints I have to share with you are more in the nature of customizing `/etc/krb5.conf` and `/var/kerberos/krb5kdc/kdc.conf`.
  
 This is written in [Github-flavored Markdown][gmd]. For the most part, you may take blank lines in the code blocks as separators for selecting lines to copy and paste. The significant exception is when I'm using [bash heredoc][heredoc] to create or add to a file. Then, you need to copy all the way to the `EOT` at the start of a line.
 
-[krb5server]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Managing_Smart_Cards/Configuring_a_Kerberos_5_Server.html
+[ashrithr]: https://gist.github.com/ashrithr/4767927948eca70845db
+[ggist]: https://gist.github.com/
 [gmd]: https://help.github.com/articles/github-flavored-markdown
 [heredoc]: http://www.tldp.org/LDP/abs/html/here-docs.html
 
+
 ## Prerequisites
 
-I'm assuming you've configured [SSL][ssldir] and [LDAP][ldapdir] for Authentication/Authorization more or less as I outlined. Kerberos doesn't have to be (and shouldn't be) on the same server as your LDAP installation, but your clients will need to know both servers via `authconfig`. On the other hand, my test environment is on the same host, and I will be taking advantage of `${f_ssl_sysconfig}` and `${f_ds_sysconfig}`.
+A Kerberos server requires a good common clock. So, [NTP][] is required. Additionally, I'm assuming you've configured [SSL][ssldir] and [LDAP][ldapdir] for Authentication/Authorization more or less as I outlined, and that this Kerberos server has a signed TLS certificate.  For better security, Kerberos shouldn't be on the same server as your LDAP installation.
 
+[NTP]: https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/ch-Configuring_NTP_Using_the_chrony_Suite.html
 [ssldir]: https://github.com/dafydd2277/systemAdmin/tree/master/ssl
 [ldapdir]: https://github.com/dafydd2277/systemAdmin/tree/master/ldap
+
 
 ## Set up your references
 
 ```bash
-f_ssl_sysconfig=/etc/sysconfig/local-ssl
-f_ds_sysconfig=/etc/sysconfig/local-ds
-export f_ssl_sysconfig f_ds_sysconfig
-
-. ${f_ssl_sysconfig}
-. ${f_ds_sysconfig}
 
 
 f_krb5_sysconfig=/etc/sysconfig/local-krb5
@@ -70,43 +62,39 @@ yum -y install krb5-libs krb5-server krb5-workstation
 
 ## Edit the configuration files.
 
-I did my editing by hand. Here are some `sed` commands that amount to the same things. The backslashes allow for using spaces to indent the start of lines, so the changes look like the original files.
+I did my editing by hand. Here is a `patch` command that amounts to the same thing.
 
 ```bash
-s_domain_caps=$(echo ${l_domain} | tr [:lower:] [:upper:])
-f_krbconf=/etc/krb5.conf
-f_kdcconf=/var/kerberos/krb5kdc/kdc.conf
+df_krbconf=/etc/krb5.conf
+df_kdcconf=/var/kerberos/krb5kdc/kdc.conf
 d_kdclog=/var/log/krb5kdc
 f_kdclog=kdc.log
 f_kadminlog=kadmin.log
-export f_kdcconf d_kdclog f_kdclog f_kadminlog
-export s_domain_caps f_krbconf
 
-s_hostname=${hostname -s)
+s_domain=$(hostname -d)
+s_domain_caps=$(echo ${s_domain} | tr [:lower:] [:upper:])
+s_hostname=$(hostname -s)
 
-sed --in-place=.orig "s%^ kdc = FILE.*% kdc = FILE:${d_kdclog}/${f_kdclog}%" \
-  ${f_krbconf}
+export df_krbconf df_kdcconf d_kdclog f_kdclog f_kadminlog
+export s_domain s_domain_caps s_hostname
 
-sed --in-place "s%^ kadmin = FILE.*% kadmin = FILE:${d_kdclog}/${f_kadminlog}%" \
-  ${f_krbconf}
 
-sed --in-place "/^ default_realm/ c\
-\ default_realm = ${s_domain_caps}" ${f_krbconf}
+cp ${df_krbconf} ${df_krbconf}.orig
 
-sed --in-place "/^ EXAMPLE\.COM/ c\
-\ ${s_domain_caps} = {" ${f_krbconf}
-
-sed --in-place "/^  kdc/ c\
-\  kdc = ${s_hostname}.${l_domain}" ${f_krbconf}
-
-sed --in-place "/^  admin_server/ c\
-\  admin_server = ${s_hostname}.${l_domain}" ${f_krbconf}
-
-sed --in-place "/^\ .example\.com/ c\
-\ .${l_domain} = ${s_domain_caps}" ${f_krbconf}
-
-sed --in-place "/^ example\.com/ c\
-\ ${l_domain} = ${s_domain_caps}" ${f_krbconf}
+patch <<EOKRB ${df_krbconf}
+7a8
+>  dns_lookup_kdc = false
+12a14
+>  default_realm = ${s_domain_caps}
+19a22,25
+> ${s_domain_caps} = {
+>   kdc = ${s_hostname}.${s_domain}
+>   admin_server = ${s_hostname}.${s_domain}
+> }
+23a30,31
+>  .${s_domain} = ${s_domain_caps}
+>  ${s_domain} = ${s_domain_caps}
+EOKRB
 
 ```
 
@@ -115,39 +103,17 @@ sed --in-place "/^ example\.com/ c\
 And, here are the changes for `/var/kerberos/krb5kdc/kdc.conf`. In krb5-server 1.10.3-33, the `master_key_type` is `aes256-cts` which is plenty for my purposes. You'll want to avoid weaker algorithms. [The Kerberos page on encryption types][krb5enctypes] has a full explanation. Similarly, I will modify `supported-enctypes` to leave out all the weaker ones. (As I outline [here][superuser], using the `aes` encryption family generates an error with this version of Kerberos.) Finally, add in a logging section.
 
 ```bash
-
-
-sed --in-place=.orig "/^ EXAMPLE\.COM/ c\
-\ ${s_domain_caps} = {" ${f_kdcconf}
-
-sed --in-place "s/^  #master_key_type/  master_key_type/" ${f_kdcconf}
-
-sed --in-place "/^  supported_enctypes/ c\
-\    supported_enctypes = aes256-cts:special aes256-cts:normal aes128-cts:special aes128-cts:normal des3:special des3:normal" \
-${f_kdcconf}
-
-cat <<EOT >>${f_kdcconf}
-
-[logging]
- kdc = FILE:${d_kdclog}/${f_kdclog}
- admin_server = FILE:${d_kdclog}/${f_kadminlog}
-
-EOT
-
-```
-
-
-Then, since we're messing about with the log file settings, let's go tell `logrotate` where those files are, instead of the default location:
-
-```bash
-sed --in-place=.orig "1 s%.*%${d_kdclog}/${f_kdclog} {%" /etc/logrotate.d/krb5kdc
-
-sed --in-place=.orig "1 s%.*%${d_kdclog}/${f_kadminlog} {%" /etc/logrotate.d/kadmind
-
-mkdir --mode 750 --parents ${d_kdclog}
-touch ${d_kdclog}/${f_kdclog} ${d_kdclog}/${f_kadminlog}
-chown -R root:root ${d_kdclog}
-chmod 600 ${d_kdclog}/*
+patch <<EOKDC ${df_kdcconf}
+13a14,22
+> 
+>  ${s_domain_caps}  = {
+>   master_key_type = aes256-cts
+>   acl_file = /var/kerberos/krb5kdc/kadm5.acl
+>   dict_file = /usr/share/dict/words
+>   admin_keytab = /var/kerberos/krb5kdc/kadm5.keytab
+>   supported_enctypes = aes256-cts:normal aes128-cts:normal des3-hmac-sha1:normal arcfour-hmac:normal camellia256-cts:normal camellia128-cts:normal des-hmac-sha1:normal
+>  }
+> 
 
 ```
 
@@ -161,33 +127,43 @@ chmod 600 ${d_kdclog}/*
 Use the Master Key passphrase we created earlier. Copy and paste it when the create command asks for it.
 
 ```bash
+echo -e "*/admin@${s_domain_caps}\t*" >/var/kerberos/krb5kdc/kadm5.acl
+
 cat ${f_masterkey_passphrase}
 
-/usr/sbin/kdb5_util create -s
+/usr/sbin/kdb5_util create -r ${s_domain_caps} -s
 
-sed --in-place=.orig "s/EXAMPLE\.COM/${s_domain_caps}/" /var/kerberos/krb5kdc/kadm5.acl
 
 ```
 
-Have a password ready for your admin user. You can use the value of `${l_cn}` from your 389-DS configuration, or use root.
+Have a password ready for your admin user. You can use the value of `${l_cn}` from your 389-DS configuration, or use `root`.
 
 ```bash
 /usr/sbin/kadmin.local -q "addprinc ${l_cn}/admin"
 
 ```
 
-Than, start the services.
+Than, start the services,...
 
 ```bash
-service krb5kdc start
-service kadmin start
+systemctl start krb5kdc.service
+systemctl start kadmin.service
+systemctl enable krb5kdc.service
+systemctl enable kadmin.service
+
+```
+
+... and add a key for your server.
+
+```bash
+kadmin.local -q "addprinc -randkey ${s_hostname}/${s_domain}
 
 ```
 
 Finally, add your first regular user. This might also be your admin user. Again, be prepared to provide the administrator password and a password for the new user.
 
 ```bash
-kadmin -p ${l_cn}/admin -q "addprinc ${l_cn}"
+kadmin -p root/admin -q "addprinc <user>"
 
 ```
 
