@@ -4,17 +4,16 @@
 
 ### Reference
 
-- [Linuxgeek page][https://www.linux-geex.com/centos-7-how-to-setup-your-encrypted-filesystem-in-less-than-15-minutes/]
-- [Geekswing page][http://geekswing.com/geek/how-to-encrypt-a-filesystem-on-redhat-6-4centos-6-4-linux-fips-or-no-fips/]
+- [Linuxgeek page](https://www.linux-geex.com/centos-7-how-to-setup-your-encrypted-filesystem-in-less-than-15-minutes/)
+- [Geekswing page](http://geekswing.com/geek/how-to-encrypt-a-filesystem-on-redhat-6-4centos-6-4-linux-fips-or-no-fips/)
 
 
 ### Commands
 
 - Don't be afraid of `man` pages! I'm just giving the LVM creation commands a lick and a promise here, because I use them all the time. If you're not familiar, look them up and let me know what you'd like to see expanded here.
-- - The really oddball bit, here, is that I'm mirroring my logical volume across two devices. That's definitely worth a perusal of `[lvcreate(1M)][lvcreate]`. Particularly, you need to specify which Physical Volumes get the mirrors.
+- - The really oddball bit, here, is that I'm mirroring my logical volume across two devices. That's definitely worth a perusal of `[lvcreate(1M)](http://linux.die.net/man/8/lvcreate)`. Particularly, you need to specify which Physical Volumes get the mirrors.
 - One thing I noticed the first time I tried this is that the `shred` command also has a `--zero` option to write zeroes after it's done shredding the doc. Don't use that. Part of the point of using shred is that you have a bunch of random bytes before and after the looks-random-but-isn't LUKS filesystems.
 
-[lvcreate]: http://linux.die.net/man/8/lvcreate
 
 Create the Logical Volume first.
 
