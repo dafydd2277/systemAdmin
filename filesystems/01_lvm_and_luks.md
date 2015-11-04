@@ -57,7 +57,7 @@ cryptsetup luksOpen \
   /dev/${s_vg_name}/${s_mount_name}.enc \
   ${s_mount_name}
 
-mkfs.ext4 /dev/mapper/${s_mount_name}
+mkfs.xfs /dev/mapper/${s_mount_name}
 ```
 
 
