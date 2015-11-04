@@ -91,11 +91,17 @@ Now, how about automating the mount? This is a vulnerability, so DO NOT DO THIS 
 First, add a keyfile as a key for your filesystem, and add that keyfile as a valid key for the filesystem.
 
 ```
-mkdir --parents --mode 700 /root/.secret
+d_keydir=/root/.secret
+df_keyfile=${d_keydir}/keyfile
 
-dd if=/dev/urandom of=/root/.secret/keyfile bs=1024 count=4
+mkdir --parents --mode 700 ${d_keydir}
 
-cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc /root/.secret/keyfile
+dd if=/dev/urandom of=${df_keyfile} bs=1024 count=4
+
+chmod 400 ${df_keyfile}
+
+
+cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc ${df_keyfile}
 ```
 
 You'll be asked to enter the original key to verify your authority to do this.
