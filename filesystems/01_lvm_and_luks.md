@@ -71,7 +71,7 @@ EOCRYPTO
 
 s_mountpoint=<mountpoint on the root filesystem>
 cat <<EOFSTAB >>/etc/fstab
-/dev/mapper/${s_mount_name}  /${s_mountpoint}  ext4  noauto,defaults 1 2
+/dev/mapper/${s_mount_name}  /${s_mountpoint}  xfs  noauto,nodev,nosuid,defaults 1 2
 
 EOFSTAB
 ```
