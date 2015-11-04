@@ -118,7 +118,7 @@ ${s_mount_name} UUID="${s_uuid}" ${df_keyfile}
 EOCRYPT
 ```
 
-(Don't forget to edit /etc/crypttab to remove the manual mount line.)
+(Don't forget to edit /etc/crypttab to remove the manual mount line, and remove the "`notauto`" from the entry in /etc/fstab.)
 
 Reboot the host and verify that the filesystem gets correctly mounted at boot time.
 
