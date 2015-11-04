@@ -111,7 +111,7 @@ Now, identify the Block ID of your encrypted LV (${s_mount_name}.enc), and creat
 ```
 blkid
 
-s_uuid=<UUID of the encrypted LV>
+s_uuid=< UUID of the encrypted LV, ${s_mount_name}.enc >
 
 cat <<EOCRYPT >>/etc/crypttab
 ${s_mount_name} UUID="${s_uuid}" ${df_keyfile}
