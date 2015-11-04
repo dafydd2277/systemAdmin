@@ -106,7 +106,7 @@ cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc ${df_keyfile}
 
 You'll be asked to enter the original key to verify your authority to do this.
 
-Now, identify the Block ID of your encrypted LV (${s_mount_name}.enc), and create an entry in `/etc/crypttab` for it.
+Now, identify the Block ID of your encrypted LV (`${s_mount_name}.enc`), and create an entry in `/etc/crypttab` for it.
 
 ```
 blkid
