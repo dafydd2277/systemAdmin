@@ -106,15 +106,19 @@ cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc ${df_keyfile}
 
 You'll be asked to enter the original key to verify your authority to do this.
 
-Now, identify the Block ID of your encrypted LV, and create an entry in `/etc/crypttab` for it.
+Now, identify the Block ID of your encrypted LV (${s_mount_name}.enc), and create an entry in `/etc/crypttab` for it.
 
 ```
 blkid
 
+s_uuid=<UUID of the encrypted LV>
+
 cat <<EOCRYPT >>/etc/crypttab
-${s_mount_name} UUID="<value>" /root/.secret/keyfile
+${s_mount_name} UUID="${s_uuid}" ${df_keyfile}
 EOCRYPT
 ```
+
+(Don't forget to edit /etc/crypttab to remove the manual mount line.)
 
 Reboot the host and verify that the filesystem gets correctly mounted at boot time.
 
