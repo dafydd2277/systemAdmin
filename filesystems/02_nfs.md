@@ -11,6 +11,7 @@ First, start the NFS server services. In CentOS6 it's two commands:
 
 ```
 service nfs start
+service nfs status
 
 ```
 
@@ -40,7 +41,7 @@ EOEXPORTS
 
 Once you have your `/etc/exports` file set, execute `exportfs -s` to see how [rpc.mountd][mountd8] will parse the entry (or entries). Redundant options don't really hurt, but I try to be tidy. Then, you can do `exportfs -a` to tell `rpc.mountd` to export everything in your `/etc/exports` file.
 
-Now, some philosophy: NFS used to have a vulnerability ([CVE-1999-0166][cve1999016], [SCIP 13797][scip13797]) where a System Administrator would export a subdirectory on a filesystem, without exporting the entire filesystem. An attacker could exploit this by mounting hte filesystem and changing directories up one level to the parent, which was supposed to be inaccessible. The bug has long been fixed, but the philosophy remains: if you're going to export something, only export whole filesystems. And, create a separate filesystem for every export. With LVM, creating filesystems at need is not terribly difficult, and may save you from some future vulnerability. The original bug did cross filesystem boundaries, but doing so is harder.
+Now, some philosophy: NFS used to have a vulnerability ([CVE-1999-0166][cve19990166], [SCIP 13797][scip13797]) where a System Administrator would export a subdirectory on a filesystem, without exporting the entire filesystem. An attacker could exploit this by mounting the filesystem and changing directories up one level to the parent, which was supposed to be inaccessible. The bug has long been fixed, but the philosophy remains: if you're going to export something, only export whole filesystems. And, create a separate filesystem for every export. With LVM, creating filesystems at need is not terribly difficult, and may save you from some future vulnerability. The original bug did cross filesystem boundaries, but doing so is harder.
 
 
 [exports5]: http://linux.die.net/man/5/exports
