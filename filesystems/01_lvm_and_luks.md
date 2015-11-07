@@ -37,10 +37,14 @@ lvcreate \
   --name ${s_mount_name}.enc \
   ${s_vg_name} \
   ${s_pv_devices}
+
+lvdisplay /dev/${s_vg_name}/${s_mount_name}.enc
+
 ```
 
+If you mirrored your logical volumes, check that the `Mirrored volumes` item in the output of `lvdisplay` is accurate.
 
-Then, write a bunch of random information to the LV, create a LUKS environment over the top of it, and make a filesystem.
+Next, write a bunch of random information to the LV, create a LUKS environment over the top of it, and make a filesystem.
 
 ```
 shred --verbose \
@@ -58,6 +62,7 @@ cryptsetup luksOpen \
   ${s_mount_name}
 
 mkfs.xfs /dev/mapper/${s_mount_name}
+
 ```
 
 
@@ -74,6 +79,7 @@ cat <<EOFSTAB >>/etc/fstab
 /dev/mapper/${s_mount_name}  /${s_mountpoint}  xfs  noauto,nodev,nosuid,defaults 1 2
 
 EOFSTAB
+
 ```
 
 
@@ -84,9 +90,10 @@ cryptsetup luksOpen \
   /dev/${s_vg_name}/${s_mount_name}.enc \
   ${s_mount_name}
 mount /${s_mountpoint}
+
 ```
 
-Now, how about automating the mount? This is a vulnerability, so DO NOT DO THIS if you really want to be secure. You will be leaving the password for this secured filesystem somewhere discoverable. If that password is found, your security is worthless.
+Now, how about automating the mount? This is a vulnerability, so *DO NOT DO THIS* if you really want to be secure. You will be leaving the password for this secured filesystem somewhere discoverable. If that password is found, your security is worthless.
 
 First, add a keyfile as a key for your filesystem, and add that keyfile as a valid key for the filesystem.
 
@@ -102,6 +109,7 @@ chmod 400 ${df_keyfile}
 
 
 cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc ${df_keyfile}
+
 ```
 
 You'll be asked to enter the original key to verify your authority to do this.
@@ -116,6 +124,7 @@ s_uuid=< UUID of the encrypted LV, ${s_mount_name}.enc >
 cat <<EOCRYPT >>/etc/crypttab
 ${s_mount_name} UUID="${s_uuid}" ${df_keyfile}
 EOCRYPT
+
 ```
 
 (Don't forget to edit /etc/crypttab to remove the manual mount line, and remove the "`notauto`" from the entry in /etc/fstab.)
