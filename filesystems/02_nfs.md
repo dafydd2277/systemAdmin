@@ -55,5 +55,58 @@ Now, some philosophy: NFS used to have a vulnerability ([CVE-1999-0166][cve19990
 
 ## Automounting.
 
+Once again with the man pages. Here, start off with a good look at [autofs(5)][autofs5] and [auto.master(5)][automaster5]. Also, [Rivald's Blog][rivald] has a simple How-To on specifically automounting home directories.
+
+To start, add an entry like this in `/etc/auto.master`, referencing where you want your automounted home directories to land:
+
+```
+cat <<"EOAUTO" >>/etc/auto.master
+/home/users    /etc/auto.home
+
+EOAUTO
+
+```
+
+Then, create the `/etc/auto.home` file to point to the NFS server handling your home directories:
+
+```
+h_file_server=<FQDN of your NFS server>
+
+cat <<EOHOME >>/etc/auto.home
+*    -fstype=nfs,rw,nosuid,soft    ${h_file_server}:/export/home/&
+
+EOHOME
+
+```
+
+The ampersand (&) on the end is an autofs substitution for user's login name. Call it `${s_user}`. So, if `${s_user}` logs in and the id lookup shows a home directory of /home/users/${s_user}, `autofs(5)` will look in `/etc/auto.master` for `home/users/${s_user}`, find a mapping for `/home/users`, and refer to that mapping file.
+
+The mapping file, `/etc/auto.home`, then tells `autofs(5)` that all entries (`*`) in `/home/users` will get mapped to the exports provided by `${h_file_server}` in the directories `/export/home/${s_user}`. So, mount that home directory automatically with the options and limitations given in the entry.
+
+Once you have the entries in place, restart autofs. In CentOS 6, that's
+
+```
+service autofs forcerestart
+service autofs status
+
+```
+
+In CentOS 7, that's
+
+```
+systemctl enable rpcbind
+systemctl start rpcbind
+systemctl status rpcbind
+
+```
+
+Now, one more thing! Is your firewall opened to permit connections to NFS mounts on other hosts? I don't have a good answer, yet. The documentation I come up with will probably be based on http://linuxconfig.org/how-to-configure-nfs-on-linux, but that page should go above with configuring the server.
+
+
+
+[autofs5]: http://linux.die.net/man/5/autofs
+[automaster5]: http://linux.die.net/man/5/auto.master
+
+
 ## NFSv4 and Kerberos.
 
