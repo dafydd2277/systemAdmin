@@ -43,6 +43,18 @@ Once you have your `/etc/exports` file set, execute `exportfs -s` to see how [rp
 
 Now, some philosophy: NFS used to have a vulnerability ([CVE-1999-0166][cve19990166], [SCIP 13797][scip13797]) where a System Administrator would export a subdirectory on a filesystem, without exporting the entire filesystem. An attacker could exploit this by mounting the filesystem and changing directories up one level to the parent, which was supposed to be inaccessible. The bug has long been fixed, but the philosophy remains: if you're going to export something, only export whole filesystems. And, create a separate filesystem for every export. With LVM, creating filesystems at need is not terribly difficult, and may save you from some future vulnerability. The original bug did cross filesystem boundaries, but doing so is harder.
 
+Finally, you need to open your firewall to allow clients to connect to these NFS mounts. See [this link][linuxconfig] for configuring CentOS 6. For CentOS 7, [the solution is simpler][stackexchange]:
+
+```
+firewall-cmd --permanent --add-service=nfs
+firewall-cmd --permanent --add-service=mountd
+firewall-cmd --permanent --add-service=rpc-bind
+firewall-cmd --reload
+firewall-cmd --list-all
+
+```
+
+
 
 [exports5]: http://linux.die.net/man/5/exports
 [exportfs8]: http://linux.die.net/man/8/exportfs
@@ -50,8 +62,19 @@ Now, some philosophy: NFS used to have a vulnerability ([CVE-1999-0166][cve19990
 [mountd8]: http://linux.die.net/man/8/mountd
 [cve19990166]: https://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-1999-0166
 [scip13797]: http://www.scip.ch/en/?vuldb.13797
+[linuxconfig]:  http://linuxconfig.org/how-to-configure-nfs-on-linux
+[stackexchange]: http://unix.stackexchange.com/questions/243756/nfs-servers-and-firewalld/243863
 
 ## The fstab entries.
+
+I've edited the [fstab(5)][fstab5] file so frequently that I don't really have much in the way of notes. It's all internalized. The only challenges are remembering that the options field ("*fs_mntops*") depends on the filesystem type, and that the two integers on the end are, respectively, for [dump(8)][dump8] frequency ("*fs_freq*"), which virtually no one uses any more, and [fsck(2)][fsck2] ("*fs_passno*") to determine the order in which the filesystems get checked. See the [nfs(5)][nfs5] man page for the options you can include when mounting an NFS filesystem. The [DISA STIG][disastig] requires the options `nodev,nosuid,root_squash` at a minimum.
+
+[fstab5]: http://linux.die.net/man/5/fstab
+[dump8]: http://linux.die.net/man/8/dump
+[fsck2]: http://linux.die.net/man/2/fsck
+[disastig]: http://iase.disa.mil/stigs/Pages/index.aspx
+
+
 
 ## Automounting.
 
@@ -71,9 +94,10 @@ Then, create the `/etc/auto.home` file to point to the NFS server handling your 
 
 ```
 h_file_server=<FQDN of your NFS server>
+d_exported_homedirs=/export/home
 
 cat <<EOHOME >>/etc/auto.home
-*    -fstype=nfs,rw,nosuid,soft    ${h_file_server}:/export/home/&
+*    -fstype=nfs,rw,nosuid,soft    ${h_file_server}:${d_exported_homedirs}/&
 
 EOHOME
 
@@ -99,10 +123,6 @@ systemctl start rpcbind
 systemctl status rpcbind
 
 ```
-
-Now, one more thing! Is your firewall opened to permit connections to NFS mounts on other hosts? I don't have a good answer, yet. The documentation I come up with will probably be based on http://linuxconfig.org/how-to-configure-nfs-on-linux, but that page should go above with configuring the server.
-
-
 
 [autofs5]: http://linux.die.net/man/5/autofs
 [automaster5]: http://linux.die.net/man/5/auto.master
