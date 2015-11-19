@@ -124,6 +124,7 @@ systemctl status rpcbind
 
 ```
 
+[rivald]: http://rivald.blogspot.com/2009/11/automount-home-directories-over-nfs-in.html
 [autofs5]: http://linux.die.net/man/5/autofs
 [automaster5]: http://linux.die.net/man/5/auto.master
 
