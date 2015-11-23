@@ -1,6 +1,6 @@
 # Using rndc and nsupdate.
 
-If you're using dynamic DNS, making manual changes to your zone files can become dangerous. What do you have control over? What is controlled by the automated updates coming from DHCP. One way around this is to use `[rndc(8)][rndc8]`.
+If you're using dynamic DNS, making manual changes to your zone files can become dangerous. What do you have control over? What is controlled by the automated updates coming from DHCP. One way around this is to use [rndc(8)][rndc8].
 
 [rndc8]: http://linux.die.net/man/8/rndc
 
@@ -62,7 +62,7 @@ service named restart
 NS
 ## Managing your DNS records.
 
-`rndc` is a dynamic controller for DNS, but it doesn't handle individual entries. For that, we need `[nsupdate(8)[nsupdate8]`. However, we need to use both of them together to keep the DNS records from being corrupted. That starts with the `rndc freeze` command to stop other services from making changes..
+`rndc` is a dynamic controller for DNS, but it doesn't handle individual entries. For that, we need [nsupdate(8)[nsupdate8]. However, we need to use both of them together to keep the DNS records from being corrupted. That starts with the `rndc freeze` command to stop other services from making changes..
 
 
 ```
