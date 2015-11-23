@@ -8,7 +8,7 @@ If you're using dynamic DNS, making manual changes to your zone files can become
 
 First, for the most secure configuration, you should only use `rndc` from your master DNS server. Allowing `rndc` to be run from other hosts increases your potential attack surface. The configuration I'm building here comes under this assumption.
 
-The default configuration file is [rndc.conf(5)][rndc.conf5], which is located at `/etc/rndc.conf` by default. To make things easy, I'm going to use [rndc-confgen[8][rndc-confgen8] to automatically generate the file along with a customized access key. The file will include commented sections that I will add to `/var/named/chroot/etc/named.conf`. (I'll let you decide if this is my actual key or not... Also, I'm including the `time` command just to see how long it takes...)
+The default configuration file is [rndc.conf(5)][rndc.conf5], which is located at `/etc/rndc.conf` by default. To make things easy, I'm going to use [rndc-confgen(8)][rndc-confgen8] to automatically generate the file along with a customized access key. The file will include commented sections that I will add to `/var/named/chroot/etc/named.conf`. (I'll let you decide if this is my actual key or not... Also, I'm including the `time` command just to see how long it takes...)
 
 ```
 time rndc-confgen -b 512
@@ -62,7 +62,7 @@ service named restart
 NS
 ## Managing your DNS records.
 
-`rndc` is a dynamic controller for DNS, but it doesn't handle individual entries. For that, we need [nsupdate(8)[nsupdate8]. However, we need to use both of them together to keep the DNS records from being corrupted. That starts with the `rndc freeze` command to stop other services from making changes..
+`rndc` is a dynamic controller for DNS, but it doesn't handle individual entries. For that, we need [nsupdate(8)][nsupdate8]. However, we need to use both of them together to keep the DNS records from being corrupted. That starts with the `rndc freeze` command to stop other services from making changes..
 
 
 ```
