@@ -78,3 +78,5 @@ rndc thaw localhost
 
 ```
 
+[nsupdate8]: http://linux.die.net/man/8/nsupdate
+
