@@ -2,7 +2,7 @@
 # elements.
 
 # Create a short hostname variable.
-s_hostname_s=$(hostname -s)
+h_short_name=$(hostname -s)
 
 # Secure directory
 d_root_ssl=/root/.ssl
@@ -10,15 +10,15 @@ d_cert_root=/etc/pki/tls/certs
 export d_root_ssl
 
 # The host passphrase.
-df_host_passphrase=${d_root_ssl}/${s_hostname_s}_passphrase.txt
+df_host_passphrase=${d_root_ssl}/${h_short_name}_passphrase.txt
 export df_host_passphrase
 
 # The host key.
-df_host_key=${d_root_ssl}/${s_hostname_s}_key.pem
+df_host_key=${d_root_ssl}/${h_short_name}_key.pem
 export df_host_key
 
 # The host certificate file.
-df_host_cert=${d_cert_root}/${s_hostname_s}_cert.pem
+df_host_cert=${d_cert_root}/${h_short_name}_cert.pem
 export df_host_cert
 
 # The CA certificate.
