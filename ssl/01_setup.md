@@ -103,7 +103,7 @@ EOSYSCONFIG
 
 
 ```bash
-. ${f_ssl_sysconfig}
+. ${df_ssl_sysconfig}
 
 mkdir -m 700 -p ${d_root_ssl}
 chown root:root ${d_root_ssl}
