@@ -1,0 +1,39 @@
+#%PAM-1.0
+# This file is auto-generated.
+# User changes will be destroyed the next time authconfig is run.
+auth        required      pam_env.so
+auth        sufficient    pam_fprintd.so
+# DISA STIG Rule SV-50302r4_rule
+# DISA STIG Rule SV-50374r4_rule
+# DISA STIG Rule SV-50393r4_rule
+auth	required	pam_faillock.so preauth silent deny=3 unlock_time=604800 fail_interval=900
+auth        sufficient    pam_unix.so try_first_pass
+auth	[default=die]	pam_faillock.so authfail deny=3 unlock_time=604800 fail_interval=900
+auth        requisite     pam_succeed_if.so uid >= 500 quiet
+auth        required      pam_deny.so
+
+# DISA STIG Rule SV-50302r4_rule
+# DISA STIG Rule SV-50374r4_rule
+# DISA STIG Rule SV-50393r4_rule
+account	required	pam_faillock.so
+account     required      pam_unix.so
+account     sufficient    pam_localuser.so
+account     sufficient    pam_succeed_if.so uid < 500 quiet
+account     required      pam_permit.so
+
+# DISA STIG Rule SV-50282r1_rule
+# DISA STIG Rule SV-50370r1_rule
+# DISA STIG Rule SV-50371r1_rule
+# DISA STIG Rule SV-50372r1_rule
+# DISA STIG Rule SV-50373r1_rule
+password    requisite     pam_cracklib.so try_first_pass retry=3 type= dcredit=-1 ucredit=-1 ocredit=-1 lcredit=-1 difok=4
+password    sufficient    pam_unix.so sha512 shadow try_first_pass use_authtok
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+# DISA STIG Rule SV-66089r1_rule
+session     required      pam_limits.so
+session	required	pam_lastlog.so showfailed
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so
+
