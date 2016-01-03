@@ -130,7 +130,7 @@ openssl req \
 -passin file:${df_ca_passphrase} \
 -days 1825 \
 -subj ${s_ca_cert_subj} \
--out ${ddf_ca_cert}
+-out ${df_ca_cert}
 
 chown root:root ${df_ca_cert}
 chmod 0644 ${df_ca_cert}
