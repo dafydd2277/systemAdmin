@@ -21,8 +21,12 @@ These instructions take advantage of bash security features outlined in [BASH-01
 ## References
 
 - [Red Hat Directory Server - Installation Guide][rhds9]
+- Some systemd startup questions were answered by [389DS and systemd][389systemd].
+- Some SELinux questions in CentOS 7 were answered by [SELinux Policy][389selinux] page at the 389ds wiki.
 
 [rhds9]: https://access.redhat.com/documentation/en-US/Red_Hat_Directory_Server/9.0/html/Installation_Guide/index.html
+[389systemd]: http://directory.fedoraproject.org/docs/389ds/howto/howto-systemd.html
+[389selinux]: http://www.port389.org/docs/389ds/FAQ/selinux-policy.html
 
 ## Installation considerations.
 
