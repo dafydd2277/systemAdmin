@@ -153,10 +153,10 @@ replace: nsslapd-listenhost
 nsslapd-listenhost: 127.0.0.1
 -
 replace: nsslapd-securelistenhost
-nsslapd-securelistenhost: ${HOSTNAME}
+nsslapd-securelistenhost: $(hostname -f)
 -
 replace: nsslapd-minssf
-nsslapd-minssf: 128
+nsslapd-minssf: 96
 EOMODIFY
 
 ```
