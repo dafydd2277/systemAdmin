@@ -28,49 +28,117 @@ set -x
 # only.
 #
 
+###
+### EXPLICIT VARIABLES
+###
+
+df_ds_sysconfig=/etc/sysconfig/local-ds
+df_ssl_sysconfig=/etc/sysconfig/local-ssl
+
+###
+### DERIVED VARIABLES
+###
+
+i_major_release=0
+s_test=$(cat /etc/centos-release)
+echo ${s_test} | egrep -q ' 7\.' && i_major_release=7
+echo ${s_test} | egrep -q ' 6\.' && i_major_release=6
+unset s_test
+
+h_dirsrv_fqdn=$(hostname -f)
+
+
+###
+### MAIN
+###
+
 if [ $(id -u) -ne 0 ]
 then
   echo "Must be run as root."
   exit 1
 fi
 
-df_ds_sysconfig=/etc/sysconfig/local-ds
-df_ssl_sysconfig=/etc/sysconfig/local-ssl
 export df_ds_sysconfig df_ssl_sysconfig
+export i_major_release h_dirsrv_fqdn
 
 . ${df_ssl_sysconfig}
 . ${df_ds_sysconfig}
 
-service dirsrv stop
-service dirsrv-admin stop
+case ${i_major_release} in
+  6)
+    service dirsrv stop
+    service dirsrv-admin stop
 
-yum -y remove 389-ds \
-389-admin \
-389-admin-console \
-389-admin-console-doc \
-389-console \
-389-ds-base \
-389-ds-base-libs \
-389-ds-console \
-389-ds-console-doc \
-389-dsgw \
-idm-console-framework
+    yum -y remove 389-ds \
+      389-admin \
+      389-admin-console \
+      389-admin-console-doc \
+      389-console \
+      389-ds-base \
+      389-ds-base-libs \
+      389-ds-console \
+      389-ds-console-doc \
+      389-dsgw \
+      idm-console-framework
 
-rm -rf /etc/dirsrv \
-/var/lib/dirsrv \
-/usr/lib64/dirsrv \
-/var/log/dirsrv \
-/var/run/dirsrv
+    rm -rf /etc/dirsrv \
+      /var/lib/dirsrv \
+      /usr/lib64/dirsrv \
+      /var/log/dirsrv \
+      /var/run/dirsrv
 
+    yum -y install 389-ds
+    ;;
+  7)
+    systemctl stop dirsrv.target
+    systemctl stop dirsrv-admin
 
-yum -y install 389-ds
+    yum -y remove \
+      389-ds-base \
+      389-ds-base-libs \
+      389-admin \
+      389-adminutil
+
+    selinuxenabled && semanage port \
+      --delete \
+      --proto tcp \
+      9830
+      
+    rm -rf /etc/dirsrv \
+      /var/lib/dirsrv \
+      /usr/lib64/dirsrv \
+      /var/log/dirsrv \
+      /var/run/dirsrv
+
+    yum -y install \
+      389-ds-base \
+      389-ds-base-libs \
+      389-admin \
+      389-adminutil
+
+    if [ ! -d /var/log/dirsrv/admin-serv ]
+    then
+      mkdir -p /var/log/dirsrv/admin-serv
+    fi
+
+    # Open the port for the httpd running the admin server.
+    selinuxenabled && semanage port \
+      --add \
+      --type http_port_t \
+      --proto tcp \
+      9830
+    ;;
+  *)
+    echo "Unknown OS release" && exit 1
+    ;;
+esac
 
 
 /usr/sbin/setup-ds-admin.pl --file=${df_389ds_setup} --silent
 
 
 ldapmodify -x -v -h localhost -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
+-w $(cat ${df_dirmgr_passphrase}) <<EOMOD1
 dn: ou=Special Users,${s_basedn}
 changetype: delete
 
@@ -111,12 +179,12 @@ nsslapd-allow-anonymous-access: off
 -
 replace: nsslapd-require-secure-binds
 nsslapd-require-secure-binds: on
-#-
-#replace: nsslapd-listenhost
-#nsslapd-listenhost: 127.0.0.1
-#-
-#replace: nsslapd-securelistenhost
-#nsslapd-securelistenhost: ${HOSTNAME}
+-
+replace: nsslapd-listenhost
+nsslapd-listenhost: 127.0.0.1
+-
+replace: nsslapd-securelistenhost
+nsslapd-securelistenhost: $(hostname -f)
 
 
 dn: cn=encryption,cn=config
@@ -141,6 +209,9 @@ nsSSL3Ciphers: -tls_rsa_export1024_with_rc4_56_sha,
  +tls_dhe_rsa_aes_256_sha,
  +tls_dhe_dss_1024_rc4_sha,
  +tls_dhe_dss_rc4_128_sha
+-
+replace: allowWeakCipher
+allowWeakCipher: off
 
 
 dn: cn=RSA,cn=encryption,cn=config
@@ -170,7 +241,7 @@ memberofattr: memberOf
 #changetype: modify
 #replace: nsslapd-minssf
 #nsslapd-minssf: 128
-EOT
+EOMOD1
 
 mkdir --mode 755 --parents ${d_nssdb}
 
@@ -217,56 +288,73 @@ chown nobody:nobody ${d_nssdb}/*
 # Make sure the client side files have the correct passwords. (Also a memory
 # jog to make sure the client files are correct in general!)
 
-s_date=$(date +%Y%m%d)
+case ${i_major_release} in
+  6)
+    s_date=$(date +%Y%m%d)
+    
+    sed --in-place=.${s_date} "/^ldap_default_authtok/ c\
+    ldap_default_authtok = $(cat ${df_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
+    
+    sed --in-place=.${s_date} "/^TLS_CACERTDIR/ c\
+    TLS_CACERTDIR /etc/pki/tls/certs" /etc/openldap/ldap.conf
+    
+    sed --in-place "/^URI/ c\
+    URI ldaps://${h_dirsrv_fqdn}:636" /etc/openldap/ldap.conf
+    
+    sed --in-place "/^BASE/ c\
+    BASE ${s_basedn}" /etc/openldap/ldap.conf
+    
+    sed --in-place=.${s_date} "/^binddn/ c\
+    binddn cn=svcSUDO,ou=serviceAccounts,dc=localdomain" /etc/sudo-ldap.conf
+    
+    sed --in-place "/^bindpw/ c\
+    bindpw $(cat ${df_svcSUDO_passphrase})" /etc/sudo-ldap.conf
+    
+    sed --in-place "/^uri/ c\
+    uri ldaps://${h_dirsrv_fqdn}:636" /etc/sudo-ldap.conf
+    
+    
+    # Restart the services so the first set of ldapmodify entries can be started.
+    
+    service dirsrv stop
+    
+    service dirsrv-admin restart
+    
+    service dirsrv start
+    ;;
+  7)
+    systemctl stop dirsrv@${s_instance}
+    systemctl restart dirsrv-admin
+    systemctl start dirsrv@${s_instance}
+    ;;
+  *)
+    echo "How did you get this far?" && exit 1
+esac
 
-sed --in-place=.${s_date} "/^ldap_default_authtok/ c\
-ldap_default_authtok = $(cat ${df_svcAuthenticator_passphrase})" /etc/sssd/sssd.conf
-
-sed --in-place=.${s_date} "/^TLS_CACERTDIR/ c\
-TLS_CACERTDIR /etc/pki/tls/certs" /etc/openldap/ldap.conf
-
-sed --in-place "/^URI/ c\
-URI ldaps://localhost:636" /etc/openldap/ldap.conf
-
-sed --in-place "/^BASE/ c\
-BASE ${s_basedn}" /etc/openldap/ldap.conf
-
-sed --in-place=.${s_date} "/^binddn/ c\
-binddn cn=svcSUDO,ou=serviceAccounts,dc=localdomain" /etc/sudo-ldap.conf
-
-sed --in-place "/^bindpw/ c\
-bindpw $(cat ${df_svcSUDO_passphrase})" /etc/sudo-ldap.conf
-
-sed --in-place "/^uri/ c\
-uri ldaps://localhost:636" /etc/sudo-ldap.conf
-
-
-# Restart the services so the first set of ldapmodify entries can be started.
-
-service dirsrv stop
-
-service dirsrv-admin restart
-
-service dirsrv start
-
+# Give the services a chance to start up.
+sleep 15
 
 # And make the actual working entries.
 
-ldapmodify -v -H ldaps://localhost:636 -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
-dn: ou=users,${s_basedn}
+ldapmodify -Z \
+  -vvv \
+  -H ldaps://${h_dirsrv_fqdn}:636 \
+  -c \
+  -D "${s_dirmgr}" \
+  -w $(cat ${df_dirmgr_passphrase}) <<EOMOD2
+dn: ou=Users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
-ou: users
+ou: Users
 
-dn: ou=groups,${s_basedn}
+dn: ou=Groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: organizationalunit
-ou: groups
+ou: Groups
 
-dn: cn=${s_cn},ou=users,${s_basedn}
+dn: cn=${s_cn},ou=Users,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: person
@@ -285,39 +373,39 @@ gecos: ${s_givenName} ${s_sn}
 displayName: ${s_givenName} ${s_sn}
 loginShell: ${s_loginShell}
 
-dn: cn=${s_cn},ou=groups,${s_basedn}
+dn: cn=${s_cn},ou=Groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: ${s_cn}
 gidNumber: ${s_uidNumber}
-member: cn=${s_cn},ou=users,${s_basedn}
+member: cn=${s_cn},ou=Users,${s_basedn}
 
-dn: cn=wheel,ou=groups,${s_basedn}
+dn: cn=wheel,ou=Groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: wheel
 gidNumber: 10
-member: cn=${s_cn},ou=users,${s_basedn}
+member: cn=${s_cn},ou=Users,${s_basedn}
 
-dn: cn=users,ou=groups,${s_basedn}
+dn: cn=users,ou=Groups,${s_basedn}
 changeType: add
 objectClass: top
 objectClass: groupOfNames
 objectClass: posixGroup
 cn: users
 gidNumber: 100
-member: cn=${s_cn},ou=users,${s_basedn}
+member: cn=${s_cn},ou=Users,${s_basedn}
 
 # Make our example user a Directory Administrator
 
 dn: cn=Directory Administrators,${s_basedn}
 changetype: modify
 add: uniqueMember
-uniqueMember: cn=${s_cn},ou=users,${s_basedn}
+uniqueMember: cn=${s_cn},ou=Users,${s_basedn}
 
 #
 
@@ -373,18 +461,18 @@ objectClass: top
 sudoCommand: ALL
 sudoHost: ALL
 sudoUser: %wheel
-EOT
+EOMOD2
 
 ldapsearch \
 -v \
--H ldaps://localhost:636 \
+-H ldaps://${h_dirsrv_fqdn}:636 \
 -D "${s_dirmgr}" \
 -w $(cat ${df_dirmgr_passphrase}) \
--b "ou=users,${s_basedn}"
+-b "ou=Users,${s_basedn}"
 
 ldapsearch \
 -v \
--H ldaps://localhost:636 \
+-H ldaps://${h_dirsrv_fqdn}:636 \
 -D "${s_dirmgr}" \
 -w $(cat ${df_dirmgr_passphrase}) \
 -b "ou=Groups,${s_basedn}" \
@@ -392,7 +480,7 @@ ldapsearch \
 
 ldapsearch \
 -v \
--H ldaps://localhost:636 \
+-H ldaps://${h_dirsrv_fqdn}:636 \
 -D "${s_dirmgr}" \
 -w $(cat ${df_dirmgr_passphrase}) \
 -b "ou=SUDOers,${s_basedn}"
