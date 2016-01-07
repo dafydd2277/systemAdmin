@@ -87,7 +87,9 @@ case ${i_major_release} in
       /var/log/dirsrv \
       /var/run/dirsrv
 
-    yum -y install 389-ds
+    yum -y install \
+      389-ds-base \
+      389-ds-base-libs
     ;;
   7)
     systemctl stop dirsrv.target
@@ -112,21 +114,7 @@ case ${i_major_release} in
 
     yum -y install \
       389-ds-base \
-      389-ds-base-libs \
-      389-admin \
-      389-adminutil
-
-    if [ ! -d /var/log/dirsrv/admin-serv ]
-    then
-      mkdir -p /var/log/dirsrv/admin-serv
-    fi
-
-    # Open the port for the httpd running the admin server.
-    selinuxenabled && semanage port \
-      --add \
-      --type http_port_t \
-      --proto tcp \
-      9830
+      389-ds-base-libs
     ;;
   *)
     echo "Unknown OS release" && exit 1
@@ -134,7 +122,7 @@ case ${i_major_release} in
 esac
 
 
-/usr/sbin/setup-ds-admin.pl --file=${df_389ds_setup} --silent
+/usr/sbin/setup-ds.pl --file=${df_389ds_setup} --silent
 
 
 ldapmodify -x -v -h localhost -c -D "${s_dirmgr}" \
