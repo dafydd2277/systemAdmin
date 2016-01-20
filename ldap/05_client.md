@@ -9,6 +9,8 @@ I'm not a fan of `authconfig`, because it will modify the files it thinks need m
 ## References
 
 - [Chapter 12: Configuring Authentication](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/ch-Configuring_Authentication.html)
+- [CentOS 6 Linux and nss-pam-ldapd](http://serverfault.com/questions/299855/centos-6-linux-and-nss-pam-ldapd)
+- [LDAP authentication with nss-pam-ldapd](http://arthurdejong.org/nss-pam-ldapd/setup)
 
 
 ## SSL
@@ -35,7 +37,7 @@ authconfig \
 authconfig \
   --enableldap \
   --enableldapauth \
-  --ldapserver=${s_ldap_host} \
+  --ldapserver=ldaps://${s_ldap_host}/ \
   --ldapbasedn=${s_basedn} \
   --enableldaptls \
   --enablerfc2307bis \
