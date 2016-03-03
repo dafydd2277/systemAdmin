@@ -29,3 +29,26 @@ git config --global alias.pl pull
 git config --global alias.ps push
 ```
 
+## Commit messages.
+
+Yes, [a convention exists][git-commit]. The first line is what appears in the short logs. Keep that note specific and under about 50 characters. If you want to go into more detail, add a line of blank space and then start a paragraph on the third line of your git editor.
+
+Additionally, I've taken to uncommenting the file modification notes that git preloads into the message editor. For example, here's what git loads into `vi` for me to modify:
+
+```
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'github/master'.
+#
+# Changes to be committed:
+# modified:   README.md
+#
+```
+
+I've started uncommenting everything under "Changes to be committed," so the list of new, modified, or deleted files actually gets added to the log entry for the change.
+
+So, short one-line summary, skip a line, and go into more detail about what you're doing, if you need to. Finish by uncommenting the list of files being committed, so someone can review that in log entries as well.
+
+
+[git-commit]: http://chris.beams.io/posts/git-commit/
