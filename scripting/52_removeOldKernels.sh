@@ -4,36 +4,52 @@
 # removeOldKernels.sh
 #
 # This script scans hosts for multiple kernel and Oracle kernel-uek-*
-# packages, and removes all the but the newest.
+# packages, and removes all the but the newest. It was designed to be
+# run as
+#
+# curl http://${server}/removeOldKernels.sh | /bin/bash
 #
 # 2016-02-10
 # Created script
 #
  
 ###
-### DERIVCED VARIABLES
+### USAGE REQUIREMENTS
 ###
- 
-s_yes="-y"
-if [ "$1" == "yes" ]
+
+if [ $(id -u) -ne 0 ]
 then
-  s_yes="-y"
+  echo "Must be run as root."
+  exit 1
 fi
+
+
+###
+### EXPLICIT VARIABLES
+###
+
+# Kernel strings to search for via `rpm`.
+a_kernel_strings=( \
+kernel \
+kernel-firmware \
+kenerl-headers \
+kernel-debug \
+kernel-devel \
+kernel-uek \
+kernel-uek-firmware \
+kernel-uek-headers \
+kernel-uek-debug \
+kernel-uek-devel \
+)
  
+
 ###
 ### MAIN
 ###
  
  
-# Kernel strings to search for via `rpm`.
-a_kernel_strings=( kernel \
-kernel-uek \
-kernel-uek-firmware \
-kernel-uek-headers \
-kernel-uek-debug
-)
- 
-# Loop through the ${a_kernel_strings} array.
+# Loop through the ${a_kernel_strings} array, and select all but the
+# last
 s_packages=""
 for s_kernel in "${a_kernel_strings[@]}"
 do
@@ -47,13 +63,16 @@ do
   unset s_test
 done
  
+
 # Set the -x here to see the exact command run.
 set -x
  
+# Remove the discovered set of packages.
 if [ ! -z "${s_packages}" ]
 then
   yum -y remove ${s_packages}
 fi
  
+# How stuffed is /boot, now?
 df -h /boot
  
