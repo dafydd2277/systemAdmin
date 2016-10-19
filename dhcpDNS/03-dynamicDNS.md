@@ -14,6 +14,9 @@ cd ${d_named_root}
 
 dnssec-keygen -a hmac-md5 -b 256 -n USER dhcpupdate
 
+# RHEL 7 family
+dnssec-keygen -a HMAC-SHA512 -b 512 -n USER -G dhcpupdate
+
 ```
 
 (When I came back to this, I found that `dnssec-keygen` hung when I ran it. Searching for why it might hang, I found a suggestion to use `-r /dev/urandom` and a counter suggestion that the `-r` option reduced security. The reason `dnssec-keygen` hangs is because /dev/random didn't have enough entropy to calculate a good, secure string. The author of the note that suggested against `-r` offered "continuing to do work on the host" as an alternate suggestion. Or, if you have good drivers, `dd if=/dev/audio of=/dev/random` in a second shell. I've had reasonable success just perusing a manual page or listing the contents of various directories.)
@@ -32,7 +35,7 @@ Then, in the file `/var/named/chroot/etc/dhcpupdate.key`, enter this text block.
 
 ```
 key "dhcpupdate" {
-  algorighm hmac-md5;
+  algorithm hmac-md5;
   secret "<random string from Kdhcpupdate*.key file>";
 };
 
