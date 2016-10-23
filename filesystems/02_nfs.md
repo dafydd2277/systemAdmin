@@ -21,7 +21,7 @@ In CentOS 7, it's three commands:
 ```
 systemctl enable nfs-server
 systemctl start nfs-server
-systemctl status nfs-server
+systemctl -l status nfs-server
 
 ```
 
@@ -29,7 +29,10 @@ systemctl status nfs-server
 Again, for setting an entry in `/etc/exports`, nothing out there is as good as the man pages. Take a slow read of the [exports(5)][exports5] man page. It will tell you about the format of the file. Then, [exportfs(8)][exportfs8] will tell you about the command and arguments to announce your filesystem to your network. Here, I'm taking advantage of a variable set when [I created the filesystem][01lvmluks].
 
 ```
-s_domain=example.com
+s_domain=<(sub)domain>
+d_exports=<exports mount point>
+
+mkdir --parents --mode=0755 ${d_exports}/${s_mount_name}
 
 cat <<EOEXPORTS >>/etc/exports
 ${s_mount_name}  *.${s_domain}(rw,wdelay,no_subtree_check,mountpoint,sec=sys,secure,root_squash,no_all_squash)
@@ -120,8 +123,14 @@ In CentOS 7, that's
 ```
 systemctl enable rpcbind
 systemctl start rpcbind
-systemctl status rpcbind
+systemctl -l status rpcbind
 
+```
+
+Also, if you have `SELinux` in `enforcing` mode, you'll need to set it to allow NFS-mounted home directories:
+
+```
+setsebool -P use_nfs_home_dirs 1
 ```
 
 [rivald]: http://rivald.blogspot.com/2009/11/automount-home-directories-over-nfs-in.html
