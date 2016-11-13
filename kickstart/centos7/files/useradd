@@ -1,0 +1,11 @@
+# useradd defaults file
+GROUP=100
+HOME=/home
+# STIG RHEL-07-010280
+#INACTIVE=-1
+INACTIVE=0
+EXPIRE=
+SHELL=/bin/bash
+SKEL=/etc/skel
+CREATE_MAIL_SPOOL=yes
+
