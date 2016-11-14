@@ -1,0 +1,2 @@
+0 23 * * /usr/sbin/aide --check | /bin/mail -s "aide integrity check run for " root
+

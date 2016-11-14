@@ -39,7 +39,7 @@ HostKey /etc/ssh/ssh_host_ed25519_key
 # Ciphers and keying
 #RekeyLimit default none
 # STIG RHEL-07-040110
-Ciphers aes128-ctr aes192-ctr, aes256-ctr
+Ciphers aes128-ctr,aes192-ctr,aes256-ctr
 # STIG RHEL-07-040620
 MACs hmac-sha2-256,hmac-sha2-512
 

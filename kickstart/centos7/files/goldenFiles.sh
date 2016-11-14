@@ -28,6 +28,7 @@ export e_systemctl=$( /usr/bin/which systemctl )
 a_goldenfiles=( \
   '/etc/audit/auditd.conf root:root 0640' \
   '/etc/audit/audit.rules root:root 0640' \
+  '/etc/cron.daily/aide root:root 0640' \
   '/etc/default/useradd root:root 0644' \
   '/etc/issue root:root 0644' \
   '/etc/login.defs root:root 0644' \
