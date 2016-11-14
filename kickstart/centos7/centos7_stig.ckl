@@ -45,7 +45,7 @@
                 </SI_DATA>
                 <SI_DATA>
                     <SID_NAME>uuid</SID_NAME>
-                    <SID_DATA>53928079-8e54-494d-b0bb-67b95257763b</SID_DATA>
+                    <SID_DATA>2f1a5a8c-9611-4be4-8c5c-65f7ff090de4</SID_DATA>
                 </SI_DATA>
                 <SI_DATA>
                     <SID_NAME>notice</SID_NAME>
@@ -3164,7 +3164,7 @@ PASS_MAX_DAYS     60</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000199</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -5917,10 +5917,13 @@ If unnecessary default accounts such as games or ftp exist in the “/etc/passwd
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
-                <COMMENTS>Some obvious ones can be removed.
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>This kickstart removes
+ftp, games, halt, mail, nobody, operator, shutdown
+sshd, tcpdump, tss
 
+Others could probably go as well. Since this list is not canonical, it must be incomplete. Therefore, this STIG is set to Open to ensure users adapt this list for their own purposes.</FINDING_DETAILS>
+                <COMMENTS>
 </COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -6051,7 +6054,7 @@ Modify the /etc/pam_pkcs11/pam_pkcs11.conf file to use the cackey module if requ
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000766</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Not set in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS>Setting this requirement on console sessions could interfere with a root login needed to rescue a failed system.
 </COMMENTS>
@@ -6428,7 +6431,7 @@ Use the following command to map an existing user to the user_u role:
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002235</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Not covered in this kickstart.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
@@ -7405,8 +7408,8 @@ If any other partitions do not have a type of “crypto_LUKS”, this is a findi
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001199</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Applicable</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>Not_Reviewed</STATUS>
+                <FINDING_DETAILS>Not configured with this kickstart.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -7519,7 +7522,7 @@ clean_requirements_on_remove=1</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002617</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -8700,7 +8703,8 @@ If any files on the system do not have an assigned owner, this is a finding.</AT
                     <ATTRIBUTE_DATA>CCI-002165</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>NotAFinding</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Only a finding if the userdel.sh script removes a needed user or group. This find command appears at the end of that script to change any orphaned files to user "nobody."
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -8811,7 +8815,8 @@ If any files on the system do not have an assigned group, this is a finding.</AT
                     <ATTRIBUTE_DATA>CCI-002165</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>NotAFinding</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Only a finding if the userdel.sh script removes a needed user or group. This find command appears at the end of that script to change any orphaned files to group "nobody."
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -12395,8 +12400,8 @@ If the “acl” rule is not being used on all selection lines in the “/etc/ai
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>NotAFinding</STATUS>
+                <FINDING_DETAILS>The NORMAL and LSPP rulesets includes the FIPSR ruleset, which includes ACLs. DIR and PERMS contain the acl check explicitly. </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -12522,8 +12527,8 @@ If the "xattrs" rule is not being used on all selection lines in the “/etc/aid
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>NotAFinding</STATUS>
+                <FINDING_DETAILS>The NORMAL and LSPP rulesets includes the FIPSR ruleset, which includes xattrs. DIR and PERMS contain the acl check explicitly. </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -13295,7 +13300,7 @@ a always,exit -F &lt;suid_prog_with_full_path&gt; -F perm=x -F auid&gt;=1000 -F 
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002234</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>Open</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS>Script this, and include the script with the kickstart process.
 </COMMENTS>
@@ -13412,7 +13417,7 @@ Set the remote server option in /etc/audisp/audisp-remote.conf with the IP addre
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001851</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>audisp is not configured in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -13530,7 +13535,7 @@ enable_krb5 = yes</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001851</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>audisp is not configured in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -13653,7 +13658,7 @@ Uncomment the network_failure_action option in /etc/audisp/audisp-remote.conf an
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001851</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>audisp is not configured in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -13788,7 +13793,7 @@ Set the value of the “space_left” keyword in /etc/audit/auditd.conf to 75 pe
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001855</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS>Verify "space_left" works the way this says it does.
 </COMMENTS>
@@ -21338,7 +21343,7 @@ If there are no lines in the “/etc/rsyslog.conf” file that contain the “@�
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Log file forwarding is not configured with this kickstart configuration.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
@@ -21593,8 +21598,8 @@ If neither of these applications are loaded and active, ask the System Administr
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001668</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
-                <FINDING_DETAILS>Virus scanning software is not installed or configured with this kickstart set.
+                <STATUS>Not_Reviewed</STATUS>
+                <FINDING_DETAILS>Virus scanning software is not installed or configured with this kickstart file.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -21731,7 +21736,7 @@ If the database file has a date older than seven days from the current date, thi
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001668</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Virus scanning software is not installed or configured with this kickstart set.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
@@ -23418,7 +23423,7 @@ Set ssl start_tls in /etc/pam_ldap.conf.</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001453</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Installation dependent. Not set in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -23543,7 +23548,7 @@ Set the tls_cacertfile option in /etc/pam_ldap.conf to point to the path for the
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001453</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Installation dependent. Not set in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -23666,7 +23671,7 @@ Set the tls_cacertfile option in /etc/pam_ldap.conf to point to the path for the
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001453</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Installation dependent. Not set in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -25188,7 +25193,7 @@ And then make the file immutable with the following command:
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Installation dependent. Not set in this kickstart configuration.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -28691,7 +28696,7 @@ Ensure the “sec” option is defined as “krb5:krb5i:krb5p”.</ATTRIBUTE_DAT
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
+                <STATUS>Not_Reviewed</STATUS>
                 <FINDING_DETAILS>Installation dependent. Not set with this kickstart configuration.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
@@ -28964,8 +28969,7 @@ If “tcpwrappers” is installed. configure the “/etc/hosts.allow” and “/
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Open</STATUS>
-                <FINDING_DETAILS>Installation dependent. Not set with this kickstart configuration.
-</FINDING_DETAILS>
+                <FINDING_DETAILS>In this kickstart, firewalld is enabled and the default zone is set to "work." Any other changes would be installation specific. Since this kickstart has an incomplete fix, instead of no fix (NR) or a full fix (NF), this STIG ID is set to "Open."</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
