@@ -45,7 +45,7 @@
                 </SI_DATA>
                 <SI_DATA>
                     <SID_NAME>uuid</SID_NAME>
-                    <SID_DATA>2f1a5a8c-9611-4be4-8c5c-65f7ff090de4</SID_DATA>
+                    <SID_DATA>a5176468-96bd-4755-9f02-c55e0cef5943</SID_DATA>
                 </SI_DATA>
                 <SI_DATA>
                     <SID_NAME>notice</SID_NAME>
@@ -5922,7 +5922,7 @@ If unnecessary default accounts such as games or ftp exist in the “/etc/passwd
 ftp, games, halt, mail, nobody, operator, shutdown
 sshd, tcpdump, tss
 
-Others could probably go as well. Since this list is not canonical, it must be incomplete. Therefore, this STIG is set to Open to ensure users adapt this list for their own purposes.</FINDING_DETAILS>
+Others could probably go as well. Since this list is not canonical, it must be incomplete. Therefore, this STIG is set to Open to ensure users adapt this list for their own purposes. See files/userdel.sh.</FINDING_DETAILS>
                 <COMMENTS>
 </COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -8702,8 +8702,8 @@ If any files on the system do not have an assigned owner, this is a finding.</AT
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002165</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>NotAFinding</STATUS>
-                <FINDING_DETAILS>Only a finding if the userdel.sh script removes a needed user or group. This find command appears at the end of that script to change any orphaned files to user "nobody."
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>This is implemented in the userdel.sh script, but not otherwise set. In the script, this find command appears at the end of that script to change any orphaned files to user "nobody." This STIG is set as open as this is an incomplete implementation. Ongoing testing will be implementation dependent.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -8814,8 +8814,8 @@ If any files on the system do not have an assigned group, this is a finding.</AT
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002165</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>NotAFinding</STATUS>
-                <FINDING_DETAILS>Only a finding if the userdel.sh script removes a needed user or group. This find command appears at the end of that script to change any orphaned files to group "nobody."
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>This is implemented in the userdel.sh script, but not otherwise set. In the script, this find command appears at the end of that script to change any orphaned files to group "nobody." This STIG is set as open as this is an incomplete implementation. Ongoing testing will be implementation dependent.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -13300,10 +13300,9 @@ a always,exit -F &lt;suid_prog_with_full_path&gt; -F perm=x -F auid&gt;=1000 -F 
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002234</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Open</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
-                <COMMENTS>Script this, and include the script with the kickstart process.
-</COMMENTS>
+                <STATUS>NotAFinding</STATUS>
+                <FINDING_DETAILS>See centos7/files/auditSUID.sh</FINDING_DETAILS>
+                <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
             </VULN>
@@ -21473,10 +21472,9 @@ If the documentation does not exist, or does not specify the server as a log agg
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-001814</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
-                <COMMENTS>Create a golden /etc/rsyslog.conf with this line removed.
-</COMMENTS>
+                <STATUS>NotAFinding</STATUS>
+                <FINDING_DETAILS>The line exists, but is commented.</FINDING_DETAILS>
+                <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
             </VULN>
@@ -21853,7 +21851,7 @@ Add the following line to the top of the /etc/security/limits.conf:
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000054</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -21977,8 +21975,10 @@ daemon.notice /var/log/messages</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000126</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>Setting this to Open as satisfactory, but not exact, modifications have been made. A judgement call is required on whether this is satisfactory in all cases.
+
+authpriv.* already goes to /var/log/secure. Adding "auth.*" to that entry instead. *.info already goes to /var/log/messages, which will cover daemon.notice.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22117,7 +22117,8 @@ and place a certificate revocation file in the configured directory.</ATTRIBUTE_
                     <ATTRIBUTE_DATA>CCI-000185</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22275,7 +22276,8 @@ use_mappers = subject;</ATTRIBUTE_DATA>
                     <ATTRIBUTE_DATA>CCI-000186</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22385,7 +22387,8 @@ If the file does not exist, this is a finding.</ATTRIBUTE_DATA>
                     <ATTRIBUTE_DATA>CCI-000187</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22497,7 +22500,8 @@ If the cn_map file has a mode more permissive than “0644”, this is a finding
                     <ATTRIBUTE_DATA>CCI-000187</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22609,7 +22613,8 @@ If the cn_map file has an owner other than root, this is a finding.</ATTRIBUTE_D
                     <ATTRIBUTE_DATA>CCI-000187</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22721,7 +22726,8 @@ If the cn_map file has a group owner other than root, this is a finding.</ATTRIB
                     <ATTRIBUTE_DATA>CCI-000187</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -22851,7 +22857,7 @@ If there are additional ports, protocols, or services that are not in the PPSM C
                     <ATTRIBUTE_DATA>CCI-002314</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS>Not set in this kickstart configuration.
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
 </FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -23109,8 +23115,8 @@ TMOUT=600</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002361</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>Not fixed as specified here. Instead of modifying /etc/profile, this is set in /etc/profile.d/stig.sh.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -24052,8 +24058,8 @@ If NTP was not running, it must be started:
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002046</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>Not_Applicable</STATUS>
+                <FINDING_DETAILS>This kickstart configuration uses chronyd.</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -24194,7 +24200,8 @@ ocspCacheSize="50"</ATTRIBUTE_DATA>
                     <ATTRIBUTE_DATA>CCI-001991</ATTRIBUTE_DATA>
                 </STIG_DATA>
                 <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <FINDING_DETAILS>Installation dependent. Not covered in this kickstart.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -24307,8 +24314,9 @@ If a rule with both the limit and limit-burst arguments parameters does not exis
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-002385</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>Open</STATUS>
+                <FINDING_DETAILS>This is a badly written rule, and would generate errors. Setting this to Open to remind System Administrators to adapt the correct rule.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -24830,8 +24838,9 @@ session     required      pam_lastlog.so showfailed</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
-                <FINDING_DETAILS></FINDING_DETAILS>
+                <STATUS>NotAFinding</STATUS>
+                <FINDING_DETAILS>Essentially set by default. The syntax is not an exact match, but the functionality is the same.
+</FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
                 <SEVERITY_JUSTIFICATION></SEVERITY_JUSTIFICATION>
@@ -26674,7 +26683,7 @@ smtpd_client_restrictions = permit_mynetworks, reject</ATTRIBUTE_DATA>
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -27273,7 +27282,7 @@ If the use of X Windows on the system is not documented with the Information Sys
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -27750,7 +27759,7 @@ Change the mode of public host key files under “/etc/ssh” to “0644” with
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
@@ -27868,7 +27877,7 @@ If any file has a mode more permissive than “0600”, this is a finding.</ATTR
                     <VULN_ATTRIBUTE>CCI_REF</VULN_ATTRIBUTE>
                     <ATTRIBUTE_DATA>CCI-000366</ATTRIBUTE_DATA>
                 </STIG_DATA>
-                <STATUS>Not_Reviewed</STATUS>
+                <STATUS>NotAFinding</STATUS>
                 <FINDING_DETAILS></FINDING_DETAILS>
                 <COMMENTS></COMMENTS>
                 <SEVERITY_OVERRIDE></SEVERITY_OVERRIDE>
