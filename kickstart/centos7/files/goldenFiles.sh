@@ -27,7 +27,7 @@ export e_systemctl=$( /usr/bin/which systemctl )
 
 a_goldenfiles=( \
   '/etc/audit/auditd.conf root:root 0640' \
-  '/etc/audit/audit.rules root:root 0640' \
+  '/etc/audit/rules.d/audit.rules root:root 0640' \
   '/etc/cron.daily/aide root:root 0640' \
   '/etc/default/useradd root:root 0644' \
   '/etc/issue root:root 0644' \
@@ -35,6 +35,10 @@ a_goldenfiles=( \
   '/etc/modprobe.d/disa_stig.conf root:root 0640' \
   '/etc/pam.d/password-auth-ac root:root 0644' \
   '/etc/pam.d/system-auth-ac root:root 0644' \
+  '/etc/postfix/main.cf root:root 0644' \
+  '/etc/profile.d/stig.sh root:root 0644' \
+  '/etc/rsyslog.conf root:root 0644' \
+  '/etc/security/limits.conf root:root 0644' \
   '/etc/security/pwquality.conf root:root 0644' \
   '/etc/ssh/sshd_config root:root 0600' \
   '/etc/yum.conf root:root 0644' \

@@ -78,7 +78,8 @@ do
 done
 
 # Set any orphaned files to root user or root group.
-find / -fstype local -xdev -nouser  -print -exec chown root {} \;
-find / -fstype local -xdev -nogroup -print -exec chgrp root {} \;
+# Inspired by STIG RHEL-07-020360 and RHEL-07-020370
+find / -fstype local -xdev -nouser  -print -exec chown nobody {} \;
+find / -fstype local -xdev -nogroup -print -exec chgrp nobody {} \;
 
 
