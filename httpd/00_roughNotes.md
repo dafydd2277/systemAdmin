@@ -1,4 +1,34 @@
+## Installation
+
+- Install the packages.
+
+```bash
+yum -y install httpd httpd-manual mod_ssl
+```
+
+- Adjust the firewall.
+
+Remember that the `external` zone has `masquerade` on by default. And, you don't want the host externally accessible via SSH. Manage this host from the internal network only.
+
+```
+firewall-cmd \
+  --permanent \
+  --zone=external \
+  --add-service=http \
+  --add-service=https \
+  --remove-service=ssh
+
+firewall-cmd --reload
+
+firewall-cmd \
+  --zone=external \
+  --list-all
+```
+
+
+
 ## Force redirection of all traffic to https.
+
 
 From http://httpd.apache.org/docs/2.2/rewrite/avoid.html
 
