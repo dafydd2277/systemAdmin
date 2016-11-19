@@ -1,0 +1,12 @@
+# Rotate the syslog files received by remote hosts.
+#
+# This file goes in /etc/logrotate.d/
+
+/var/log/remote/*/*.log {
+ minsize 100M
+ copytruncate
+ dateext
+ rotate 120
+ compress
+}
+
