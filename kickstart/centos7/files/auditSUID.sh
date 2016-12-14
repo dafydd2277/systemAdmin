@@ -68,6 +68,7 @@ done
 ${e_echo} "" >> /tmp/suidFiles.txt
 
 # Add the SUID/SGID lines in before the final section.
+# ( http://unix.stackexchange.com/a/32911/ )
 ${e_awk} '/# Disable/{while(getline line<"/tmp/suidFiles.txt"){print line}} //' /etc/audit/rules.d/audit.rules > /tmp/auditTemp
 ${e_mv} /tmp/auditTemp /etc/audit/rules.d/audit.rules
 rm /tmp/suidFiles.txt
