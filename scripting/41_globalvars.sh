@@ -1,0 +1,196 @@
+# globalvars.sh
+#
+# This script is intended to be sourced by other installation scripts
+# as a common code source. To source the file locally, execute
+#
+# source /path/to/globalvars.sh
+#
+# To source this file from a script server, execute
+#
+# source <( $(/usr/bin/which curl) -sS http://server/path/to/globalvars.sh )
+#
+
+###
+### DERIVED VARIABLES
+###
+
+#set -x
+
+# SET AN INSTALLATION STAGING DIRECTORY
+d_install=${d_install:-/tmp/install}
+
+
+# GATHER THE EXECUTABLES
+s_old_path="${PATH}"
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/share/bin:/usr/share/sbin
+
+e_awk=$( /usr/bin/which awk )
+e_cat=$( /usr/bin/which cat )
+e_chkconfig=$( /usr/bin/which chkconfig )
+e_chmod=$( /usr/bin/which chmod )
+e_chown=$( /usr/bin/which chown )
+e_cp=$( /usr/bin/which cp )
+e_curl=$( /usr/bin/which curl )
+e_cut=$( /usr/bin/which cut )
+e_date=$( /usr/bin/which date )
+e_echo=$( /usr/bin/which echo )
+e_egrep=$( /usr/bin/which egrep )
+e_find=$( /usr/bin/which find )
+e_grep=$( /usr/bin/which grep )
+e_groupadd=$( /usr/bin/which groupadd )
+e_groupmod=$( /usr/bin/which groupmod )
+e_hostname=$( /usr/bin/which hostname )
+e_id=$( /usr/bin/which id )
+e_ln=$( /usr/bin/which ln )
+e_ls=$( /usr/bin/which ls )
+e_mkdir=$( /usr/bin/which mkdir )
+e_mv=$( /usr/bin/which mv )
+e_printf=$( /usr/bin/which printf )
+e_rm=$( /usr/bin/which rm )
+e_rpm=$( /usr/bin/which rpm )
+e_sed=$( /usr/bin/which sed )
+e_service=$( /usr/bin/which service 2>/dev/null )
+e_stat=$( /usr/bin/which stat  )
+e_systemctl=$( /usr/bin/which systemctl 2>/dev/null )
+e_setsebool=$( /usr/bin/which setsebool )
+e_sort=$( /usr/bin/which sort )
+e_tar=$( /usr/bin/which tar )
+e_touch=$( /usr/bin/which touch )
+e_tr=$( /usr/bin/which tr )
+e_useradd=$( /usr/bin/which useradd )
+e_usermod=$( /usr/bin/which usermod )
+e_wc=$( /usr/bin/which wc )
+e_wget=$( /usr/bin/which wget )
+e_yum=$( /usr/bin/which yum )
+e_unzip=$( /usr/bin/which unzip )
+e_tput=$( /usr/bin/which tput )
+
+export PATH="${s_old_path}"
+
+# ONLY CALL FOR THE HOSTNAME ONCE
+s_fqdn=$( ${e_hostname} -f )
+s_hostname=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f1 )
+s_hostname_upper=$( ${e_echo} ${s_hostname} | ${e_tr} [:lower:] [:upper:] )
+# s_domain_prefix isolates the "sub" of "host.sub.dom.ain" for subdomain
+# specific variables and usages
+s_domain_prefix=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f2 )
+
+
+# SET THE VERSION-DEPENDENT VARIABLES
+source /etc/os-release
+i_major_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f1 )
+i_minor_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f2 )
+# If /etc/os-release doesn't exist, then we're still on RHEL 5, and
+# whole "source <(curl -sS http://...) stuff won't work anyway.
+if [ -z "${i_major_version}" ]
+then
+ i_major_version=5
+ i_minor_version=11
+fi
+
+
+# SET THE OS-DEPENDENT VARIABLES
+case ${i_major_version} in
+ '5')
+   # OS-DEPENDENT VARIABLES
+   ;;
+ '6')
+   # OS-DEPENDENT VARIABLES
+   ;;
+ '7')
+   # OS-DEPENDENT VARIABLES
+   ;;
+esac
+
+
+# SET THE DOMAIN-DEPENDENT VARIABLES
+case ${s_domain_prefix} in
+ 'dev')
+   # DOMAIN-DEPENDENT VARIABLES
+   ;;
+ 'test')
+   # DOMAIN-DEPENDENT VARIABLES
+   ;;
+ 'prod')
+   # DOMAIN-DEPENDENT VARIABLES
+   ;;
+ *)
+   # DOMAIN-DEPENDENT VARIABLES
+   ;;
+esac
+
+
+# SET A FILE EXTENSION VARIABLE FOR SED, ETC.
+# ${e_sed} --in-place=.${s_daterev} "<sed program>" <file>
+s_daterev=$( ${e_date} +%Y%m%d_%H%M%S )
+
+
+###
+### FUNCTIONS
+###
+
+# RING BELL / FLASH SCREEN
+fn_global_bell () {
+ ${e_echo} -e "\a"
+}
+
+
+# STOP AND CONTINUE
+fn_global_continue () {
+ read -p "Are you ready to continue (y/n)? " s_response
+ ${e_echo}
+
+ if [[ "${s_response}" =~ ^(y|Y|yes|Yes|YES)$ ]]
+ then
+   ${e_echo}
+ fi
+
+ unset s_response
+}
+
+
+# COLOR SETTINGS FOR TPUT
+#  Set ANSI Foreground color:         ${e_tput} setaf <number>
+#  Reset to default foreground color: ${e_tput} sgr 0
+#  Where <number> comes from value below:
+#     Color       #define       Value       RGB
+#     black     COLOR_BLACK       0     0, 0, 0
+#     red       COLOR_RED         1     max,0,0
+#     green     COLOR_GREEN       2     0,max,0
+#     yellow    COLOR_YELLOW      3     max,max,0
+#     blue      COLOR_BLUE        4     0,0,max
+#     magenta   COLOR_MAGENTA     5     max,0,max
+#     cyan      COLOR_CYAN        6     0,max,max
+#     white     COLOR_WHITE       7     max,max,max
+#
+#  Example:
+# ${e_echo} "$(${e_tput} setaf 1)Changing to RED text$(${e_tput} sgr 0)"
+
+
+# PRINT GREEN TEXT
+# Usage: fn_global_print_green "<quoted message text>"
+fn_global_print_green () {
+ ${e_echo} -e "$( ${e_tput} setaf 2 )${1}$( ${e_tput} sgr 0 )"
+}
+
+
+# PRINT RED TEXT
+# Usage: fn_global_print_red "<quoted message text>"
+fn_global_print_red () {
+ ${e_echo} -e "$( ${e_tput} setaf 1 )${1}$( ${e_tput} sgr 0 )"
+}
+
+
+# CREATE OR CLEAR AN INSTALLATION STAGING  DIRECTORY
+fn_global_tmp_install () {
+ if [ -d "${d_install}" ]
+ then
+   ${e_rm} -rf ${d_install}/*
+   ${e_chmod} 1777 ${d_install}
+ else
+   ${e_mkdir} --mode=1777 --parents ${d_install}
+ fi
+}
+
+#set +x
+
