@@ -49,13 +49,12 @@ e_printf=$( /usr/bin/which printf )
 e_rm=$( /usr/bin/which rm )
 e_rpm=$( /usr/bin/which rpm )
 e_sed=$( /usr/bin/which sed )
-e_service=$( /usr/bin/which service 2>/dev/null )
 e_stat=$( /usr/bin/which stat  )
-e_systemctl=$( /usr/bin/which systemctl 2>/dev/null )
 e_setsebool=$( /usr/bin/which setsebool )
 e_sort=$( /usr/bin/which sort )
 e_tar=$( /usr/bin/which tar )
 e_touch=$( /usr/bin/which touch )
+e_tput=$( /usr/bin/which tput )
 e_tr=$( /usr/bin/which tr )
 e_useradd=$( /usr/bin/which useradd )
 e_usermod=$( /usr/bin/which usermod )
@@ -88,18 +87,19 @@ then
  i_minor_version=11
 fi
 
-
-# SET THE OS-DEPENDENT VARIABLES
 case ${i_major_version} in
- '5')
-   # OS-DEPENDENT VARIABLES
-   ;;
- '6')
-   # OS-DEPENDENT VARIABLES
-   ;;
- '7')
-   # OS-DEPENDENT VARIABLES
-   ;;
+  '5')
+    # VERSION-DEPENDENT VARIABLES
+    e_service=$( /usr/bin/which service )
+    ;;
+  '6')
+    # VERSION-DEPENDENT VARIABLES
+    e_service=$( /usr/bin/which service )
+    ;;
+  '7')
+    # VERSION-DEPENDENT VARIABLES
+    e_systemctl=$( /usr/bin/which systemctl )
+    ;;
 esac
 
 
@@ -181,7 +181,7 @@ fn_global_print_red () {
 }
 
 
-# CREATE OR CLEAR AN INSTALLATION STAGING  DIRECTORY
+# CREATE OR CLEAR AN INSTALLATION STAGING DIRECTORY
 fn_global_tmp_install () {
  if [ -d "${d_install}" ]
  then
