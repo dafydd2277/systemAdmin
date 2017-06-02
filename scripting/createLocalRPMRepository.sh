@@ -17,8 +17,8 @@ set -x
 
 if [ "$(id -u)" -ne 0 ]
 then
- echo "Usage: $0"
- echo "Must be run as root."
+ $( /bin/which echo ) "Usage: $0"
+ $( /bin/which echo ) "Must be run as root."
  exit 1
 fi
 
@@ -57,21 +57,21 @@ s_dayword=$( ${e_date} +%a)
 
 # Restore the local package repository information.
 reset_dl_repos () {
-  rm -rf /etc/yum.repos.d
-  mv /etc/yum.repos.d.reposync /etc/yum.repos.d
+  ${e_rm} -rf /etc/yum.repos.d
+  ${e_mv} /etc/yum.repos.d.reposync /etc/yum.repos.d
 }
 
 # Restore the local yum.conf file.
 reset_yum_conf () {
-  mv /etc/yum.conf.reposync /etc/yum.conf
+  ${e_mv} /etc/yum.conf.reposync /etc/yum.conf
 }
 
 # Move the normal repository information out of the way, and insert
 # information for the public repositories.
 set_dl_repos () {
 
-  mv /etc/yum.repos.d /etc/yum.repos.d.reposync
-  mkdir -m 0755 -p /etc/yum.repos.d/
+  ${e_mv} /etc/yum.repos.d /etc/yum.repos.d.reposync
+  ${e_mkdir} -m 0755 -p /etc/yum.repos.d/
 
   cat <<EOREPOS >/etc/yum.repos.d/ext_source.repo
 [ol7_latest]
@@ -130,7 +130,7 @@ EOREPOS
 # Move the normal yum.conf out of the way, and set a customized
 # varient for downloading from public repositories.
 set_yum_conf () {
- mv /etc/yum.conf /etc/yum.conf.reposync
+ ${e_mv} /etc/yum.conf /etc/yum.conf.reposync
 
  cat <<EOCONF >/etc/yum.conf
 [main]
@@ -173,15 +173,14 @@ update_manual () {
   a_destinations[ol7_addons]=${d_repo_base}/OracleLinux/OL7/addons/x86_64
   a_destinations[epel]=${d_repo_base}/epel
  
-  for s_index in "${!a_destinations[@]}"
+  for s_repository in "${!a_destinations[@]}"
   do
  
-    s_repository=${s_index}
-    d_destination=${a_destinations[${s_index}]}
+    d_destination=${a_destinations[${s_repository}]}
  
-    if [ ! -d ${d_destination} ]
+    if [ ! -d "${d_destination}" ]
     then
-      mkdir --parents --mode=0755 ${d_destination}
+      ${e_mkdir} --parents --mode=0755 ${d_destination}
     fi
  
     pushd ${d_destination}
