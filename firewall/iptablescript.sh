@@ -4,6 +4,14 @@
 # Author: David Barr
 # Source: https://github.com/dafydd2277/systemAdmin/tree/master/firewall
 #
+# 2018-03-06 Shuffled some rules and added some ideas from
+#
+# https://www.cyberciti.biz/tips/linux-iptables-10-how-to-block-common-attack.html
+# https://www.cyberciti.biz/tips/linux-iptables-8-how-to-avoid-spoofing-and-bad-addresses-attack.html
+#
+# Also, added package testing to use iptables in RHEL 7. I don't think
+# is there, yet.
+#
 # 2015-02-18 Added some ideas.
 #
 # I added the packet logging ideas from
@@ -13,76 +21,160 @@
 # and the second answer at
 # http://serverfault.com/questions/418810/public-facing-recursive-dns-servers-iptables-rules
 #
+#
 # 2015-01-21 Original addition to github
 #
-# I wrote this to keep track of my firewall settings as I set up the host that
-# stands between my home network and the outside world. Essentially, this
-# is so I don't have to remember everything I do or don't want to filter.
+# I wrote this to keep track of my firewall settings as I set up the
+# host that stands between my home network and the outside world.
+# Essentially, this is so I don't have to remember everything I do or
+# don't want to filter.
 #
-# You need to set your internal and external interfaces before you use this
-# script. See s_int_if and s_ext_if, in the next section. If you choose to use
-# SNAT over MASQUERADE, set s_ext_ip, as well.
+# You need to set your internal and external interfaces before you use
+# this script. See s_int_if and s_ext_if, in the next section. If you
+# choose to use SNAT over MASQUERADE, set s_ext_ip, as well.
 #
 # Also, I have comments about several ideas that I might or might not
-# implement. I haven't placed variables in all those ideas. You can't lose by
-# having a good look through the script and figuring out what everything
-# does.
+# implement. I haven't placed variables in all those ideas. You can't
+# lose by having a good look through the script and figuring out what
+# everything does.
 
 ###
-### Explicit variables
+### EXPLICIT VARIABLES
 ###
-
-e_chkconfig=/sbin/chkconfig
-e_date=/bin/date
-e_echo=/bin/echo
-e_grep=/bin/grep
-e_iptables=/sbin/iptables
-e_ip6tables=/sbin/ip6tables
-e_sed=/sbin/sed
-e_service=/sbin/service
 
 s_ext_if=<external interface>
 s_ext_ip=<external IP address>
 s_int_if=<internal interface>
 s_int_subnet=<internal subnet>
-s_int_prefix=<internal netmask as an integer, eg. 24>
+s_int_cidr=<internal netmask as an integer, eg. 24>
 
 
 ###
-### Main
+### DERIVED VARIABLES
+###
+
+s_old_path=${PATH}
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin
+export PATH
+
+if [ -f /etc/os-release ]
+then
+  source /etc/os-release
+fi
+
+e_date=$( /usr/bin/which date )
+# Use the shell builtin echo
+e_grep=$( /usr/bin/which grep )
+e_rpm=$( /usr/bin/which rpm )
+e_sed=$( /usr/bin/which sed )
+
+case ${VERSION_ID} in
+  "6")
+    e_chkconfig=$( /usr/bin/which chkconfig )
+    e_service=$( /usr/bin/which service )
+    ;;
+  "7")
+    e_systemctl=$( /usr/bin/which systemctl )
+
+    ${e_rpm} -q iptables iptables-services >/dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+      yum -y install iptables iptables-services
+      if [ $? -ne 0 ]
+        echo "Installation of iptables or iptables-service failed."
+        return 1
+      fi
+    fi
+    ;;
+esac
+
+e_iptables=$( /usr/bin/which iptables )
+e_ip6tables=$( /usr/bin/which ip6tables )
+
+PATH=${s_old_path}
+export PATH
+
+
+###
+### MAIN
 ###
 
 # Make sure the kernel pieces are working.
 
 if [ $(cat /proc/sys/net/ipv4/ip_forward) -ne 1 ]
 then
-  ${e_echo} "Setting /proc/sys/net/ipv4/ip_forward."
-  ${e_echo} 1 > /proc/sys/net/ipv4/ip_forward
+  echo "Setting /proc/sys/net/ipv4/ip_forward."
+  echo 1 > /proc/sys/net/ipv4/ip_forward
+  echo 1 > /proc/sys/net/ipv4/conf/all/log_martians
+  echo 1 > /proc/sys/net/ipv4/conf/default/log_martians
 fi
 
 ${e_grep} -q "net.ipv4.ip_forward = 1" /etc/sysctl.conf 
 if [ $? -ne 0 ]
 then
-  ${e_echo} "Modifying sysctl.conf"
-  l_date=$(${e_date} +%Y%m%d)
+  echo "Modifying sysctl.conf"
+  l_date=$( ${e_date} +%Y%m%d_%H%M )
   ${e_sed} --in-place=.${l_date} \
     "s/^net\.ipv4\.ip_forward.*/net.ipv4.ip_forward = 1" \
     /etc/sysctl.conf
+  cat <<EOMARTIANS >>/etc/sysctl.conf
+net.ipv4.conf.all.log_martians=1
+net.ipv4.conf.default.log_martians=1
+EOMARTIANS
+
 fi
 
 
 ##### Start the services #####
-${e_echo} "Start the services."
+echo "Start the services."
 
-${e_chkconfig} iptables on
-${e_service} iptables restart
+unset i_result
+case ${VERSION_ID} in
+  "6")
+    ${e_chkconfig} iptables on
+    i_result=$?
+    ${e_service} iptables restart
+    i_result=$?
+    
+    ${e_chkconfig} ip6tables on
+    i_result=$?
+    ${e_service} ip6tables restart
+    i_result=$?
 
-${e_chkconfig} ip6tables on
-${e_service} ip6tables restart
+    if [ ${i_result} -ne 0 ]
+    then
+      echo "Failed to start iptables or ip6tables."
+      return 1
+    fi
+    ;;
+  "7")
+    ${e_systemctl} stop firewalld.service
+    i_result=$?
+    ${e_systemctl} mask firewalld.service
+    i_result=$?
+
+    if [ ${i_result} -ne 0 ]
+    then
+      echo "Failed to disable firewalld."
+      return 1
+    fi
+
+    ${e_systemctl} enable iptables.service
+    i_result=$?
+    ${e_systemctl} restart iptables.service
+    i_result=$?
+
+    if [ ${i_result} -ne 0 ]
+    then
+      echo "Failed to start iptables or ip6tables."
+      return 1
+    fi
+    ;;
+esac
 
 
 ##### Drop everything in IPv6, and move on... #####
-${e_echo} "Drop all of IPv6."
+echo "Drop all of IPv6."
 ${e_ip6tables} --policy INPUT DROP
 ${e_ip6tables} --flush INPUT
 
@@ -94,7 +186,7 @@ ${e_ip6tables} --flush OUTPUT
 
 
 ##### Basic policies #####
-${e_echo} "Basic Policies"
+echo "Basic Policies"
 
 ${e_iptables} --policy INPUT DROP
 ${e_iptables} --flush INPUT
@@ -107,7 +199,7 @@ ${e_iptables} --flush FORWARD
 
 
 ##### NAT and forwarding. #####
-${e_echo} "NAT and forwarding."
+echo "NAT and forwarding."
 
 ${e_iptables} --table nat --flush
 
@@ -118,17 +210,15 @@ ${e_iptables} --table nat --append POSTROUTING --out-interface ${s_ext_if} \
 
 
 ##### Localhost, lo #####
-${e_echo} "Localhost, lo"
+echo "Localhost, lo"
 
 ${e_iptables} --append INPUT --in-interface lo --jump ACCEPT
 
 
 ##### Internal network, ${s_int_if}, INPUT #####
-${e_echo} "Internal network, ${s_int_if}, INPUT"
+echo "Internal network, ${s_int_if}, INPUT"
 
-# Log everything
-#${e_iptables} --append INPUT --in-interface ${s_int_if} --jump LOGGING
-
+# Acceipt anything from the internal network.
 ${e_iptables} --append INPUT --in-interface ${s_int_if} --jump ACCEPT
 
 # Outbound connections from ${s_int_if} to ${s_ext_if}.
@@ -137,7 +227,7 @@ ${e_iptables} --append FORWARD --in-interface ${s_int_if} \
 
 
 ##### External network, ${s_ext_if}, INPUT ##### 
-${e_echo} "Exernal network, ${s_ext_if}, INPUT"
+echo "Exernal network, ${s_ext_if}, INPUT"
 
 # Log everything
 #${e_iptables} --append INPUT --in-interface ${s_ext_if} --jump LOGGING
@@ -145,6 +235,41 @@ ${e_echo} "Exernal network, ${s_ext_if}, INPUT"
 # Accept existing connections.
 ${e_iptables} --append INPUT --in-interface ${s_ext_if} --match state \
   --state ESTABLISHED,RELATED --jump ACCEPT
+
+# Drop any new connection attempt that doesn't start with a SYN packet.
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
+  --match tcp --dport 0:1023 --tcp-flags SYN,RST,ACK SYN --jump DROP
+${e_iptables} --append INPUT --protocol tcp ! --syn --match state \
+  --state NEW --jump DROP
+
+# Drop any fragmented packets
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --fragment \
+  --jump DROP
+
+# Drop malformed "XMAS" packets
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
+  --tcp-flags ALL ALL --jump DROP
+
+# Drop malformed NULL packets.
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
+  --tcp-flags ALL NONE --jump DROP
+
+# Drop anything from a spoofed network.
+# Feel free to add attempts to add internal net IP addresses coming in
+# to your external interface.
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 0.0.0.0/8 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 127.0.0.0/8 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 10.0.0.0/8 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 172.16.0.0/12 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 192.168.0.0/16 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --source 224.0.0.0/3 --jump DROP
+
 
 # FTP is TCP only.
 #${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
@@ -221,12 +346,21 @@ ${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
 #${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
 #  --match tcp --destination-port 6346 --jump ACCEPT
 
+# Drop BOOTP and NETBIOS broadcasts
+${e_iptables} --append INPUT --in-interface ${s_interface} --protocol udp \
+ --match udp --destination-port 67 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_interface} --protocol udp \
+ --match udp --destination-port 137 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_interface} --protocol udp \
+ --match udp --destination-port 138 --jump DROP
+${e_iptables} --append INPUT --in-interface ${s_interface} --protocol udp \
+ --match udp --destination-port 1947 --jump DROP
+
 # Politely reject packets to other privileged ports.
 ${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol udp \
   --match udp --dport 0:1023 --jump REJECT --reject-with icmp-port-unreachable
-${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
-  --match tcp --dport 0:1023 --tcp-flags SYN,RST,ACK SYN --jump REJECT \
-  --reject-with icmp-port-unreachable
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol udp \
+  --match tcp --dport 0:1023 --jump REJECT --reject-with icmp-port-unreachable
 
 # Drop packets to other, unprivileged ports.
 ${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol udp \
@@ -241,7 +375,13 @@ ${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol icmp \
   --match icmp --jump DROP
 
 # Log the remainder
-${e_iptables} --append INPUT --in-interface ${s_ext_if} --jump LOGGING
+# Log the remainder before we drop them.
+# RHEL 7 family dropped logging from iptables. :-(
+if [ "${VERSION_ID}" -lt 7 ]
+then
+  ${e_iptables} --append INPUT --match limit --limit 4/minute --jump LOG \
+   --log-level warn --log-prefix "Dropped by iptables: "
+fi
 
 
 ##### OUTPUT #####
@@ -263,7 +403,7 @@ ${e_iptables} --append OUTPUT --jump LOGGING
 
 
 ##### FORWARD #####
-${e_echo} "Forwarding"
+echo "Forwarding"
 
 # Log everything
 #${e_iptables} --append FORWARD --jump LOGGING
@@ -282,7 +422,7 @@ ${e_iptables} --append FORWARD --in-interface ${s_ext_if} \
 
 # Drop anything from the outside that looks like it's using an inside IP
 # address.
-${e_iptables} --append FORWARD --source ${s_int_subnet}/${s_int_prefix} \
+${e_iptables} --append FORWARD --source ${s_int_subnet}/${s_int_cidr} \
   --in-interface ${s_ext_if} --jump DROP
 
 # Log the remainder.
@@ -296,10 +436,17 @@ ${e_iptables} --append LOGGING --jump DROP
 
 
 ##### Final clean up. #####
-${e_echo} "Save tables."
+echo "Save tables."
 
-${e_service} iptables save
-${e_service} ip6tables save
+case ${VERSION_ID} in
+  "6")
+    ${e_service} iptables save
+    ${e_service} ip6tables save
+    ;;
+  "7")
+    ${e_systemctl} save iptables
+    ;;
+esac
 
 ${e_iptables} -L -v -n --line-numbers
 
