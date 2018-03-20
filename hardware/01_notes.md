@@ -13,7 +13,7 @@ Boot your CentOS Installation DVD, `<ESC>` to the `boot:` prompt, type `memtest8
 
 ## Disks
 
-- [badblocks(8)](http://linux.die.net/man/8/badblocks) - `badblocks -vn /dev/sda1` (Non-destructive) or `badblocks -vn /dev/sda1` (Destructive! This will delete data on the disk!)
+- [badblocks(8)](http://linux.die.net/man/8/badblocks) - `badblocks -vn /dev/sda1` (Non-destructive) or `badblocks -wn /dev/sda1` (Destructive! This will delete data on the disk!)
 - [parted(8)](http://linux.die.net/man/8/parted)
 - [smartctl(8)](http://linux.die.net/man/8/smartctl) - `smartctl --all /dev/sd?`
 
