@@ -18,7 +18,7 @@
 - One thing I noticed the first time I tried this is that the `shred` command also has a `--zero` option to write zeroes after it's done shredding the doc. Don't use that. Part of the point of using shred is that you have a bunch of random bytes before and after the looks-random-but-isn't LUKS filesystems.
 
 
-Create the Logical Volume first. You can examine `/proc/crypto` for supported ciphers.
+Create the Logical Volume first. Execute `cryptsetup --help` to list supported ciphers.
 
 ```
 s_pv_devices="/dev/sdb1 /dev/sdc1"
