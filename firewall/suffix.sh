@@ -1,7 +1,10 @@
+# Drop broadcasts not already accepted.
+${e_iptables} --append INPUT \
+  --match pkttype --pkt-type broatcast --jump DROP
+
 # Rate limit anything not already accepted.
-# STIG RHEL-07-040510
 ${e_iptables} --append INPUT --protocol tcp \
-  --match limit --limit 60/minute --limit-burst 100 -j ACCEPT
+  --match limit --limit 60/minute --limit-burst 100 --jump ACCEPT
 
 
 # Drop ECHO, BOOTP, NETBIOS, and hlserver broadcasts
@@ -30,13 +33,10 @@ ${e_iptables} --append INPUT --destination 224.0.0.1/32 --jump DROP
 
 
 # Log the remainder before we drop them.
-# Not available in OL 7
-case ${i_major_version} in
-  6)
-    ${e_iptables} --append INPUT --match limit --limit 4/minute --jump LOG \
-      --log-level warn --log-prefix "Dropped by iptables: "
-    ;;
-esac
+${e_iptables} --append INPUT \
+  --match limit --limit 4/minute \
+  --jump LOG --log-level info \
+  --log-prefix "Dropped by iptables: "
 
 
 # Politely reject packets to privileged ports not already opened.
@@ -44,9 +44,8 @@ ${e_iptables} --append INPUT --protocol udp \
   --match udp --dport 0:1024 --jump REJECT \
   --reject-with icmp-port-unreachable
 ${e_iptables} --append INPUT --protocol tcp \
-  --match tcp --dport 0:1024 --tcp-flags SYN,RST,ACK SYN --jump REJECT \
+  --match tcp --dport 0:1024 --jump REJECT \
   --reject-with icmp-port-unreachable
-
 
 # Drop packets to other, unprivileged ports.
 ${e_iptables} --append INPUT --protocol udp \
@@ -58,7 +57,7 @@ ${e_iptables} --append INPUT --protocol tcp \
 ##### Final clean up. #####
 ${e_service} iptables save
 ${e_service} ip6tables save
-${e_iptables} -L -v -n --line-numbers
+${e_iptables} -L -vn --line-numbers
 
 set +x
 
