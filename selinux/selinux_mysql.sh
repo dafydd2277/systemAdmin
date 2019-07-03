@@ -35,6 +35,7 @@ s_module_version="1.0"
 ### MAIN
 ###
 
+# Create the module definition
 cat <<EOMODULE > ${d_module_build}/mysql_local.te
 module myqsl_local ${s_module_version};
 
@@ -68,21 +69,31 @@ allow mysqld_t user_tmpfs_t:dir getattr;
 allow mysqld_t user_tmpfs_t:file { read getattr open };
 EOMODULE
 
+
+# Compile it
 checkmodule -m --mls \
   --output ${d_module_build}/mysql_local.mod \
   ${d_module_build}/mysql_local.te
 
+
+# Package the compiled version
 semodule_package \
   --outfile ${d_module_build}/mysql_local.pp \
   --module ${d_module_build}/mysql_local.mod
 
+
+# Install the module
 semodule \
   --verbose \
   --install ${d_module_build}/mysql_local.pp
 
+
+# List the results. Your grep needs to capture the title of your
+# module.
 semodule \
   --list-modules \
   | grep local
+
 
 # I actually did these with explicit directories. The patterns may
 # need some shell escapes to work.
@@ -91,6 +102,8 @@ semanage fcontext -a -f -d -t mysqld_db_t "${d_data}/mysql(/.*)?"
 semanage fcontext -a -f -- -t mysqld_db_t "${d_data}/mysql(/.*)?"
 semanage fcontext -a -f -d -t mysqld_tmp_t "${d_data}/mysql/tmp"
 semanage fcontext -a -f -- -t mysqld_tmp_t "${d_data}/mysql/tmp(/.*)?"
+
+# Apply the new definitions
 restorecon -Rv ${d_data}
 
 service mysql start
