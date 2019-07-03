@@ -127,8 +127,7 @@ ${e_iptables} --append INPUT \
 ${e_iptables} --append INPUT --protocol tcp \
   --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN --jump ACCEPT
 
-# Only accept new incoming connections TCP that start with a SYN
-# packet.
+# Only accept new connections that start with a SYN packet.
 ${e_iptables} --append INPUT --protocol tcp \
   ! --syn --match state --state NEW --jump DROP
 
@@ -137,7 +136,7 @@ ${e_iptables --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG ACK,RST \
   --jump ACCEPT
 
-# Accept ACK PSH connection endings.
+# Accept ACK PSH acknowledgements
 ${e_iptables --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG ACK,PSH \
   --jump ACCEPT
