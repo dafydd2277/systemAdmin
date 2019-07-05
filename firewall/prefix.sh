@@ -125,19 +125,21 @@ ${e_iptables} --append INPUT \
 
 # Drop new incoming packets with FIN/RST/ACK but not SYN
 ${e_iptables} --append INPUT --protocol tcp \
+  --match state --state NEW \
   --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN --jump DROP
 
 # Only accept new connections that start with a SYN packet.
+# (This is probably a tidier version of the previous rule.)
 ${e_iptables} --append INPUT --protocol tcp \
   ! --syn --match state --state NEW --jump DROP
 
 # Accept reset acknowledgements
-${e_iptables --append INPUT --protocol tcp \
-  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG ACK,RST \
+${e_iptables} --append INPUT --protocol tcp \
+  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG RST,ACK \
   --jump ACCEPT
 
 # Accept ACK PSH acknowledgements
-${e_iptables --append INPUT --protocol tcp \
+${e_iptables} --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG PSH,ACK \
   --jump ACCEPT
 
