@@ -85,18 +85,24 @@ summary after a blank line.
 
 ## Other Tricks
 
-```
-# Set an upstream remote for the current branch
+Set an upstream remote for the current branch
+
+```bash
 git branch -u <remote_name>/<branch_name>
+```
 
-# Get branch information from a remote, and delete any
-# unmatched branches.
+
+Get branch information from a remote, and delete any unmatched branches.
+
+```bash
 git remote update <remote_name> --prune
+```
 
-# Get a complete commit history of a file, in [diff][]/[patch][]
-# format.
+
+Get a complete commit history of a file, in [diff][]/[patch][] format.
+
+```bash
 git log -p <filename>
-
 ```
 
 [diff]: https://linux.die.net/man/1/diff
