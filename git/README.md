@@ -60,8 +60,45 @@ Additionally, I've taken to uncommenting the file modification notes that git pr
 
 I've started uncommenting everything under "Changes to be committed," so the list of new, modified, or deleted files actually gets added to the log entry for the change.
 
-So, short one-line summary, skip a line, and go into more detail about what you're doing, if you need to. Finish by uncommenting the list of files being committed, so someone can review that in log entries as well.
+So, short one-line summary, skip a line, and go into more detail about what you're doing, if you need to. Finish by uncommenting the list of files being committed, so someone can review that in log entries as well. So, a good commit message would look like this.
+
+```
+Adds a one-line summary of no more than 50 characters
+
+This commit expands on the idea of writing good commits, but including
+the most critical summary in the top line, and then expanding on that
+summary after a blank line.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch is up-to-date with 'github/master'.
+#
+# Changes to be committed:
+- modified:   README.md
+#
+
+```
 
 
 [git-commit]: http://chris.beams.io/posts/git-commit/
+
+## Other Tricks
+
+```
+# Set an upstream remote for the current branch
+git branch -u <remote_name>/<branch_name>
+
+# Get branch information from a remote, and delete any
+# unmatched branches.
+git remote update <remote_name> --prune
+
+# Get a complete commit history of a file, in [diff][]/[patch][]
+# format.
+git log -p <filename>
+
+```
+
+[diff]: https://linux.die.net/man/1/diff
+[patch]: https://linux.die.net/man/1/patch
 
