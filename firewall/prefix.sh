@@ -116,7 +116,8 @@ ${e_iptables} --append INPUT --fragment --jump DROP
 
 # Drop incoming malformed NULL packets.
 ${e_iptables} --append INPUT --protocol tcp \
-  --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE --jump DROP
+  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE \
+  --jump DROP
 
 # Accept connections that start with this host.
 ${e_iptables} --append INPUT \
@@ -133,12 +134,12 @@ ${e_iptables} --append INPUT --protocol tcp \
 ${e_iptables} --append INPUT --protocol tcp \
   ! --syn --match state --state NEW --jump DROP
 
-# Accept reset acknowledgements
+# Accept RST,ACK acknowledgements
 ${e_iptables} --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG RST,ACK \
   --jump ACCEPT
 
-# Accept ACK PSH acknowledgements
+# Accept PSH,ACK acknowledgements
 ${e_iptables} --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG PSH,ACK \
   --jump ACCEPT
