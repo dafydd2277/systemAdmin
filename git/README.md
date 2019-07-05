@@ -92,7 +92,7 @@ git branch -u <remote_name>/<branch_name>
 ```
 
 
-Get branch information from a remote, and delete any unmatched branches.
+Get branch information from a remote, and delete any unmatched local branches.
 
 ```bash
 git remote update <remote_name> --prune
