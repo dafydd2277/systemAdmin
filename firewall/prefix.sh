@@ -38,6 +38,14 @@ case ${i_major_version} in
     ${e_chkconfig} ip6tables on
     ${e_service} ip6tables restart
 
+    ##### Drop everything in IPv6, and move on... #####
+    echo "Drop all of IPv6."
+    ${e_ip6tables} --policy INPUT DROP
+    ${e_ip6tables} --flush INPUT
+    ${e_ip6tables} --policy FORWARD DROP
+    ${e_ip6tables} --flush FORWARD
+    ${e_ip6tables} --policy OUTPUT ACCEPT
+    ${e_ip6tables} --flush OUTPUT
     ;;
   7)
     # This assumes a single interface host inside the enterprise.
@@ -69,19 +77,9 @@ case ${i_major_version} in
     echo "Start the services."
     ${e_systemctl} enable iptables
     ${e_systemctl} restart iptables
-
     ;;
 esac
 
-
-##### Drop everything in IPv6, and move on... #####
-echo "Drop all of IPv6."
-${e_ip6tables} --policy INPUT DROP
-${e_ip6tables} --flush INPUT
-${e_ip6tables} --policy FORWARD DROP
-${e_ip6tables} --flush FORWARD
-${e_ip6tables} --policy OUTPUT ACCEPT
-${e_ip6tables} --flush OUTPUT
 
 
 ##### Basic policies #####
@@ -94,8 +92,7 @@ ${e_iptables} --policy FORWARD DROP
 ${e_iptables} --flush FORWARD
 
 
-##### Localhost, lo #####
-echo "Localhost, lo"
+# Accept all traffic from localhost
 ${e_iptables} --append INPUT --in-interface lo --jump ACCEPT
 
 # Block attempts to use 127.0.0.1 from interfaces that are not
@@ -108,27 +105,44 @@ ${e_iptables} --append INPUT ! --in-interface lo \
 
 ##### Internal network, ${s_interface}, INPUT #####
 
-
-# Accept connections that start with this host.
-${e_iptables} --append INPUT --match state \
-  --state ESTABLISHED,RELATED --jump ACCEPT
-${e_iptables} --append INPUT --protocol tcp \
-  --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN --jump ACCEPT
-
+# Block the "SACK panic"
+$e_iptables} --append INPUT --protocol tcp \
+  --match conntrack --ctstate NEW \
+  --match tcpmss ! --mss 536:65535 \
+  --jump REJECT --reject-with icmp-admin-prohibited
 
 # Drop fragmented packets
 ${e_iptables} --append INPUT --fragment --jump DROP
 
+# Drop incoming malformed NULL packets.
+${e_iptables} --append INPUT --protocol tcp \
+  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE \
+  --jump DROP
 
-# Only accept new incoming connections TCP that start with a SYN
-# packet.
+# Accept connections that start with this host.
+${e_iptables} --append INPUT \
+  --match state --state ESTABLISHED,RELATED \
+  --jump ACCEPT
+
+# Drop new incoming packets with FIN/RST/ACK but not SYN
+${e_iptables} --append INPUT --protocol tcp \
+  --match state --state NEW \
+  --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN --jump DROP
+
+# Only accept new connections that start with a SYN packet.
+# (This is probably a tidier version of the previous rule.)
 ${e_iptables} --append INPUT --protocol tcp \
   ! --syn --match state --state NEW --jump DROP
 
-
-# Drop incoming malformed NULL packets.
+# Accept RST,ACK acknowledgements
 ${e_iptables} --append INPUT --protocol tcp \
-  --tcp-flags ALL NONE --jump DROP
+  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG RST,ACK \
+  --jump ACCEPT
+
+# Accept PSH,ACK acknowledgements
+${e_iptables} --append INPUT --protocol tcp \
+  --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG PSH,ACK \
+  --jump ACCEPT
 
 
 # NFS is TCP only.
