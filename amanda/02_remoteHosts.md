@@ -40,10 +40,10 @@ ssh-keygen \
   -f /etc/amanda/localdomain/id_ecdsa
 ```
 
-I copied the SSH public key over to `remote:/var/lib/amanda`, just as
-instructed. However, I couldn't log in. Testing with `ssh -vvvv` didn't
-tell me anything useful. I found the clue in
-`remote:/var/log/messages`.
+I copied the SSH public key over to
+`remote:/var/lib/amanda/.ssh/authorized_keys`, just as instructed.
+ However, I couldn't log in. Testing with `ssh -vvvv` didn't tell me
+ anything useful. I found the clue in `remote:/var/log/messages`.
 
 ```bash
 Jul  6 17:48:55 remote setroubleshoot: SELinux is preventing \
