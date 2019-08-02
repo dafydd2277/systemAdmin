@@ -119,6 +119,10 @@ ${e_iptables} --append INPUT --protocol tcp \
   --match tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE \
   --jump DROP
 
+# Drop malformed "XMAS" packets
+${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
+  --tcp-flags ALL ALL --jump DROP
+
 # Accept connections that start with this host.
 ${e_iptables} --append INPUT \
   --match state --state ESTABLISHED,RELATED \
