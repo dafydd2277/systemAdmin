@@ -64,12 +64,21 @@ e_yum=$( /usr/bin/which yum )
 e_unzip=$( /usr/bin/which unzip )
 e_tput=$( /usr/bin/which tput )
 
+e_iptables$( /usr/bin/which iptables )
+e_ip6tables=$( /usr/bin/which ip6tables )
+if [ -z "${e_ip6tables}" ]
+then
+  e_ip6tables=${e_iptables}
+fi
+
 export PATH="${s_old_path}"
 
 # ONLY CALL FOR THE HOSTNAME ONCE
 s_fqdn=$( ${e_hostname} -f )
 s_hostname=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f1 )
+s_domain=${s_hostname#*.}
 s_hostname_upper=$( ${e_echo} ${s_hostname} | ${e_tr} [:lower:] [:upper:] )
+
 # s_domain_prefix isolates the "sub" of "host.sub.dom.ain" for subdomain
 # specific variables and usages
 s_domain_prefix=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f2 )
@@ -79,6 +88,7 @@ s_domain_prefix=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f2 )
 source /etc/os-release
 i_major_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f1 )
 i_minor_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f2 )
+
 # If /etc/os-release doesn't exist, then we're still on RHEL 5, and
 # whole "source <(curl -sS http://...) stuff won't work anyway.
 if [ -z "${i_major_version}" ]
@@ -99,6 +109,14 @@ case ${i_major_version} in
   '7')
     # VERSION-DEPENDENT VARIABLES
     e_systemctl=$( /usr/bin/which systemctl )
+
+    # We still need a service command for things like
+    # `service iptables save`.
+    e_service=$( /usr/bin/which service )
+    if [ -z "${e_service}" ]
+    then
+      e_service=${e_systemctl}
+    fi
     ;;
 esac
 

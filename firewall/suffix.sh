@@ -19,6 +19,11 @@ ${e_iptables} --append INPUT --protocol udp \
 ${e_iptables} --append INPUT --protocol udp \
   --match udp --destination-port 1947 --jump DROP
 
+# Drop Dropbox LAN Sync broadcasts.
+# (See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
+${e_iptables} --append INPUT --protocol udp \
+  --match pkttype --pkt-type broadcast \
+  --match udp --destination-port 17500 --jump DROP
 
 # Accept pings. Drop all other ICMP
 ${e_iptables} --append INPUT --protocol icmp \

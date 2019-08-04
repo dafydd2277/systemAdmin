@@ -17,8 +17,6 @@ case ${i_major_version} in
     return 1
     ;;
   6)
-    s_interface=eth0
-
     a_pkgs_to_install=( \
       iptables \
       iptables-ipv6 \
@@ -48,14 +46,6 @@ case ${i_major_version} in
     ${e_ip6tables} --flush OUTPUT
     ;;
   7)
-    # This assumes a single interface host inside the enterprise.
-    s_interface=$( ${e_nmcli} con show \
-      | ${e_grep} "ethernet" \
-      | ${e_awk} '{print $5}' \
-      | ${e_sort} \
-      | ${e_head} -1
-    )
-
     a_pkgs_to_install=( \
       iptables \
       iptables-services \
@@ -103,8 +93,6 @@ ${e_iptables} --append INPUT ! --in-interface lo \
   --destination 127.0.0.0/8 --jump DROP
 
 
-##### Internal network, ${s_interface}, INPUT #####
-
 # Block the "SACK panic"
 $e_iptables} --append INPUT --protocol tcp \
   --match conntrack --ctstate NEW \
@@ -120,8 +108,9 @@ ${e_iptables} --append INPUT --protocol tcp \
   --jump DROP
 
 # Drop malformed "XMAS" packets
-${e_iptables} --append INPUT --in-interface ${s_ext_if} --protocol tcp \
-  --tcp-flags ALL ALL --jump DROP
+${e_iptables} --append INPUT --protocol tcp \
+  --match tcp --tcp-flags ALL ALL \
+  --jump DROP
 
 # Accept connections that start with this host.
 ${e_iptables} --append INPUT \
