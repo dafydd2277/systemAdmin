@@ -65,7 +65,7 @@ ${e_grep} -q "net.ipv4.ip_forward = 1" /etc/sysctl.conf
 if [ $? -ne 0 ]
 then
   echo "Modifying sysctl.conf"
-  ${e_sed} --in-place=.${s_dateref} \
+  ${e_sed} --in-place=.${s_daterev} \
     "s/^net\.ipv4\.ip_forward.*/net.ipv4.ip_forward = 1/" \
     /etc/sysctl.conf
   cat <<EOMARTIANS >>/etc/sysctl.conf
