@@ -1,6 +1,6 @@
 # Drop broadcasts not already accepted.
 ${e_iptables} --append INPUT \
-  --match pkttype --pkt-type broatcast --jump DROP
+  --match pkttype --pkt-type broadcast --jump DROP
 
 # Rate limit anything not already accepted.
 ${e_iptables} --append INPUT --protocol tcp \
