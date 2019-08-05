@@ -18,9 +18,6 @@ cd ${d_named_root}
 
 dnssec-keygen -a hmac-md5 -b 256 -n USER dhcpupdate
 
-# RHEL 7 family
-dnssec-keygen -a HMAC-SHA512 -b 512 -n USER -G dhcpupdate
-
 ```
 
 (When I came back to this, I found that `dnssec-keygen` hung
