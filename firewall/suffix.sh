@@ -19,6 +19,10 @@ ${e_iptables} --append INPUT --protocol udp \
 ${e_iptables} --append INPUT --protocol udp \
   --match udp --destination-port 1947 --jump DROP
 
+# Blcok Apple Multicast DNS
+${e_iptables} --append INPUT --protocol udp \
+  --match udp --destination-port 5353 --jump DROP
+
 # Drop Dropbox LAN Sync broadcasts.
 # (See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
 ${e_iptables} --append INPUT --protocol udp \
