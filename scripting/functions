@@ -10,8 +10,71 @@
 # https://www.commandlinefu.com/commands/view/24622/create-backup-copy-of-file-adding-suffix-of-the-date-of-the-file-modification-not-todays-date
 # It will duplicate a file with a timestamp extension of the file's
 # last modified date, NOT the current date.
-function archive () {
+function fn_archive () {
   df_target=${1}
-  cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%y%m%d" )
+  cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%Y%m%d" )
 }
 
+
+# I don't remember where fn_git_branch() and fn_git_color() came
+# from. If you're in a git working directory, the first function
+# will add a line to PS1 to display the branch you're working in,
+# like this:
+# PS1='\n$(fn_git_branch)\n[ \D{%F} \t ] \w\n[ \u@\h ] \$ '
+# The second function colorizes the name of the working branch
+# based on its commit and merge status.
+fn_git_branch () {
+  local GITDIR=$( git rev-parse --show-toplevel 2>&1 ) # Get root directory of git repo
+  if [[ "$GITDIR" != '/root' ]] # Don't show status of home directory repo
+  then
+    # Figure out the current branch, wrap in brackets and return it
+    local BRANCH=$( git branch --no-color 2>/dev/null | sed -n '/^\*/s/^\* //p' )
+    if [ -n "$BRANCH" ]; then
+      echo -e "Git Branch: $( fn_git_color )$BRANCH \033[01;37m"
+    fi
+  else
+    echo ""
+  fi
+}
+
+fn_git_color () {
+  # Get the status of the repo and chose a color accordingly
+  local STATUS=`git status 2>&1`
+  if [[ "$STATUS" == *'Not a git repository'* ]]
+  then
+    echo ""
+  else
+    if [[ "$STATUS" != *'working directory clean'* ]]
+    then
+      # red if need to commit
+      echo -e '\033[0;31m'
+    else
+      if [[ "$STATUS" == *'Your branch is ahead'* ]]
+      then
+        # yellow if need to push
+        echo -e '\033[0;33m'
+      else
+        # else white
+        echo -e '\033[0;37m'
+      fi
+    fi
+  fi
+}
+
+# This function will set your bash history. If you have a
+# centralized home directory (typically via NFS), your
+# history files will be separated by hostname.
+fn_profile_set_history () {
+  shopt -s histappend
+  shopt -s histverify
+  readonly -p | grep -q "HISTFILE"
+  if [ $? -ne 0 ]
+  then
+    export HISTFILE=~/.bash_history_$( hostname )
+    export HISTCONTROL=ignoreboth
+    export HISTIGNORE=""
+    export HISTSIZE=500
+    export HISTFILESIZE=10000
+    export HISTTIMEFORMAT='%F %T - '
+  fi
+}
