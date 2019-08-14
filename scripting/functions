@@ -1,0 +1,17 @@
+# Bash Functions
+#
+# This file can be called by copying it into your ${HOME} as a dot
+# file, and sourcing it from .bash_profile, like this.
+#
+# source .functions
+#
+
+# This function is inspired by
+# https://www.commandlinefu.com/commands/view/24622/create-backup-copy-of-file-adding-suffix-of-the-date-of-the-file-modification-not-todays-date
+# It will duplicate a file with a timestamp extension of the file's
+# last modified date, NOT the current date.
+function archive () {
+  df_target=${1}
+  cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%y%m%d" )
+}
+
