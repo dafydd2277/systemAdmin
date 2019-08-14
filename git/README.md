@@ -89,8 +89,17 @@ Set an upstream remote for the current branch
 
 ```bash
 git branch -u <remote_name>/<branch_name>
+
 ```
 
+Check out a clean copy of that remote branch
+
+```bash
+git branch -D <branch_name>
+
+git checkout --track <remote_name>/<branch_name>
+
+```
 
 Get branch information from a remote, and delete any unmatched local branches.
 
