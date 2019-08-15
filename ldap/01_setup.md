@@ -178,12 +178,6 @@ interactive installation, the contents of `${df_dsadmin_passphrase}`
 are requested first by `setup-ds-admin.pl`, followed by the contents of
 `${df_dirmgr_passphrase}`.
 
-(Having said that, one limitation of `sha1sum` is that it's a string
-of 40 hexadecimal characters. I've actually stopped using it, in favor
-of using a larger set of `tr`anslation characters than `A-Za-z0-9` and
-combining several `head -c` and `tail -c` trims of that initial output.
-My password strings are not 40 characters, and are not limited to
-`0-9a-f`.)
 
 ```bash
 mkdir --mode 700 --parents ${d_389ds_root}
