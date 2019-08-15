@@ -78,3 +78,14 @@ fn_profile_set_history () {
     export HISTTIMEFORMAT='%F %T - '
   fi
 }
+
+
+# Create a string of random charaacters in the set 0-9a-zA-Z
+fn_randomChars () {
+ tr -dc A-Za-z0-9 < /dev/urandom \
+   | head -c ${2:-2048} \
+   | tail -c ${3:-1536} \
+   | head -c ${1:-24}
+echo
+}
+
