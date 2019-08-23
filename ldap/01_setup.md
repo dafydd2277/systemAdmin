@@ -209,7 +209,7 @@ SuiteSpotUserID= nobody
 SuiteSpotGroup= nobody 
 AdminDomain= ${s_domain}
 ConfigDirectoryAdminID= ${s_admin_user}
-ConfigDirectoryAdminPwd= $(cat ${df_dsadmin_passphrase})
+ConfigDirectoryAdminPwd= $(cat ${df_dirmgr_passphrase})
 ConfigDirectoryLdapURL= ldap://${HOSTNAME}.${s_domain}:389/o=NetscapeRoot 
 
 [slapd] 
@@ -228,7 +228,7 @@ AddOrgEntries= No
 Port= 9830
 ServerIpAddress= ${s_server_ip}
 ServerAdminID= ${s_admin_user} 
-ServerAdminPwd= $(cat ${DS_PASSPHRASE})
+ServerAdminPwd= $(cat ${df_dsadmin_passphrase})
 
 EOT
 
