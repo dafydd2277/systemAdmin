@@ -209,7 +209,7 @@ SuiteSpotUserID= nobody
 SuiteSpotGroup= nobody 
 AdminDomain= ${s_domain}
 ConfigDirectoryAdminID= ${s_admin_user}
-ConfigDirectoryAdminPwd= $(cat ${df_dirmgr_passphrase})
+ConfigDirectoryAdminPwd= $(cat ${df_dsadmin_passphrase})
 ConfigDirectoryLdapURL= ldap://${HOSTNAME}.${s_domain}:389/o=NetscapeRoot 
 
 [slapd] 
