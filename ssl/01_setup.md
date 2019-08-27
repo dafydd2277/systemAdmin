@@ -175,6 +175,8 @@ Now, let's generate the request. Here's the command for an unencrypted
 private key.
 
 ```bash
+push ${d_cert_root}
+
 openssl req -new \
   -days ${i-expire_days} \
   -out ${s_hostname_s}.req \
@@ -213,17 +215,21 @@ EOF
 chown root:root ${df_host_req}
 chmod 0400 ${df_host_req}
 
+popd
 ```
 
 
 And, here's the command when the private key has to be encrypted.
 
 ```bash
+push ${d_cert_root}
+
 openssl req -new \
   -days ${i_expire_days} \
   -out ${s_hostname_s}.req \
   -newkey rsa \
   -passin file:${df_host_passphrase} \
+  -keyout private/${s_hostname_s}.key \
   -config <(
 cat <<-EOF
 [req]
@@ -257,6 +263,7 @@ EOF
 chown root:root ${df_host_req}
 chmod 0400 ${df_host_req}
 
+popd
 ```
 
 
