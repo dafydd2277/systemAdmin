@@ -178,6 +178,7 @@ private key.
 pushd ${d_cert_root}
 
 openssl req -new \
+  -x50 \
   -days ${i-expire_days} \
   -out ${s_hostname_s}.req \
   -newkey rsa \
@@ -225,6 +226,7 @@ And, here's the command when the private key has to be encrypted.
 pushd ${d_cert_root}
 
 openssl req -new \
+  -x509 \
   -days ${i_expire_days} \
   -out ${s_hostname_s}.req \
   -newkey rsa \
