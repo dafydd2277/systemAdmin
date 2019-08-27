@@ -113,11 +113,12 @@ EOSYSCONFIG
 
 ```
 
+
 - [Why do I use dollar-parentheses instead of backticks in bash
 command expansion like `$(hostname -s)`?][faq082]
--Also, in this particular case, `$(hostname)` might return the FQDN or
-might return a simple hostname. So, using `$(hostname -s).${s_domain}
-will get me a good answer in any case.
+    - Also, in this particular case, `$(hostname)` might return the
+FQDN or might return a simple hostname. So, using
+`$(hostname -s).${s_domain} will get me a good answer in any case.
 - And, see [Example 19-6 of the bash guide at TLDP][bash196] for why
 I'm quoting my heredoc limit string.
 
@@ -161,7 +162,7 @@ config sections are now required in an x509 certificate.
 Also, note that the `[alt_names]` entry below includes options you
 frequently won't need. Include any CNAME aliases that will point to
 this system. Rarely, you'll need to request a wildcard alias
-( `*.${s_hostname}.${domain}` ) to allow for multiple granular URIs
+( `*.${s_hostname_s}.${domain}` ) to allow for multiple granular URIs
 that will come to this host. Remember to keep the `DNS.1`,
 `DNS.2`, etc., in order, without skipping ordinals. For a deep dive
 into how to build a certificate configuration file, see the
@@ -176,9 +177,9 @@ private key.
 ```bash
 openssl req -new \
   -days ${i-expire_days} \
-  -out ${s_hostname}.req \
+  -out ${s_hostname_s}.req \
   -newkey rsa \
-  -keyout private/${s_hostname}.key \
+  -keyout private/${s_hostname_s}.key \
   -config <(
 cat <<-EOF
 [req]
@@ -195,15 +196,15 @@ L=${s_cert_city}
 O=${s_cert_org}
 OU=${s_cert_org_unit}
 emailAddress=${s_cert_org_email}
-CN=${s_hostname}.${s_domain}
+CN=${s_hostname_s}.${s_domain}
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = ${s_hostname}.${s_domain}
+DNS.1 = ${s_hostname_s}.${s_domain}
 DNS.2 = <CNAME>.${s_domain}
-DNS.3 = *.${s_hostname}.${s_domain}
+DNS.3 = *.${s_hostname_s}.${s_domain}
 
 EOF
 
@@ -220,7 +221,7 @@ And, here's the command when the private key has to be encrypted.
 ```bash
 openssl req -new \
   -days ${i_expire_days} \
-  -out ${s_hostname}.req \
+  -out ${s_hostname_s}.req \
   -newkey rsa \
   -passin file:${df_host_passphrase} \
   -config <(
@@ -239,15 +240,15 @@ L=${s_cert_city}
 O=${s_cert_org}
 OU=${s_cert_org_unit}
 emailAddress=${s_cert_org_email}
-CN=${s_hostname}.${s_domain}
+CN=${s_hostname_s}.${s_domain}
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = ${s_hostname}.${s_domain}
+DNS.1 = ${s_hostname_s}.${s_domain}
 DNS.2 = <CNAME>.${s_domain}
-DNS.3 = *.${s_hostname}.${s_domain}
+DNS.3 = *.${s_hostname_s}.${s_domain}
 
 EOF
 
