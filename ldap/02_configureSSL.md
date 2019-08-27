@@ -16,10 +16,10 @@ For the most part, you may take blank lines in the code blocks as separators for
 - [SSL-01_setup.md][SSL-01] to set up your Certificate Signing Request for submission to a Certificate Authority. You'll need the resulting certificate and the CA's signing certificate. Optionally, you can also go through [SSL-02_setupCA.md][SSL-02] to set up your own Certificate Authority
 - [ldap/01_setup.md][389DS-01] for your basic 389-DS configuration.
 
-[BASH-01]: https://github.com/dafydd2277/accountSecurity/blob/master/BASH-01_secureHistory.md
-[SSL-01]: https://github.com/dafydd2277/accountSecurity/blob/master/SSL-01_setup.md
-[SSL-02]: https://github.com/dafydd2277/accountSecurity/blob/master/SSL-02_setupCA.md
-[389DS-01]: https://github.com/dafydd2277/accountSecurity/blob/master/ldap/01_setup.md
+[BASH-01]: https://github.com/dafydd2277/systemAdmin/blob/master/scripting/01_secureHistory.md
+[SSL-01]: https://github.com/dafydd2277/systemAdmin/blob/master/ssl/01_setup.md
+[SSL-02]: https://github.com/dafydd2277/systemAdmin/blob/master/ssl/02_setupCA.md
+[389DS-01]: https://github.com/dafydd2277/systemAdmin/blob/master/ldap/01_setup.md
 
 
 ## References
