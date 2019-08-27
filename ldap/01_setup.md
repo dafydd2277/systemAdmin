@@ -328,7 +328,11 @@ passwordStorageScheme
 
 ```
 
-You should have received a bunch of text. The key line is `passwordStorageScheme: SSHA`. This means the default password hashing scheme is Salted SHA, which uses 140 bits. (See [Section 3.1.1.162][sec311162].) We'll change that to Salted SHA256, just to make things harder on crackers. Here's the command to do that.
+You should have received a bunch of text. The key line is
+`passwordStorageScheme: SSHA`. This means the default password hashing
+scheme is Salted SHA, which uses 140 bits. (See
+[Section 3.1.1.162][sec311162].) We'll change that to Salted SHA256,
+just to make things harder on crackers. Here's the command to do that.
 
 ```bash
  ldapmodify -v -x -h localhost -c -D "${s_dirmgr}" \
@@ -347,7 +351,10 @@ EOT
 
 ## Add a User
 
-Here, we'll add a user to the LDAP database, then add two groups, listing that user as a member. In the next section, we'll then query for that user, to verify he was correctly added.
+Here, we'll add a user to the LDAP database, then add two groups,
+listing that user as a member. The first of the two groups will be
+a [User Private Group][upg]. In the next section, we'll then query for
+that user, to verify he was correctly added.
 
 ```bash
  ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
@@ -364,17 +371,22 @@ cn: jdoe
 homeDirectory: /mnt/home/jdoe
 uid: jdoe
 uidNumber: 20001
-gidNumber: 100
+gidNumber: 20001
 givenName: John
 sn: Doe
 gecos: John X. Doe
 displayName: John X. Doe VI
 loginShell: /bin/bash
 
-EOT
+dn: cn=jdoe,ou=groups,${s_basedn}
+changeType: add
+objectClass: top
+objectClass: groupOfNames
+objectClass: posixGroup
+cn: jdoe
+gidNumber: 20001
+member: cn=jdoe,ou=users,${s_basedn}
 
- ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
 dn: cn=wheel,ou=groups,${s_basedn}
 changeType: add
 objectClass: top
@@ -386,25 +398,13 @@ member: cn=jdoe,ou=users,${s_basedn}
 
 EOT
 
- ldapmodify -v -x -H ldap://localhost:389 -c -D "${s_dirmgr}" \
--w $(cat ${df_dirmgr_passphrase}) <<EOT
-dn: cn=users,ou=groups,${s_basedn}
-changeType: add
-objectClass: top
-objectClass: groupOfNames
-objectClass: posixGroup
-cn: users
-gidNumber: 100
-member: cn=jdoe,ou=users,,${s_basedn}
-
-EOT
-
 ```
 
 - Note that I didn't give this user a password. If I want to do so, I would use the `userPassword:` attribute in the user's entry. Directory Server will then encrypt the password according to the SSHA256 encryption scheme we told 389-ds to use. However, I know I'm going to be setting up Kerberos later, and I'll put the password there, instead.
 - Note that I don't have to do this as three separate commands. I could leave the starting `ldapmodify` and the ending `EOT`, and remove the `ldapmodify` and `EOT` lines between the commands. That would work just fine.
 - And, note that I created a `wheel` group. Be careful with this group in live installations. The `wheel` group is used to identify System Administrators. With a minimally configured `sudo`, all members of `wheel` can gain privileged (`root`) access.
 
+[upg]: https://security.ias.edu/how-and-why-user-private-groups-unix
 
 ## Verify the new additions.
 
