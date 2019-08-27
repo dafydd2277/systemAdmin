@@ -175,7 +175,7 @@ Now, let's generate the request. Here's the command for an unencrypted
 private key.
 
 ```bash
-push ${d_cert_root}
+pushd ${d_cert_root}
 
 openssl req -new \
   -days ${i-expire_days} \
@@ -222,7 +222,7 @@ popd
 And, here's the command when the private key has to be encrypted.
 
 ```bash
-push ${d_cert_root}
+pushd ${d_cert_root}
 
 openssl req -new \
   -days ${i_expire_days} \
