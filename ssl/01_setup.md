@@ -54,7 +54,10 @@ cat <<"EOSYSCONFIG" >${df_ssl_sysconfig}
 # These are local file and directory locations for SSL elements.
 
 # Create a short hostname variable.
-s_hostname_s=$(hostname -s)
+s_hostname_s=$ (hostname -s )
+s_domain=$( hostname -d )
+export s_hostname_s s_domain
+
 
 # Secure directory
 d_root_ssl=/root/.ssl
@@ -66,15 +69,15 @@ df_host_passphrase=${d_root_ssl}/host_passphrase.txt
 export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-df_host_key=${d_root_ssl}/private/${s_hostname_s}.${domain}.key
+df_host_key=${d_root_ssl}/private/${s_hostname_s}.${s_domain}.key
 export df_host_key
 
 # The host certificate request.
-df_host_req=${d_cert_root}/${s_hostname_s}.${domain}.req
+df_host_req=${d_cert_root}/${s_hostname_s}.${s_domain}.req
 export df_host_req
 
 # The host certificate file.
-df_host_cert=${d_cert_root}/certs/${s_hostname_s}.${domain}.pem
+df_host_cert=${d_cert_root}/certs/${s_hostname_s}.${s_domain}.pem
 export df_host_cert
 
 # The CA certificate, once we get it.
@@ -103,11 +106,10 @@ s_cert_city="Seattle"
 s_cert_org="Private"
 s_cert_org_unit="Data Center"
 s_cert_org_email="abuse@google.com"
-s_domain="example.com"
 
 export i_expire_days
 export s_cert_country_code s_cert_state s_cert_city
-export s_cert_org s_cert_org_unit s_cert_org_email s_domain
+export s_cert_org s_cert_org_unit s_cert_org_email 
 
 EOSYSCONFIG
 
@@ -162,7 +164,7 @@ config sections are now required in an x509 certificate.
 Also, note that the `[alt_names]` entry below includes options you
 frequently won't need. Include any CNAME aliases that will point to
 this system. Rarely, you'll need to request a wildcard alias
-( `*.${s_hostname_s}.${domain}` ) to allow for multiple granular URIs
+( `*.${s_hostname_s}.${s_domain}` ) to allow for multiple granular URIs
 that will come to this host. Remember to keep the `DNS.1`,
 `DNS.2`, etc., in order, without skipping ordinals. For a deep dive
 into how to build a certificate configuration file, see the
@@ -260,7 +262,6 @@ EOF
 chown root:root ${df_host_req} ${df_host_key}
 chmod 0400 ${df_host_req} ${df_host_key}
 
-popd
 ```
 
 
