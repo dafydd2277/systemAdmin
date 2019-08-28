@@ -69,7 +69,7 @@ df_host_passphrase=${d_root_ssl}/host_passphrase.txt
 export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-df_host_key=${d_root_ssl}/private/${s_hostname_s}.${s_domain}.key
+df_host_key=${d_cert_root}/private/${s_hostname_s}.${s_domain}.key
 export df_host_key
 
 # The host certificate request.
