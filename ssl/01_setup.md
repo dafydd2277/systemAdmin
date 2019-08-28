@@ -54,7 +54,7 @@ cat <<"EOSYSCONFIG" >${df_ssl_sysconfig}
 # These are local file and directory locations for SSL elements.
 
 # Create a short hostname variable.
-s_hostname_s=$ (hostname -s )
+s_hostname_s=$( hostname -s )
 s_domain=$( hostname -d )
 export s_hostname_s s_domain
 
@@ -264,6 +264,13 @@ chmod 0400 ${df_host_req} ${df_host_key}
 
 ```
 
+
+And, verify the request looks right.
+
+```bash
+openssl req -text -noout -in ${df_host_req}
+
+```
 
 Now, you can send off your Certificate Signing Request to an
 someone like [SSL For Free][sslforfree] and get your signed certificate
