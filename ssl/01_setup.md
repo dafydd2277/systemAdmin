@@ -178,7 +178,6 @@ private key.
 
 ```bash
 openssl req -new \
-  -x50 \
   -days ${i-expire_days} \
   -out ${df_host_req} \
   -newkey rsa \
@@ -223,7 +222,6 @@ And, here's the command when the private key has to be encrypted.
 
 ```bash
 openssl req -new \
-  -x509 \
   -days ${i_expire_days} \
   -out ${df_host_req} \
   -newkey rsa \
