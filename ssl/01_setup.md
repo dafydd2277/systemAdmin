@@ -58,7 +58,7 @@ s_hostname_s=$(hostname -s)
 
 # Secure directory
 d_root_ssl=/root/.ssl
-d_cert_root=/etc/pki/tls/certs
+d_cert_root=/etc/pki/tls
 export d_root_ssl d_cert_root
 
 # Passphrase to encrypt the host key.
@@ -66,19 +66,19 @@ df_host_passphrase=${d_root_ssl}/host_passphrase.txt
 export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-df_host_key=${d_root_ssl}/${s_hostname_s}_key.pem
+df_host_key=${d_root_ssl}/private/${s_hostname_s}.${domain}.key
 export df_host_key
 
 # The host certificate request.
-df_host_req=${d_cert_root}/${s_hostname_s}_req.pem
+df_host_req=${d_cert_root}/${s_hostname_s}.${domain}.req
 export df_host_req
 
 # The host certificate file.
-df_host_cert=${d_cert_root}/${s_hostname_s}_cert.pem
+df_host_cert=${d_cert_root}/certs/${s_hostname_s}.${domain}.pem
 export df_host_cert
 
 # The CA certificate, once we get it.
-df_ca_cert=${d_cert_root}/ca_cert.pem
+df_ca_cert=${d_cert_root}/certs/ca_cert.pem
 export df_ca_cert
 
 EOSYSCONFIG
@@ -127,7 +127,7 @@ I'm quoting my heredoc limit string.
 [bash196]: http://tldp.org/LDP/abs/html/here-docs.html
 
 ```bash
-. ${df_ssl_sysconfig}
+source ${df_ssl_sysconfig}
 
 mkdir -m 700 -p ${d_root_ssl}
 chown root:root ${d_root_ssl}
@@ -175,14 +175,12 @@ Now, let's generate the request. Here's the command for an unencrypted
 private key.
 
 ```bash
-pushd ${d_cert_root}
-
 openssl req -new \
   -x50 \
   -days ${i-expire_days} \
-  -out ${s_hostname_s}.req \
+  -out ${df_host_req} \
   -newkey rsa \
-  -keyout private/${s_hostname_s}.key \
+  -keyout ${df_host_key} \
   -config <(
 cat <<-EOF
 [req]
@@ -216,22 +214,19 @@ EOF
 chown root:root ${df_host_req}
 chmod 0400 ${df_host_req}
 
-popd
 ```
 
 
 And, here's the command when the private key has to be encrypted.
 
 ```bash
-pushd ${d_cert_root}
-
 openssl req -new \
   -x509 \
   -days ${i_expire_days} \
-  -out ${s_hostname_s}.req \
+  -out ${df_host_req} \
   -newkey rsa \
-  -passin file:${df_host_passphrase} \
-  -keyout private/${s_hostname_s}.key \
+  -passout file:${df_host_passphrase} \
+  -keyout ${df_host_key} \
   -config <(
 cat <<-EOF
 [req]
@@ -262,8 +257,8 @@ EOF
 
 )
 
-chown root:root ${df_host_req}
-chmod 0400 ${df_host_req}
+chown root:root ${df_host_req} ${df_host_key}
+chmod 0400 ${df_host_req} ${df_host_key}
 
 popd
 ```
@@ -275,7 +270,4 @@ back. For public facing hosts, this is best. On the other hand, you can
 also create your own Certificate Authority for internal use.
 
 [sslforfree]: https://www.sslforfree.com/
-
-
- 
 
