@@ -94,7 +94,7 @@ ${e_iptables} --append INPUT ! --in-interface lo \
 
 
 # Block the "SACK panic"
-$e_iptables} --append INPUT --protocol tcp \
+${e_iptables} --append INPUT --protocol tcp \
   --match conntrack --ctstate NEW \
   --match tcpmss ! --mss 536:65535 \
   --jump REJECT --reject-with icmp-admin-prohibited
