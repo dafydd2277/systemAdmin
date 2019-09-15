@@ -64,7 +64,7 @@ e_yum=$( /usr/bin/which yum )
 e_unzip=$( /usr/bin/which unzip )
 e_tput=$( /usr/bin/which tput )
 
-e_iptables$( /usr/bin/which iptables )
+e_iptables=$( /usr/bin/which iptables )
 e_ip6tables=$( /usr/bin/which ip6tables )
 if [ -z "${e_ip6tables}" ]
 then
