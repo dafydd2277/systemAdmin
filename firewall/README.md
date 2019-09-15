@@ -16,7 +16,8 @@ each host.
 
 ## 2019-08-03
 
-At long last, here is `body-nat.sh`, the NET-capable script in the new
+At long last, here is `body-nat.sh`, the script for handling a firewall
+doing Network Address Translation, written in the new
 format. The other scripts have gone through and update and some
 simplification, as well. Most significantly, with judicious use of
 environment variables, as described in `body-nat.sh`, you can source
