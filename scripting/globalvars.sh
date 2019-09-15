@@ -89,8 +89,8 @@ s_domain_prefix=$( echo ${s_fqdn} | ${e_cut} -d. -f2 )
 
 # SET THE VERSION-DEPENDENT VARIABLES
 source /etc/os-release
-i_major_version=$( echo ${VERSION} |  ${e_cut} -d. -f1 )
-i_minor_version=$( echo ${VERSION} |  ${e_cut} -d. -f2 )
+i_major_version=$( echo ${VERSION_ID} |  ${e_cut} -d. -f1 )
+i_minor_version=$( echo ${VERSION_ID} |  ${e_cut} -d. -f2 )
 
 # If /etc/os-release doesn't exist, then we're still on RHEL 5, and
 # whole "source <(curl -sS http://...) stuff won't work anyway.
