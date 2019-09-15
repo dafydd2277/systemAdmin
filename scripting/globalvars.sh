@@ -33,13 +33,14 @@ e_cp=$( /usr/bin/which cp )
 e_curl=$( /usr/bin/which curl )
 e_cut=$( /usr/bin/which cut )
 e_date=$( /usr/bin/which date )
-e_echo=$( /usr/bin/which echo )
+# Use the bash internal echo - e_echo=$( /usr/bin/which echo )
 e_egrep=$( /usr/bin/which egrep )
 e_find=$( /usr/bin/which find )
 e_grep=$( /usr/bin/which grep )
 e_groupadd=$( /usr/bin/which groupadd )
 e_groupmod=$( /usr/bin/which groupmod )
 e_hostname=$( /usr/bin/which hostname )
+e_hostnamectl=$( /usr/bin/which hostnamectl )
 e_id=$( /usr/bin/which id )
 e_ln=$( /usr/bin/which ln )
 e_ls=$( /usr/bin/which ls )
@@ -74,20 +75,22 @@ fi
 export PATH="${s_old_path}"
 
 # ONLY CALL FOR THE HOSTNAME ONCE
-s_fqdn=$( ${e_hostname} -f )
-s_hostname=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f1 )
+s_fqdn=$( ${e_hostnamectl} \
+          | ${e_grep} hostname \
+          | ${e_awk} '{print $NF}' )
+s_hostname=$( echo ${s_fqdn} | ${e_cut} -d. -f1 )
 s_domain=${s_hostname#*.}
-s_hostname_upper=$( ${e_echo} ${s_hostname} | ${e_tr} [:lower:] [:upper:] )
+s_hostname_upper=$( echo ${s_hostname} | ${e_tr} [:lower:] [:upper:] )
 
 # s_domain_prefix isolates the "sub" of "host.sub.dom.ain" for subdomain
 # specific variables and usages
-s_domain_prefix=$( ${e_echo} ${s_fqdn} | ${e_cut} -d. -f2 )
+s_domain_prefix=$( echo ${s_fqdn} | ${e_cut} -d. -f2 )
 
 
 # SET THE VERSION-DEPENDENT VARIABLES
 source /etc/os-release
-i_major_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f1 )
-i_minor_version=$( ${e_echo} ${VERSION} |  ${e_cut} -d. -f2 )
+i_major_version=$( echo ${VERSION} |  ${e_cut} -d. -f1 )
+i_minor_version=$( echo ${VERSION} |  ${e_cut} -d. -f2 )
 
 # If /etc/os-release doesn't exist, then we're still on RHEL 5, and
 # whole "source <(curl -sS http://...) stuff won't work anyway.
@@ -149,18 +152,18 @@ s_daterev=$( ${e_date} +%Y%m%d_%H%M%S )
 
 # RING BELL / FLASH SCREEN
 fn_global_bell () {
- ${e_echo} -e "\a"
+ echo -e "\a"
 }
 
 
 # STOP AND CONTINUE
 fn_global_continue () {
  read -p "Are you ready to continue (y/n)? " s_response
- ${e_echo}
+ echo
 
  if [[ "${s_response}" =~ ^(y|Y|yes|Yes|YES)$ ]]
  then
-   ${e_echo}
+   echo
  fi
 
  unset s_response
@@ -182,20 +185,20 @@ fn_global_continue () {
 #     white     COLOR_WHITE       7     max,max,max
 #
 #  Example:
-# ${e_echo} "$(${e_tput} setaf 1)Changing to RED text$(${e_tput} sgr 0)"
+# echo "$(${e_tput} setaf 1)Changing to RED text$(${e_tput} sgr 0)"
 
 
 # PRINT GREEN TEXT
 # Usage: fn_global_print_green "<quoted message text>"
 fn_global_print_green () {
- ${e_echo} -e "$( ${e_tput} setaf 2 )${1}$( ${e_tput} sgr 0 )"
+ echo -e "$( ${e_tput} setaf 2 )${1}$( ${e_tput} sgr 0 )"
 }
 
 
 # PRINT RED TEXT
 # Usage: fn_global_print_red "<quoted message text>"
 fn_global_print_red () {
- ${e_echo} -e "$( ${e_tput} setaf 1 )${1}$( ${e_tput} sgr 0 )"
+ echo -e "$( ${e_tput} setaf 1 )${1}$( ${e_tput} sgr 0 )"
 }
 
 
