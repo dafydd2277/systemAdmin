@@ -17,12 +17,10 @@ case ${i_major_version} in
     return 1
     ;;
   6)
-    a_pkgs_to_install=( \
+    yum -y install \
       iptables \
-      iptables-ipv6 \
-    )
+      iptables-ipv6
 
-    fn_global_install_packages
     if [ $? -ne 0 ]
     then
       echo "Package installation failed."
@@ -46,12 +44,10 @@ case ${i_major_version} in
     ${e_ip6tables} --flush OUTPUT
     ;;
   7)
-    a_pkgs_to_install=( \
+    yum -y install \
       iptables \
-      iptables-services \
-    )
+      iptables-services
 
-    fn_global_install_packages
     if [ $? -ne 0 ]
     then
       echo "Package installation failed."
