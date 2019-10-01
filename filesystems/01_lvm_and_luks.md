@@ -13,9 +13,19 @@
 
 ### Commands
 
-- Don't be afraid of `man` pages! I'm just giving the LVM creation commands a lick and a promise here, because I use them all the time. If you're not familiar, look them up and let me know what you'd like to see expanded here.
-  - The really oddball bit, here, is that I'm mirroring my logical volume across two devices. That's definitely worth a perusal of [lvcreate(1M)](http://linux.die.net/man/8/lvcreate). Particularly, you need to specify which Physical Volumes get the mirrors.
-- One thing I noticed the first time I tried this is that the `shred` command also has a `--zero` option to write zeroes after it's done shredding the doc. Don't use that. Part of the point of using shred is that you have a bunch of random bytes before and after the looks-random-but-isn't LUKS filesystems.
+- Don't be afraid of `man` pages! I'm just giving the LVM creation
+commands a lick and a promise here, because I use them all the time.
+If you're not familiar, look them up and let me know what you'd like
+to see expanded here.
+  - The really oddball bit, here, is that I'm mirroring my logical
+volume across two devices. That's definitely worth a perusal of
+[lvcreate(1M)](http://linux.die.net/man/8/lvcreate). Particularly, you
+need to specify which Physical Volumes get the mirrors.
+- One thing I noticed the first time I tried this is that the `shred`
+command also has a `--zero` option to write zeroes after it's done
+shredding the doc. Don't use that. Part of the point of using shred is
+that you have a bunch of random bytes before and after the
+looks-random-but-isn't LUKS filesystems.
 
 
 Create the Logical Volume first. Execute `cryptsetup --help` to list supported ciphers.
@@ -111,7 +121,6 @@ mkdir --parents --mode 700 ${d_keydir}
 dd if=/dev/urandom of=${df_keyfile} bs=1024 count=4
 
 chmod 400 ${df_keyfile}
-
 
 cryptsetup luksAddKey /dev/${s_vg_name}/${s_mount_name}.enc ${df_keyfile}
 
