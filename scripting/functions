@@ -6,6 +6,8 @@
 # source .functions
 #
 
+# fn_archive <file>
+#
 # This function is inspired by
 # https://www.commandlinefu.com/commands/view/24622/create-backup-copy-of-file-adding-suffix-of-the-date-of-the-file-modification-not-todays-date
 # It will duplicate a file with a timestamp extension of the file's
@@ -15,7 +17,8 @@ function fn_archive () {
   cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%Y%m%d" )
 }
 
-
+# fn_git_branch
+#
 # I don't remember where fn_git_branch() and fn_git_color() came
 # from. If you're in a git working directory, the first function
 # will add a line to PS1 to display the branch you're working in,
@@ -37,6 +40,8 @@ fn_git_branch () {
   fi
 }
 
+# fn_git_color
+#
 fn_git_color () {
   # Get the status of the repo and chose a color accordingly
   local STATUS=`git status 2>&1`
@@ -61,6 +66,8 @@ fn_git_color () {
   fi
 }
 
+# fn_profile_set_history
+#
 # This function will set your bash history. If you have a
 # centralized home directory (typically via NFS), your
 # history files will be separated by hostname.
@@ -80,6 +87,8 @@ fn_profile_set_history () {
 }
 
 
+# fn_randomChars [integer] [integer] [integer]
+#
 # Create a string of random charaacters in the set 0-9a-zA-Z
 fn_randomChars () {
  tr -dc A-Za-z0-9 < /dev/urandom \
