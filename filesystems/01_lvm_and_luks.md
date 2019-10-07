@@ -131,14 +131,24 @@ You'll be asked to enter the original key to verify your authority to do this.
 Now, identify the Block ID of your encrypted LV (`${s_mount_name}.enc`), and create an entry in `/etc/crypttab` for it.
 
 ```
-blkid | grep ${s_mount_name} | grep -v enc
+blkid | grep ${s_mount_name}
 
+```
+
+You're looking for two UUIDs. The UUID for `/dev/mapper/${s_vg_name}-${s_mount_name}.enc`, which will be listed with `TYPE="crypto_LUKS"` will go in `/etc/crypttab`. (If you're doing this on a mirrored LVM, you'll also have UUIDs for each individual mirror called `${s_mount_name}.enc_rimage_X`, where `X` is an integer. Ignore these.)
+
+```
 s_uuid=< UUID of the encrypted LV >
 
 cat <<EOCRYPT >>/etc/crypttab
 ${s_mount_name} UUID="${s_uuid}" ${df_keyfile}
 EOCRYPT
 
+```
+
+The UUID for `/dev/mapper/${s_mount_name}` of `TYPE="xfs"` is the UUID you'll put in `/etc/fstab`.
+
+```
 cat <<EOFSTAB >>/etc/fstab
 UUID=${s_uuid} ${s_mountpoint}  xfs nodev,nosuid,defaults 1 2
 
@@ -146,8 +156,6 @@ EOFSTAB
 
 ```
 
-(Don't forget to edit /etc/crypttab to remove the manual mount line, and remove the first pass, "`noauto`" line from the entry in /etc/fstab. Mounting by UUID isn't much more secure, but every little bit helps.)
+(Don't forget to edit `/etc/crypttab` to remove the manual mount line, and remove the first pass, "`noauto`" line from the entry in /etc/fstab. Mounting by UUID isn't much more secure, but every little bit helps.)
 
 Reboot the host and verify that the filesystem gets correctly mounted at boot time.
-
-
