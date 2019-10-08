@@ -26,15 +26,15 @@ destinations.
 
 I went through the basic installation instructions with little
 difficulty. I created an [encrypted filesystem][cryptofile] on a
-mirrored Logical Volume Group. Then, I mounted the filesystem on
+mirrored Logical Volume. Then, I mounted the filesystem on
 `/mnt/backup` and used that where in the instructions called for
-`/amanda`. Note, though that the [holding disks page][holdingdisks]
+`/amanda`. Note, though, that the [holding disks page][holdingdisks]
 page recommends that the holding disk not be on the same filesystem as
 the `vtapes`. So, I created `/var/amanda` instead, and added a
-configuration item to limit the space taking by the holding function to
+configuration item to limit the space takeng by the holding function to
 2GB. (This alternative does require that we not put `/var/` in the
 `disklist` file unmodified. We don't want to try to back up the holding
-area. 
+area.) 
 
 Additionally, I gave myself enough room to create 9 20GB "tapes," which
 is enough for a 1 week rotation.
@@ -47,6 +47,8 @@ mkdir -p /mnt/backup/state/{curinfo,log,index}
 mkdir -p /mnt/backup/log
 mkdir -p /etc/amanda/localdomain
 mkdir -p /var/amanda
+
+chown -R amandabackup /mnt/backup /etc/amanda /var/amanda
 
 cat <<EOAMANDA >/etc/amanda/localdomain/amanda.conf
 org 	 "localdomain"
