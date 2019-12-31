@@ -3,66 +3,80 @@
 # This file can be called by copying it into your ${HOME} as a dot
 # file, and sourcing it from .bash_profile, like this.
 #
-# source .functions
+# `source .functions`
 #
+# or picking it straight out of this project, like this.
+#
+# `source <( curl -ksS https://github.com/dafydd2277/systemAdmin/raw/master/scripting/functions )`
 
-# fn_archive <file>
-#
-# This function is inspired by
+
+# Create a backup of a file using a date stamp extension to the file
+# name, where that extension is the Last Modified time as listed in the
+# `stat` output of the file. This function is inspired by
 # https://www.commandlinefu.com/commands/view/24622/create-backup-copy-of-file-adding-suffix-of-the-date-of-the-file-modification-not-todays-date
-# It will duplicate a file with a timestamp extension of the file's
-# last modified date, NOT the current date.
+#
+# Usage: `fn_archive <file>`
 function fn_archive () {
-  df_target=${1}
-  cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%Y%m%d" )
+  local df_target=${1:-}
+  
+  if [ ! -z "${df_target}" ]
+  then
+    cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%Y%m%d" )
+  fi
 }
 
 # fn_git_branch
 #
-# I don't remember where fn_git_branch() and fn_git_color() came
-# from. If you're in a git working directory, the first function
-# will add a line to PS1 to display the branch you're working in,
-# like this:
+# I don't remember where fn_git_branch() and fn_git_color() came from.
+# If you're in a git working directory, the first function will add a
+# line to PS1 to display the branch you're working in, like this:
+#
 # PS1='\n$(fn_git_branch)\n[ \D{%F} \t ] \w\n[ \u@\h ] \$ '
-# The second function colorizes the name of the working branch
-# based on its commit and merge status.
+#
+# Usage: `fn_git_branch`
 fn_git_branch () {
-  local GITDIR=$( git rev-parse --show-toplevel 2>&1 ) # Get root directory of git repo
-  if [[ "$GITDIR" != '/root' ]] # Don't show status of home directory repo
+  # Get the root directory of the current git repo.
+  local d_git=$( git rev-parse --show-toplevel 2>&1 )
+  
+  # Don't show status of home directory repo
+  if [[ "${d_git}" != '/root' ]]
   then
     # Figure out the current branch, wrap in brackets and return it
-    local BRANCH=$( git branch --no-color 2>/dev/null | sed -n '/^\*/s/^\* //p' )
-    if [ -n "$BRANCH" ]; then
-      echo -e "Git Branch: $( fn_git_color )$BRANCH \033[01;37m"
+    local s_branch=$( git branch --no-color 2>/dev/null \
+      | sed -n '/^\*/s/^\* //p' )
+    if [ -n "${s_branch}" ]; then
+      echo -e "Git Branch: $( fn_git_color )${s_branch} \033[01;37m"
     fi
   else
     echo ""
   fi
 }
 
-# fn_git_color
+
+# The second function colorizes the name of the working branch
+# based on its commit and merge status.
 #
+# fn_git_color
 fn_git_color () {
   # Get the status of the repo and chose a color accordingly
-  local STATUS=`git status 2>&1`
-  if [[ "$STATUS" == *'Not a git repository'* ]]
+  local s_status=`git status 2>&1`
+  
+  # Run through alternatives
+  if [[ "${s_status}" == *'Not a git repository'* ]]
   then
-    echo ""
+    # white if not a repository
+    echo -e '\033[0;37m'
+  elsif [[ "${s_status}" != *'working directory clean'* ]]
+  then
+    # red if need to commit
+    echo -e '\033[0;31m'
+  elsif [[ "${s_status}" == *'Your branch is ahead'* ]]
+  then
+    # yellow if need to push
+    echo -e '\033[0;33m'
   else
-    if [[ "$STATUS" != *'working directory clean'* ]]
-    then
-      # red if need to commit
-      echo -e '\033[0;31m'
-    else
-      if [[ "$STATUS" == *'Your branch is ahead'* ]]
-      then
-        # yellow if need to push
-        echo -e '\033[0;33m'
-      else
-        # else white
-        echo -e '\033[0;37m'
-      fi
-    fi
+    # else white
+    echo -e '\033[0;37m'
   fi
 }
 
@@ -87,14 +101,51 @@ fn_profile_set_history () {
 }
 
 
-# fn_randomChars [integer] [integer] [integer]
-#
 # Create a string of random charaacters in the set 0-9a-zA-Z
+#
+# Usage: `fn_randomChars [final length] [initial length > 1536] [middle cut]`
 fn_randomChars () {
- tr -dc A-Za-z0-9 < /dev/urandom \
-   | head -c ${2:-2048} \
-   | tail -c ${3:-1536} \
-   | head -c ${1:-24}
-echo
+  local i_length=${1:-24}
+  local i_start=${2:-2048}
+  local i_middle_cut=${3:-1536}
+  
+  # Make sure the start string is at least 512 characters longer than
+  # the middle cut.
+  if [ (( ${i_middle_cut} + 512 )) >= ${i_start} ]
+  then
+    i_start=$(( ${i_middle_cut} + 512 ))
+  fi
+  
+  tr -dc A-Za-z0-9 < /dev/urandom \
+    | head -c ${i_start} \
+    | tail -c ${i_middle_cut} \
+    | head -c ${i_length}
+  echo
+}
+
+
+# Run tcpdump processes on every interface. The output is to STDOUT
+# with the interface name as a leading string.
+# Usage: `fn_tcpdump_all ["filter"]`
+fn_tcpdump_all () {
+  s_filter=${1:-}
+
+  # Get a space separated list of all interfaces, and skip the header
+  # line.
+  s_interfaces=$( nmcli device status \
+    | cut -d' ' -f1 \
+    | awk 'NR>1' \
+    | tr '\n' ' ' )
+
+  # Start a `tcpdump` on each interface, and attach the interface name
+  # to the start of the STDOUT.
+  for s_if in ${s_interfaces}
+  do
+    /usr/sbin/tcpdump -l \
+      -nn \
+      -i ${s_if} \
+      "${s_filter}"  \
+      | sed 's/^/[ '"${s_if}"' ] /' 2>/dev/null &
+  done
 }
 
