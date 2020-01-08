@@ -3,9 +3,9 @@
 ## 2020-01-07
 
 This is where I'll start sharing sanitized, not-client-specific
-versions of the Puppet code I develop. The underlying assumption is
-that directories and files will appear in ${PUPPET_CODE}/site/, and
-not as an independent module.
+versions of the Puppet code helped develop. The underlying
+assumption is that directories and files will appear in
+${PUPPET_CODE_BASE}/site/, and not as an independent module.
 
 Let's start with a `local_firewall` site module that is a pretty
 close equivalent to the `iptables` files in
