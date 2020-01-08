@@ -18,13 +18,13 @@
 #     value: 0
 #     comment: 'Controls the System Request debugging functionality of the kernel'
 #     
-# @summary A short summary of the purpose of this class
+# @summary Set sysctl values in Puppet
 #
 # @example
 #   include local_sysctl
 class local_sysctl {
 
-  # Loop through the ports accepted in hiera.
+  # Loop through the sysctl settings in hiera.
   $hash_sysctl=lookup({'name' => 'local_sysctl',
                     'merge' =>
                       { 'strategy'           => 'deep',
@@ -59,7 +59,7 @@ class local_sysctl {
     }
 
 
-    # Anything not explicitly absent is present.
+    # Any $elements['ensure'] not explicitly absent is present.
     case $elements['ensure'] {
       'absent': {
         sysctl { $name :
@@ -67,8 +67,8 @@ class local_sysctl {
         }
       }
       default: {
-        # Anything not explicitly false, including a blank or missing
-        # setting, is true.
+        # Any $elements['persist'] not explicitly false, including
+        # a blank or missing setting, is true.
         case $elements['persist'] {
           false: {
             sysctl { $name :
