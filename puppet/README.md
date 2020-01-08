@@ -3,7 +3,7 @@
 ## 2020-01-07
 
 This is where I'll start sharing sanitized, not-client-specific
-versions of the Puppet code helped develop. The underlying
+versions of the Puppet code I had a hand in. The underlying
 assumption is that directories and files will appear in
 ${PUPPET_CODE_BASE}/site/, and not as an independent module.
 
