@@ -96,7 +96,9 @@ ${e_iptables} --append INPUT --protocol tcp \
   --jump REJECT --reject-with icmp-admin-prohibited
 
 # Drop fragmented packets
-${e_iptables} --append INPUT --fragment --jump DROP
+${e_iptables} --append INPUT \
+  --fragment \
+  --jump DROP
 
 # Drop incoming malformed NULL packets.
 ${e_iptables} --append INPUT --protocol tcp \
@@ -108,20 +110,23 @@ ${e_iptables} --append INPUT --protocol tcp \
   --match tcp --tcp-flags ALL ALL \
   --jump DROP
 
-# Accept connections that start with this host.
-${e_iptables} --append INPUT \
-  --match state --state ESTABLISHED,RELATED \
-  --jump ACCEPT
-
 # Drop new incoming packets with FIN/RST/ACK but not SYN
 ${e_iptables} --append INPUT --protocol tcp \
   --match state --state NEW \
-  --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN --jump DROP
+  --match tcp ! --tcp-flags FIN,SYN,RST,ACK SYN \
+  --jump DROP
 
 # Only accept new connections that start with a SYN packet.
 # (This is probably a tidier version of the previous rule.)
 ${e_iptables} --append INPUT --protocol tcp \
-  ! --syn --match state --state NEW --jump DROP
+  ! --syn \
+  --match state --state NEW \
+  --jump DROP
+
+# Accept connections that start with this host.
+${e_iptables} --append INPUT \
+  --match state --state ESTABLISHED,RELATED \
+  --jump ACCEPT
 
 # Accept RST,ACK acknowledgements
 ${e_iptables} --append INPUT --protocol tcp \
@@ -136,14 +141,20 @@ ${e_iptables} --append INPUT --protocol tcp \
 
 # NFS is TCP only.
 #${e_iptables} --append INPUT --protocol tcp \
-#  --match tcp --destination-port 111 --jump ACCEPT
+#  --match tcp --destination-port 111 \
+#  --jump ACCEPT
+#
 #${e_iptables} --append INPUT --protocol tcp \
-#  --match tcp --destination-port 33100:33200 --jump ACCEPT
+#  --match tcp --destination-port 33100:33200 \
+#  --jump ACCEPT
+#
 #${e_iptables} --append INPUT --protocol tcp \
-#  --match tcp --destination-port 36000:36100 --jump ACCEPT
+#  --match tcp --destination-port 36000:36100 \
+#  --jump ACCEPT
 
 
 # SSH is TCP only.
 ${e_iptables} --append INPUT --protocol tcp \
-  --match tcp --destination-port 22 --jump ACCEPT
+  --match tcp --destination-port 22 \
+  --jump ACCEPT
 
