@@ -16,6 +16,17 @@
 
 Boot your CentOS Installation DVD, `<ESC>` to the `boot:` prompt, type `memtest86`, `<ENTER>`, and follow the prompts. Once the test starts, go get a long lunch... [This site](http://fibrevillage.com/sysadmin/78-memory-test-tools-on-centos-rhel-and-other-linux) has additional options.
 
+How much memory are individual processes using?
+
+```
+ps -e -o pid,vsz,comm= | sort -n -k 2
+
+```
+
+[How much swap are they using][swapByProcess]?
+
+[swapByProcess]: https://github.com/dafydd2277/systemAdmin/blob/master/scripting/swapByProcess.sh
+
 
 ## Disks
 
