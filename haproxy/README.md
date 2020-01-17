@@ -6,3 +6,11 @@ Here are a sample `haproxy.cfg` file and a corresponding `rsyslog.conf`
 file that creates a local (`127.0.0.1`) listening socket for `haproxy`
 to send logs to. The corresponding `/etc/logrotate.d/haproxy.conf` file
 is left as a exercise for the reader.
+
+Also, you can execute
+
+```
+haproxy -c -V -f /etc/haproxy/haproxy.cfg
+```
+
+to validate the `haproxy.cfg` file before trying to run `haproxy`.
