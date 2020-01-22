@@ -187,7 +187,10 @@ fn_global_continue () {
 #  Example:
 # echo "$(${e_tput} setaf 1)Changing to RED text$(${e_tput} sgr 0)"
 #
-# Or, set colors directly.
+# See https://misc.flogisoft.com/bash/tip_colors_and_formatting for more
+# hints.
+#
+# Set colors directly.
 #
 c_reset="\[\033[0m\]"
 c_hicolor="\[\033[1m\]"
