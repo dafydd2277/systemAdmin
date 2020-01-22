@@ -57,7 +57,9 @@ fn_git_branch () {
 
 
 # The second function colorizes the name of the working branch
-# based on its commit and merge status.
+# based on its commit and merge status. See
+# https://misc.flogisoft.com/bash/tip_colors_and_formatting
+# for more hints.
 #
 # fn_git_color
 fn_git_color () {
@@ -68,18 +70,18 @@ fn_git_color () {
   if [[ "${s_status}" == *'Not a git repository'* ]]
   then
     # reset if not a repository
-    echo -e '\033[0m'
+    echo -e '\e[0m'
   elif [[ "${s_status}" != *'working directory clean'* ]]
   then
     # red if need to commit
-    echo -e '\033[0;31m'
+    echo -e '\e[0;31m'
   elif [[ "${s_status}" == *'Your branch is ahead'* ]]
   then
     # yellow if need to push
-    echo -e '\033[0;33m'
+    echo -e '\e[0;33m'
   else
     # else reset
-    echo -e '\033[0m'
+    echo -e '\e[0m'
   fi
 }
 
