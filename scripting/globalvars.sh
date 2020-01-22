@@ -186,6 +186,28 @@ fn_global_continue () {
 #
 #  Example:
 # echo "$(${e_tput} setaf 1)Changing to RED text$(${e_tput} sgr 0)"
+#
+# Or, set colors directly.
+#
+c_reset="\[\033[0m\]"
+c_hicolor="\[\033[1m\]"
+c_invert="\[\033[7m\]"
+c_fg_black="\[\033[30m\]"
+c_fg_red="\[\033[31m\]"
+c_fg_green="\[\033[32m\]"
+c_fg_yellow="\[\033[33m\]"
+c_fg_blue="\[\033[34m\]"
+c_fg_magenta="\[\033[35m\]"
+c_fg_cyan="\[\033[36m\]"
+c_fg_white="\[\033[37m\]"
+c_bg_black="\[\033[40m\]"
+c_bg_red="\[\033[41m\]"
+c_bg_green="\[\033[42m\]"
+c_bg_yellow="\[\033[43m\]"
+c_bg_blue="\[\033[44m\]"
+c_bg_magenta="\[\033[45m\]"
+c_bg_cyan="\[\033[46m\]"
+c_bg_white="\[\033[47m\]"
 
 
 # PRINT GREEN TEXT
