@@ -16,12 +16,15 @@
 # https://www.commandlinefu.com/commands/view/24622/create-backup-copy-of-file-adding-suffix-of-the-date-of-the-file-modification-not-todays-date
 #
 # Usage: `fn_archive <file>`
-function fn_archive () {
+fn_archive () {
   local df_target=${1:-}
   
   if [ ! -z "${df_target}" ]
   then
-    cp -pv ${df_target} ${df_target}.$( date -d @$( stat -c '%Y' ${df_target} ) "+%Y%m%d" )
+    local s_lastmod=$( stat -c '%Y' ${df_target} )
+    local s_datestamp=$( date -d @${s_lastmod} "+%Y%m%d" )
+
+    cp -pv ${df_target} ${df_target}.${s_datestamp}
   fi
 }
 
@@ -64,19 +67,19 @@ fn_git_color () {
   # Run through alternatives
   if [[ "${s_status}" == *'Not a git repository'* ]]
   then
-    # white if not a repository
-    echo -e '\033[0;37m'
-  elsif [[ "${s_status}" != *'working directory clean'* ]]
+    # reset if not a repository
+    echo -e '\033[0m'
+  elif [[ "${s_status}" != *'working directory clean'* ]]
   then
     # red if need to commit
     echo -e '\033[0;31m'
-  elsif [[ "${s_status}" == *'Your branch is ahead'* ]]
+  elif [[ "${s_status}" == *'Your branch is ahead'* ]]
   then
     # yellow if need to push
     echo -e '\033[0;33m'
   else
-    # else white
-    echo -e '\033[0;37m'
+    # else reset
+    echo -e '\033[0m'
   fi
 }
 
@@ -125,14 +128,16 @@ fn_randomChars () {
 
 
 # Run tcpdump processes on every interface. The output is to STDOUT
-# with the interface name as a leading string.
+# with the interface name as a leading string. (This function
+# requires RHEL 7 and `nmcli`.)
+#
 # Usage: `fn_tcpdump_all ["filter"]`
 fn_tcpdump_all () {
-  s_filter=${1:-}
+  local s_filter=${1:-}
 
   # Get a space separated list of all interfaces, and skip the header
   # line.
-  s_interfaces=$( nmcli device status \
+  local s_interfaces=$( nmcli device status \
     | cut -d' ' -f1 \
     | awk 'NR>1' \
     | tr '\n' ' ' )
@@ -148,4 +153,3 @@ fn_tcpdump_all () {
       | sed 's/^/[ '"${s_if}"' ] /' 2>/dev/null &
   done
 }
-
