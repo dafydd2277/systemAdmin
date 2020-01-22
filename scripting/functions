@@ -93,6 +93,8 @@ fn_git_color () {
 fn_profile_set_history () {
   shopt -s histappend
   shopt -s histverify
+  shopt -s cmdhist
+  
   readonly -p | grep -q "HISTFILE"
   if [ $? -ne 0 ]
   then
