@@ -34,7 +34,7 @@ fn_archive () {
 # If you're in a git working directory, the first function will add a
 # line to PS1 to display the branch you're working in, like this:
 #
-# PS1='\n$(fn_git_branch)\n[ \D{%F} \t ] \w\n[ \u@\h ] \$ '
+# PS1='\n$(fn_git_branch)\n[ \D{%F} \t ] \w\n[ \u@\e[31m\h\[\e[0m\] ] \$ '
 #
 # Usage: `fn_git_branch`
 fn_git_branch () {
