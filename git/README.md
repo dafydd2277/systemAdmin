@@ -40,6 +40,39 @@ git config --global --list
 
 ```
 
+### GPG Signing
+
+<!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5 -->
+In git 2.x, [you can sign your commits][20200123a] with a private GPG key. This
+verifies that a commit came from you. To start, create a GPG key.
+
+```
+gpg2 --gen-key
+```
+
+Select `RSA and RSA` and a key size. These days, a key size of `2048` is
+about as small as you should go. Set the other options as you need. Once
+you have a key, tell git about it.
+
+```
+git config --global user.signingkey 0A46826A
+```
+
+Then, when you commit a change, the `-S` argument tells git to GPG sign
+the key. **However**, `gpg` assumes the password entry will be a GUI
+window. If you're working from a shell or an SSH session, you need to
+use the second example to get a `curses` text-based password entry panel.
+
+```
+git commit -S
+
+GPG_TTY=$(tty) git commit -S
+```
+
+
+[20200123a]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
+
+
 ## Commit messages.
 
 Yes, [a convention exists][git-commit]. The first line is what appears in the short logs. Keep that note specific and under about 50 characters. If you want to go into more detail, add a line of blank space and then start a paragraph on the third line of your git editor.
