@@ -59,7 +59,7 @@ Or, alternately, you can use an `OR` arrangement to exit the script before execu
 i_daynum=$( date +%-d )
 s_dayword=$( date +%a )
 
-if [[ "${i_daynum}" -lt "7" ]] \
+if [[ "${i_daynum}" -lt "8" ]] \
   || [[ "${i_daynum}" -gt "14" ]] \
   || [ "${s_dayword}" != "Tue" ]
 then
