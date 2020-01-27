@@ -48,8 +48,8 @@ expansion like `$( hostname -s )`?][faq082])
 
 There's your `AND` inclusive date check. The down side is that the
 remainder of the script will be indented by convention. I'll just call
-that incentive to turn much of you work into functions within the
-script, and your main code block can just be indented calls to those
+that problem an incentive to turn much of you work into functions within
+the script, and your main code block can just be indented calls to those
 functions.
 
 Or, alternately, you can use an `OR` arrangement to exit the script before execution.
@@ -109,7 +109,7 @@ for a 4GB pseudo-random text file. If you want genuinely random
 [ASCII][], you can do
 
 ```
-base 64 /dev/urandom \
+base64 -i /dev/urandom \
   head -c 4294967296 > 4GBOfRandom.asc
 
 ```
@@ -149,11 +149,11 @@ done
 (Unfortunately, the number of iterations ( the "8" in `for i in {1..8}`)
 can't be a variable. I tried...)
 
-This script generates 8 gzip/gunzip processes of a 4GB file for one or
-more processors to chew on. Compression ratios are recorded by the
+This script generates 8 `gzip`/`gunzip` processes of a 4GB file for one
+or more processors to chew on. Compression ratios are recorded by the
 initial `gzip --verbose`'s STDERR, and the time taken for each process
 is captured from `time`'s STDERR. When I was using this for testing, I
-had [`dstat -vt`][dstat] running in another window to watch `usr` or
+had [`dstat -tclypms`][dstat] running in another window to watch `usr` or
 `sys` percentages on the processor set.
 
 [ASCII]: https://en.wikipedia.org/wiki/ASCII/
@@ -187,7 +187,7 @@ awk '/${s_search}/{print $0 RS "${s_line_1}" RS "${s_line_2}" RS "${s_line_3}";n
 
 `RS` is `awk`'s internal end-of-line (EOL) variable. `$0` is the line
 matched by the initial regular expression. So, you can delete that line
-and substitute something else just by not using `$0`.
+and substitute something else just by dropping the `$0`.
 
 ([Source](http://stackoverflow.com/questions/22497246/insert-multiple-lines-into-a-file-after-specified-pattern-using-shell-script))
 
