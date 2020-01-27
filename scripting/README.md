@@ -31,12 +31,12 @@ Well, you can still start with that cron entry. Just drop the Tuesday:
 checking into the script itself.
 
 ```bash
-i_daynum=$( date +%d )
+i_daynum=$( date +%-d )
 s_dayword=$( date +%a )
 
-if [[ ${i_daynum} >= "08" ]] \
-  && [[ ${i_daynum} <= "14" ]] \
-  && [ ${s_dayword} == 'Tue' ]
+if [[ "${i_daynum}" -ge "8" ]] \
+  && [[ "${i_daynum}" -le "14" ]] \
+  && [ "${s_dayword}" == "Tue" ]
 then
   # Execute your script
 fi
@@ -56,12 +56,12 @@ to those functions.
 Or, alternately, you can use an `OR` arrangement to exit the script before execution.
 
 ```bash
-i_daynum=$( date +%d )
+i_daynum=$( date +%-d )
 s_dayword=$( date +%a )
 
-if [[ ${i_daynum} < "07" ]] \
-  || [[ ${i_daynum} > "14" ]] \
-  || [ ${s_dayword} != 'Tue' ]
+if [[ "${i_daynum}" -lt "7" ]] \
+  || [[ "${i_daynum}" -gt "14" ]] \
+  || [ "${s_dayword}" != "Tue" ]
 then
   exit 1
 fi
