@@ -43,66 +43,66 @@ d_module_build=${d_module_build:-/root}
 ###
 
 # Compile the custom module.
-# Usage: fn_semodule_compile <source_dir> <module_name>
+# Usage: `fn_semodule_compile <source_dir> <module_name>`
 fn_semodule_compile () {
-  local fn_d_source=${1:-}
-  local fn_s_name=${2:-}
+  local d_source=${1:-}
+  local s_name=${2:-}
   
-  if [ -z "${fn_d_source}" -o -z "${fn_s_name}" ]
+  if [ -z "${d_source}" -o -z "${s_name}" ]
   then
     exit 1
   fi
 
   chkmodule -m -mls \
-    --output ${d_module_build}/${f_name}.mod \
-    ${fn_d_source}/${fn_s_name}.te
+    --output ${d_module_build}/${s_name}.mod \
+    ${d_source}/${s_name}.te
 }
 
 
 # Get the module name from the source file name.
-# Usage: fn_semodule_get_name <source_file>
+# Usage: `fn_semodule_get_name <source_file>`
 fn_semodule_get_name () {
-  local fn_df_source=${1:-}
+  local df_source=${1:-}
   
-  if [ -z "${fn_df_source}" ]
+  if [ -z "${df_source}" ]
   then
     exit 1
   fi
   
-  d_source=$( dirname ${fn_df_source} )
-  s_semodule_name=$( basename ${fn_df_source} | cut -d. -f1 )
+  d_source=$( dirname ${df_source} )
+  s_semodule_name=$( basename ${df_source} | cut -d. -f1 )
 }
 
 
 # Install the packaged local module.
-# Usage: fn_semodule_install <module_name>
+# Usage: `fn_semodule_install <module_name>`
 fn_semodule_install () {
-  local fn_s_name=${1:-}
+  local s_name=${1:-}
   
-  if [ -z "${fn_s_name}" ]
+  if [ -z "${s_name}" ]
   then
     exit 1
   fi
   
   semodule \
     --verbose \
-    --install ${d_module_build}/${fn_s_name}.pp
+    --install ${d_module_build}/${s_name}.pp
 }
 
 
 # Package the compiled local module.
-# Usage: fn_semodule_package <module_name>
+# Usage: `fn_semodule_package <module_name>`
 fn_semodule_package () {
-  local fn_s_name=${1:-}
+  local s_name=${1:-}
   
-  if [ -z "${fn_s_name}" ]
+  if [ -z "${s_name}" ]
   then
     exit 1
   fi
   
   semodule_package \
-    --outfile ${d_module_build}/${fn_s_name}.pp \
-    --module ${d_module_build}/${fn_s_name}.mod
+    --outfile ${d_module_build}/${s_name}.pp \
+    --module ${d_module_build}/${s_name}.mod
 }
 
 ###
