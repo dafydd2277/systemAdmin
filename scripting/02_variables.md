@@ -34,7 +34,7 @@ executables, I will always include the path. So, I don't see much point
 in using a 2-character `de_name` prefix. But, you could do so.
 - `f_name` - A simple file name. eg. `sshd_config`
 - `fn_name` - No, functions aren't variables. However, I've found myself
-expanding this naming conventions to include `fn_<name>` for functions
+expanding this naming convention to include `fn_<name>` for functions
 defined locally in a script, or `fn_<namespace>_<name>` for functions
 that might be sourced from [some bash function library][20200127a].
 (Yes, that's a bad example, since I didn't actually namespace those
