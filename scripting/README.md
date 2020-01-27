@@ -18,19 +18,20 @@ of the month, you'd think this would work in cron:
 00  02  08-14 * 2 /path/to/script.sh
 ```
 
-That's the zeroeth minute of the second hour, in the range of day 8 to
-14, on a Tuesday, because the second Tuesday of the month must fall
-between the 8th and the 14th. Unfortunately, aside from the hour and
-minute, cron timing is an `OR` function, not an `AND` function. So, this
-script will run on *every* Tuesday of the month, and *every day* from
-the 8th to the 14th, inclusive, at 02:00. So, what to do?
+That's the zeroeth minute of the second hour, in the range of days 8 to
+14, any day of the month, and on a Tuesday because the second Tuesday of
+the month must fall between the 8th and the 14th. Unfortunately, aside
+from the hour and minute, cron timing is an `OR` function, not an `AND`
+function. So, this cron entry will run on *every* Tuesday of the month,
+and *every day* from the 8th to the 14th, inclusive, at 02:00. So, what
+to do?
 
-Well, you start by still using that cron entry, except for dropping the
-Tuesday: `00 02 08-14 * *`. Then, you just need to put some additional
-date checking into the script itself.
+Well, you can still start with that cron entry. Just drop the Tuesday:
+`00 02 08-14 * *`. Then, you just need to put some additional date
+checking into the script itself.
 
 ```bash
-i_daynum=$( date +% d )
+i_daynum=$( date +%d )
 s_dayword=$( date +%a )
 
 if [[ ${i_daynum} >= "08" ]] \
@@ -47,10 +48,10 @@ fi
 expansion like `$( hostname -s )`?][faq082])
 
 There's your `AND` inclusive date check. The down side is that the
-remainder of the script will be indented by convention. I'll just call
-that problem an incentive to turn much of you work into functions within
-the script, and your main code block can just be indented calls to those
-functions.
+remainder of the script will be indented, by convention. I'll just call
+that problem an incentive to turn most of your code into functions
+within the script, and your main code block can just be indented calls
+to those functions.
 
 Or, alternately, you can use an `OR` arrangement to exit the script before execution.
 
@@ -59,7 +60,7 @@ i_daynum=$( date +%d )
 s_dayword=$( date +%a )
 
 if [[ ${i_daynum} < "07" ]] \
-  || ${i_daynum} > "14" ]] \
+  || [[ ${i_daynum} > "14" ]] \
   || [ ${s_dayword} != 'Tue' ]
 then
   exit 1
@@ -84,7 +85,7 @@ First, let's create the large text file.
 
 ```bash
 d_source=/tmp/source
-f_source=4GOfRandom.asc
+f_source=4GBOfRandom.asc
 
 mkdir -p ${d_source}
 
