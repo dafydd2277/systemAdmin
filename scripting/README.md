@@ -1,19 +1,11 @@
 # BASH Scripting
 
 ## 2020-01-27
-<!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5- -->
 
 Let's move the [BASH][] Hints and Tricks page into the README, and stick it all up
 front.
 
-(For the most part, you may take blank lines in the code blocks as
-separators for selecting lines to copy and paste. The significant
-exception is when I'm using [bash heredoc][heredoc] to create or add to
-a file. Then, you need to copy all the way to the `EOT` at the start of
-a line.)
-
 [BASH]: http://www.tldp.org/LDP/Bash-Beginners-Guide/html/index.html
-[heredoc]: http://www.tldp.org/LDP/abs/html/here-docs.html
 
 ### Second Tuesday of the Month
 <!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5- -->
@@ -38,10 +30,12 @@ Tuesday: `00 02 08-14 * *`. Then, you just need to put some additional
 date checking into the script itself.
 
 ```bash
-i_daynum=$ (date +% d)
+i_daynum=$( date +% d )
 s_dayword=$( date +%a )
 
-if [[ ${i_daynum} >= "08" ]] && [[ ${i_daynum} <= "14" ]] && [ ${s_dayword} == 'Tue' ]
+if [[ ${i_daynum} >= "08" ]] \
+  && [[ ${i_daynum} <= "14" ]] \
+  && [ ${s_dayword} == 'Tue' ]
 then
   # Execute your script
 fi
@@ -64,7 +58,9 @@ Or, alternately, you can use an `OR` arrangement to exit the script before execu
 i_daynum=$(date +%d)
 s_dayword=$(date +%a)
 
-if [[ ${i_daynum} < "07" ]] || ${i_daynum} > "14" ]] || [ ${s_dayword} != 'Tue' ]
+if [[ ${i_daynum} < "07" ]] \
+  || ${i_daynum} > "14" ]] \
+  || [ ${s_dayword} != 'Tue' ]
 then
   exit 1
 fi
