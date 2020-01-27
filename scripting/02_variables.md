@@ -1,5 +1,5 @@
 # BASH Variable Naming Conventions
-2015-02-20
+2015-02-20, updated 2020-01-27
 
 <!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5- -->
 Several [articles][1], [blog posts][2], and [questions][3] discuss
