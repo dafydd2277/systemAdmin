@@ -17,8 +17,8 @@ my variable to give me a reminder of the type of information the
 variable is carrying. However, this convention is not significant in
 `bash`.
 
-Finally, when using variables, I try hard to always use the `${s_name}
-` format, rather than the simpler `$s_name`. As with most of this
+Finally, when using variables, I try hard to always use the `${s_name}`
+format, rather than the simpler `$s_name`. As with most of this
 particular doc, I just do it to [keep the habit][4] against the day I
 really need to explicitly set out a variable name.
 
