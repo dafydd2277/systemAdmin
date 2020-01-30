@@ -180,8 +180,12 @@ fn_find_host () {
   
   for d_target in ${a_domains[*]}
   do
-    echo "Testing ${h_target}.${d_target}"
-    host ${h_target}.${d_target}
+    host ${h_target}.${d_target} >/dev/null 2>&1
+    if [ $? -eq 0 ]
+    then
+      host ${h_target}.${d_target}
+      return 0
+    fi
   done
 }
 
