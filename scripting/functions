@@ -157,3 +157,31 @@ fn_tcpdump_all () {
       | sed 's/^/[ '"${s_if}"' ] /' 2>/dev/null &
   done
 }
+
+
+# Search the network for hosts with an uncertain FQDN.
+#
+# Usage: `fn_find_host <shortname>`
+fn_find_host () {
+  local h_target=${1:-}
+  
+  if [ -z "${h_target}" ]
+  then
+    return 1
+  fi
+  
+  local a_domains=( prod.example.com \
+    staging.example.com \
+    test.example.com \
+    buld.example.com \
+    dev.example.com \
+    infra.example.com \
+  )
+  
+  for d_target in ${a_domains[*]}
+  do
+    echo "Testing ${h_target}.${d_target}"
+    host ${h_target}.${d_target}
+  done
+}
+
