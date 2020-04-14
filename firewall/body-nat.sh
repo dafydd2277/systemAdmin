@@ -109,6 +109,20 @@ ${e_iptables} --append INPUT --in-interface ${s_ext_if} \
    --source ${s_int_subnet}/${s_int_mask} --jump DROP
 
 
+# Let's drop the generic SSH ACCEPT from prefix.sh, and create rules that only
+# allow SSH from the internal network.
+${e_iptables} --delete INPUT --protocol tcp \
+  --match tcp --destination-port 22
+
+${e_iptables} --append INPUT --in-interface ${s_ext_if} \
+  --protocol tcp --match tcp --destination-port 22 \
+  --jump DROP
+
+${e_iptables} --append INPUT --in-interface ${s_int_if} \
+  --protocol tcp --match tcp --destination-port 22 \
+  --jump ACCEPT
+
+
 # Drop anything from a spoofed network.
 # One of these rules probably duplicates the rule immediately above.
 # That's okay.
