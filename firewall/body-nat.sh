@@ -67,7 +67,7 @@ then
   echo 1 > /proc/sys/net/ipv4/conf/default/log_martians
 
 
-  cat <<EOSYSCTL > ${f_sysctl_conf}}
+  cat <<EOSYSCTL > ${f_sysctl_conf}
 # Configure networking for firewall traffic.
 net.ipv4.conf.all.log_martians = 1
 net.ipv4.conf.default.log_martians = 1
