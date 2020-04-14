@@ -29,7 +29,8 @@ fi
 ###
 
 # GET THE GLOBAL VARIABLES
-source <( $( /usr/bin/which curl ) -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/scripting/globalvars.sh )
+source <( $( /usr/bin/which curl ) -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/scripting/globalvars.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then
@@ -42,7 +43,8 @@ fi
 ###
 
 # Execute the general rules that come before this custom block.
-source <( ${e_curl} -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/prefix.sh )
+source <( ${e_curl} -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/prefix.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then
@@ -78,7 +80,8 @@ ${e_iptables} --append INPUT --protocol tcp \
 
 
 # Execute the general rules that come after this custom block.
-source <( ${e_curl} -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/suffix.sh )
+source <( ${e_curl} -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/suffix.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then

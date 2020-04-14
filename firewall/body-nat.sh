@@ -19,6 +19,7 @@ then
   exit 1
 fi
 
+
 ###
 ### EXPLICIT VARIABLES
 ###
@@ -34,12 +35,14 @@ s_int_if=${s_int_if:-eth1}
 s_int_subnet=${s_int_subnet:-192.168.0.0}
 s_int_mask=${s_int_mask:-24}
 
+
 ###
 ### DERIVED VARIABLES
 ###
 
 # GET THE GLOBAL VARIABLES
-source <( $( /usr/bin/which curl ) -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/scripting/globalvars.sh )
+source <( $( /usr/bin/which curl ) -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/scripting/globalvars.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then
@@ -77,7 +80,8 @@ fi
 
 
 # Execute the general rules that come before this custom block.
-source <( ${e_curl} -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/prefix.sh )
+source <( ${e_curl} -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/prefix.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then
@@ -104,6 +108,7 @@ ${e_iptables} --append FORWARD --in-interface ${s_int_if} \
 # address.
 ${e_iptables} --append INPUT --in-interface ${s_ext_if} \
    --source ${s_int_subnet}/${s_int_mask} --jump DROP
+
 
 # Drop anything from a spoofed network.
 # One of these rules probably duplicates the rule immediately above.
@@ -154,7 +159,8 @@ ${e_iptables} --append FORWARD \
 
 
 # Execute the general rules that come after this custom block.
-source <( ${e_curl} -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/suffix.sh )
+source <( ${e_curl} -sS \
+  https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/firewall/suffix.sh )
 i_exit_code=$?
 if [ "${i_exit_code}" -ne 0 ]
 then
@@ -162,4 +168,3 @@ then
 fi
 
 set +x
-
