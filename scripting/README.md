@@ -44,8 +44,8 @@ fi
 ```
 <!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5- -->
 
-([Why do I use dollar-parentheses instead of backticks in bash command
-expansion like `$( hostname -s )`?][faq082])
+( [Why do I use dollar-parentheses instead of backticks][faq082] in bash command
+expansion like `$( hostname -s )`? )
 
 There's your `AND` inclusive date check. The down side is that the
 remainder of the script will be indented, by convention. I'll just call
