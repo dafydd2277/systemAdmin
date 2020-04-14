@@ -27,6 +27,9 @@ fi
 # Override any of these by setting them as environment variables.
 # eg. `export s_ext_if=enp4s0`
 
+# Set the sysctl settings into their own file.
+f_sysctl_conf=${f_sysctl_conf:-/etc/sysctl.d/98-firewall.conf}
+
 # The name of the external interface
 s_ext_if=${s_ext_if:-eth0}
 
@@ -62,19 +65,15 @@ then
   echo 1 > /proc/sys/net/ipv4/ip_forward
   echo 1 > /proc/sys/net/ipv4/conf/all/log_martians
   echo 1 > /proc/sys/net/ipv4/conf/default/log_martians
-fi
 
-${e_grep} -q "net.ipv4.ip_forward = 1" /etc/sysctl.conf 
-if [ $? -ne 0 ]
-then
-  echo "Modifying sysctl.conf"
-  ${e_sed} --in-place=.${s_daterev} \
-    "s/^net\.ipv4\.ip_forward.*/net.ipv4.ip_forward = 1/" \
-    /etc/sysctl.conf
-  cat <<EOMARTIANS >>/etc/sysctl.conf
+
+  cat <<EOSYSCTL > ${f_sysctl_conf}}
+# Configure networking for firewall traffic.
 net.ipv4.conf.all.log_martians = 1
 net.ipv4.conf.default.log_martians = 1
-EOMARTIANS
+net.ipv4.ip_forward = 1
+
+EOSYSCTL
 
 fi
 
