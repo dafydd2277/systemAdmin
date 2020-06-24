@@ -10,7 +10,7 @@ using SQLite to keep the information and Python.
 
 Since the Puppet API returns JSON, trying a fact gathering script in
 Bash would largely have been a collection of Python one-liners. So,
-just do it in Pythin, and learn Python as I go...
+just do it in Python, and learn Python as I go...
 
 [ITIL]: https://en.wikipedia.org/wiki/ITIL
 
