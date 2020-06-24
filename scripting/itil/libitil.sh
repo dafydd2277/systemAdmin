@@ -4,7 +4,7 @@
 
 # If not already set as an environment variable, set the ITIL database
 # name.
-s_dbname=${s_dbname:-/usr/local/lib/itil/itil.sqlite}
+df_itildb=${df_itildb:-/usr/local/lib/itil/itil.sqlite}
 
 
 ###
@@ -54,7 +54,7 @@ fn_libitil_add_hosts () {
       (hostname, domainname)
       VALUES 
       ( "'"${s_hostname}"'", "'"${s_domainname}"'" );' \
-    | ${e_sqlite3} ${s_dbname}
+    | ${e_sqlite3} ${df_itildb}
 
   done
 }
@@ -75,6 +75,7 @@ fn_libitil_add_hosts () {
 fn_libitil_create_database () {
   # The hosts table needs to come first.
   fn_libitil_create_table_hosts
+  fn_libitil_create_table_notes
   fn_libitil_create_table_systems
 
   # The applications table needs to come before application_owners
@@ -101,7 +102,7 @@ fn_libitil_create_database () {
 #
 # Usage: `fn_libitil_create_table_addresses`
 fn_libitil_create_table_addresses () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS interfaces (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS interfaces (
       hostname varchar(20)
         REFERENCES hosts (hostname)
         ON DELETE CASCADE
@@ -135,7 +136,7 @@ fn_libitil_create_table_addresses () {
 #
 # Usage: `fn_libitil_create_table_applications`
 fn_libitil_create_table_applications () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS applications (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS applications (
       hostname varchar(20)
         REFERENCES hosts (hostname)
         ON DELETE CASCADE
@@ -164,7 +165,7 @@ fn_libitil_create_table_applications () {
 #
 # Usage: `fn_libitil_create_table_application_owners`
 fn_libitil_create_table_application_owners () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS application_owners (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS application_owners (
       application_name varchar(40)
         REFERENCES applications (application_name)
         ON DELETE CASCADE
@@ -189,7 +190,7 @@ fn_libitil_create_table_application_owners () {
 #
 # Usage: `fn_libutil_create_table_hosts`
 fn_libitil_create_table_hosts () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS hosts (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS hosts (
       hostname varchar(20),
       domainname varchar(40),
       description varchar(128),
@@ -219,7 +220,7 @@ fn_libitil_create_table_hosts () {
 #
 # Usage: `fn_libitil_create_table_interfaces
 fn_libitil_create_table_interfaces () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS interfaces (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS interfaces (
       system_serial_number
         REFERENCES systems (serial_number)
         ON DELETE CASCADE
@@ -231,6 +232,33 @@ fn_libitil_create_table_interfaces () {
       PRIMARY KEY
         (system_serial_number,
         interface_name)
+        ON CONFLICT FAIL
+    );'
+}
+
+
+# Create the notes table.
+#
+# The notes table is for soft notes about a host, like a system 
+# description, warnings, and the name of the person with primary
+# interest in the host.
+#
+# Usage: `fn_libitil_create_table_notes`
+fn_libitil_create_table_notes () {
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS notes (
+      hostname varchar(20)
+        REFERENCES hosts (hostname)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+      domainname varchar(40)
+        REFERENCES hosts (domainname)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+      description varchar(128),
+      who_to_ask varchar(128),
+      warnings varchar(128),
+      last_updated text DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (hostname, domainname)
         ON CONFLICT FAIL
     );'
 }
@@ -248,9 +276,9 @@ fn_libitil_create_table_interfaces () {
 # The "serial_number" field could be set to whatever external
 # hardware serial number system is in use.
 #
-# Usage: `fn_libutil_create_table_systems`
+# Usage: `fn_libitil_create_table_systems`
 fn_libitil_create_table_systems () {
-  ${e_sqlite3} ${s_dbname} 'CREATE TABLE IF NOT EXISTS systems (
+  ${e_sqlite3} ${df_itildb} 'CREATE TABLE IF NOT EXISTS systems (
       serial_number INTEGER PRIMARY KEY ASC AUTOINCREMENT,
       hostname varchar(20)
         REFERENCES hosts (hostname)
