@@ -50,7 +50,7 @@ fn_semodule_compile () {
   
   if [ -z "${d_source}" -o -z "${s_name}" ]
   then
-    exit 1
+    return 1
   fi
 
   chkmodule -m -mls \
@@ -66,7 +66,7 @@ fn_semodule_get_name () {
   
   if [ -z "${df_source}" ]
   then
-    exit 1
+    return 1
   fi
   
   d_source=$( dirname ${df_source} )
@@ -81,7 +81,7 @@ fn_semodule_install () {
   
   if [ -z "${s_name}" ]
   then
-    exit 1
+    return 1
   fi
   
   semodule \
@@ -97,7 +97,7 @@ fn_semodule_package () {
   
   if [ -z "${s_name}" ]
   then
-    exit 1
+    return 1
   fi
   
   semodule_package \
