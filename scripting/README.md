@@ -1,5 +1,24 @@
 # BASH Scripting
 
+## 2020-07-22
+
+"[Real SysAdmins Don't Sudo][nosudo]"
+
+David Both raises some good philosophical points about how running all
+privileged commands through `sudo` is a mis-use of the command. I largely agree
+with him. I want to note an important caveat and use case, though. In strongly
+audited environments, locking the root account and requiring `sudo` for all
+privileged commands, or even `sudo su - root`, creates an audit trail of the
+operations SysAdmins are running. That audit trail can then be immediately
+logged to a location controlled by other SysAdmins, and remains available for
+forensic analysis of a system whose breakage may have been malicious.
+
+Remember, the most common sort of attack on an information system is an
+insider attack.
+
+[nosudo]: http://www.both.org/?p=960
+
+
 ## 2020-01-27
 
 Let's move the [BASH][] Hints and Tricks page into the README, and stick it all up
