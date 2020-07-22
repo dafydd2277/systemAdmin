@@ -1,4 +1,6 @@
-## Adding custom headers to outgoing emails.
+# General Notes on Postfix
+
+## 2015-08-18 - Adding custom headers to outgoing emails.
 
 Add `X-Clacks-Overhead: GNU Terry Pratchett` to every outgoing email. Inspired by http://www.gnuterrypratchett.com/#postfix
 

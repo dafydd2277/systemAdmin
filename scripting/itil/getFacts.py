@@ -3,8 +3,8 @@
 # getFacts.py
 #
 # This script will loop through all Puppet Enterprise servers listed in
-# the List a_pe_servers, collect their inventories, and combine
-# collected information from the inventories into a single SQLite
+# the array a_pe_servers, collect their inventories, and combine
+# selected information from the inventories into a single SQLite
 # database file specified by the variable df_sqlite.
 #
 # This script is intended to run as a cron job, updating the database
@@ -14,7 +14,7 @@
 # 2020-02-12 David Barr
 # Initial script completed.
 #
-
+#
 
 import commands, json, re, sqlite3
 
@@ -28,9 +28,9 @@ df_sqlite = '/usr/local/lib/itil/itil.sqlite'
 
 # Set list of Puppet Enterprise servers.
 a_pe_servers = [ 
-                 "dev.example.com",
-                 "test.example.com",
-                 "prod.example.com"
+                 "puppet.dev.example.com",
+                 "puppet.test.example.com",
+                 "puppet.prod.example.com",
                ]
 
 ###
@@ -42,6 +42,7 @@ a_pe_servers = [
 # hostsTableList = [
 #                    s_hostname,
 #                    s_domainname,
+# (Puppet env.)      s_environment,
 #                    s_osName,
 #                    s_osReleaseFull,
 #                    s_kernel,
@@ -54,22 +55,41 @@ a_pe_servers = [
 def update_hosts_table( hostsTableList ):
 
   cmd = "INSERT OR REPLACE INTO hosts "
-  cmd = cmd + "( hostname, domainname, os_name, os_release_full, "
-  cmd = cmd + "kernel, kernelrelease, memory_swap_total_bytes, "
-  cmd = cmd + "uptime_hours ) VALUES ( \""
-  cmd = cmd + hostsTableList[0] + "\", \""
-  cmd = cmd + hostsTableList[1] + "\", \""
-  cmd = cmd + hostsTableList[2] + "\", \""
-  cmd = cmd + hostsTableList[3] + "\", \""
-  cmd = cmd + hostsTableList[4] + "\", \""
-  cmd = cmd + hostsTableList[5] + "\", "
-  cmd = cmd + str(hostsTableList[6]) + ", "
-  cmd = cmd + str(hostsTableList[7]) + " );"
+  cmd = cmd + "( hostname, domainname, environment, os_name, "
+  cmd = cmd + "os_release_full, kernel, kernelrelease, "
+  cmd = cmd + "memory_swap_total_bytes, uptime_hours ) VALUES ( "
+  cmd = cmd + "\"" + hostsTableList[0] + "\", "
+  cmd = cmd + "\"" + hostsTableList[1] + "\", "
+  cmd = cmd + "\"" + hostsTableList[2] + "\", "
+  cmd = cmd + "\"" + hostsTableList[3] + "\", "
+  cmd = cmd + "\"" + hostsTableList[4] + "\", "
+  cmd = cmd + "\"" + hostsTableList[5] + "\", "
+  cmd = cmd + "\"" + hostsTableList[6] + "\", "
+  cmd = cmd + str(hostsTableList[7]) + ", "
+  cmd = cmd + str(hostsTableList[8]) + " );"
 
   #print cmd
   db_cursor.execute( cmd )
 
   
+# Inserts a row in the notes table, or leaves a matching row unchanged.
+#
+# notesTableList = [
+#                    s_hostname,
+#                    s_domainname,
+#                  ]
+#
+# Usage: `update_hosts_table( <List hostsTableList> )`
+def update_notes_table( notesTableList ):
+
+  cmd = "INSERT OR IGNORE INTO notes "
+  cmd = cmd + "( hostname, domainname ) VALUES ( "
+  cmd = cmd + "\"" + notesTableList[0] + "\", "
+  cmd = cmd + "\"" + notesTableList[1] + "\" ); "
+
+  #print cmd
+  db_cursor.execute( cmd )
+
 
 # Inserts or updates a row in the systems table.
 #
@@ -125,7 +145,6 @@ def get_puppet_entries( puppetServer ):
     s_hostname = a_fqdnList[0]
     s_domainname = a_fqdnList[1]
 
-    # For that one box that doesn't have any swap defined... :-/
     try :
       i_memorySwapTotalBytes = entry['facts']['memory']['swap']['total_bytes']
     except:
@@ -133,44 +152,56 @@ def get_puppet_entries( puppetServer ):
 
     try:
       i_memorySystemTotalBytes = entry['facts']['memory']['system']['total_bytes']
+      i_processorsCount = entry['facts']['processors']['count']
+      i_processorsPhysicalCount = entry['facts']['processors']['physicalcount']
+      i_upHours = entry['facts']['system_uptime']['hours']
+      s_environment = entry['environment']
       s_kernel = entry['facts']['kernel']
       s_kernelRelease = entry['facts']['kernelrelease']
       s_osName = entry['facts']['os']['name']
       s_osReleaseFull = entry['facts']['os']['release']['full']
-      i_processorsCount = entry['facts']['processors']['count']
       s_processorsISA = entry['facts']['processors']['isa']
-      i_processorsPhysicalCount = entry['facts']['processors']['physicalcount']
-      i_upHours = entry['facts']['system_uptime']['hours']
       s_virtual = entry['facts']['virtual']
   
     except KeyError as s_err:
-      raise KeyError( s_fqdn + ' did not return a value for ' + str(s_err) + '.' )
+      msg = s_fqdn + " (" + puppetServer + ") did not return a value "
+      msg = msg + "for " + str(s_err) + "."
+      raise KeyError( msg )
     except:
       raise IOError( s_fqdn + ' did not return information as expected.' )
 
 
     print "System: " + s_fqdn + ", Uptime: " + str(i_upHours)
 
-    update_hosts_table([
-                         s_hostname,
-                         s_domainname,
-                         s_osName,
-                         s_osReleaseFull,
-                         s_kernel,
-                         s_kernelRelease,
-                         i_memorySwapTotalBytes,
-                         i_upHours
-                       ])
+    update_hosts_table( [
+                          s_hostname,
+                          s_domainname,
+                          s_environment,
+                          s_osName,
+                          s_osReleaseFull,
+                          s_kernel,
+                          s_kernelRelease,
+                          i_memorySwapTotalBytes,
+                          i_upHours
+                        ])
 
-    update_systems_table([
-                           s_hostname,
-                           s_domainname,
-                           s_virtual,
-                           i_processorsCount,
-                           s_processorsISA,
-                           i_processorsPhysicalCount,
-                           i_memorySystemTotalBytes
-                         ])
+    update_notes_table( [
+                            s_hostname,
+                            s_domainname,
+                            None,
+                            None,
+                            None,
+                        ])
+
+    update_systems_table( [
+                            s_hostname,
+                            s_domainname,
+                            s_virtual,
+                            i_processorsCount,
+                            s_processorsISA,
+                            i_processorsPhysicalCount,
+                            i_memorySystemTotalBytes
+                          ])
     db.commit()
   
 ###
@@ -180,7 +211,9 @@ def get_puppet_entries( puppetServer ):
 db = sqlite3.connect( df_sqlite )
 db_cursor = db.cursor()
 
-for s_server in a_pe_servers:
-  get_puppet_entries( s_server )
+for s_host in a_pe_servers:
+#for s_host in [ "puppet.dev.example.com" ]:
+  get_puppet_entries( s_host )
 
 db.close()
+
