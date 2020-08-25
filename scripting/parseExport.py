@@ -49,10 +49,6 @@ from zipfile import ZipFile
 ### Explicit Variables
 ###
 
-# Block tracebacks on error.
-# (So, make sure you have good error messages!)
-#sys.tracebacklimit = None
-
 # Format of RFC-3339 timestamps. Needed to convert strings to
 # datetime objects.
 formatString = '%Y-%m-%d %H:%M:%S %z'
@@ -106,7 +102,8 @@ def getSum(recordType):
   for record in xmlStructure.findall("./*[@type='"+recordType+"']"):
     endDateObject = setDatetimeObject(record.attrib.get('endDate'))
     if (endDateObject >= sundayStart.astimezone()
-      and endDateObject <= sundayEnd.astimezone()):
+      and endDateObject <= sundayEnd.astimezone()
+      and record.attrib.get('sourceName') != 'iPhone'):
       recordValue = record.attrib.get('value')
       total += float(recordValue)
 
@@ -118,6 +115,7 @@ def getSum(recordType):
     fileOut.close()
 
   return round(total, 2)
+
 
 def getXML():
   """Open and internalize the input XML file."""
@@ -132,13 +130,7 @@ def getXML():
       # This is heavily influenced by the answer to
       # https://stackoverflow.com/questions/10908877/extracting-a-zipfile-to-memory
       try:
-        baseName = os.path.basename(optList.inputFile) 
-        xmlFile = os.path.splitext(baseName)[0]  
-  
-        if optList.verbose:
-          print("baseName is "+baseName)
-          print("xmlFile is "+xmlFile)
-  
+        xmlFile = 'apple_health_export/export.xml'     
         unZipped = ZipFile(optList.inputFile, 'r')
         return ET.fromstring(unZipped.read(xmlFile))
       except Exception as error:
@@ -165,9 +157,9 @@ def setArgs():
   group1.add_option("-i", "--input", dest="inputFile",
     help="REQUIRED: XML input file. Can be plain or zipped.",
     metavar="FILE")
-  group1.add_option("-o", "--output", dest="outputDir",
-    help="REQUIRED: Output directory for summary and (optional) audit "
-          "files", metavar="DIR")
+#  group1.add_option("-o", "--output", dest="outputDir",
+#    help="REQUIRED: Output directory for summary and (optional) audit "
+#          "files", metavar="DIR")
   scriptArgSet.add_option_group(group1)
 
   group2 = OptionGroup(scriptArgSet, "Date Option:")
@@ -247,6 +239,17 @@ def weekBounds():
   idx = (( optList.date.weekday() + 1) % 7 )
   sunStart = optList.date - datetime.timedelta(lastweek+idx)
   sunEnd = optList.date - datetime.timedelta(lastweek+idx-7)
+  
+  sunStart = datetime.datetime(sunStart.year,
+                              sunStart.month,
+                              sunStart.day,
+                              0, 0, 0, 0)
+ 
+  sunEnd = datetime.datetime(sunEnd.year,
+                              sunEnd.month,
+                              sunEnd.day,
+                              0, 0, 0, 0)
+                             
 
   return sunStart,sunEnd
 
@@ -265,9 +268,11 @@ parser = setArgs()
 optList, args = parser.parse_args()
 sundayStart, sundayEnd = weekBounds()
 
+msg = "Fetching records between "+str(sundayStart)+" and "
+msg = msg+str(sundayEnd)+".\n"
+print (msg)
+
 if optList.verbose:
-  print("Sunday, "+str(sundayStart))
-  print("Saturday, "+str(sundayEnd))
   print("Opt List: "+str(optList))
   print("Args: "+str(args))
 

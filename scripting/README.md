@@ -2,8 +2,12 @@
 
 ## 2020-08-25
 
-I've added a Python script to pick out and manipulate XML record entries from
-an Apple Health data download, to summarize information I'm interested in.
+I've added a Python script, `parseExport.py` that picks out and manipulates
+XML record entries from an Apple Health data download, to summarize information
+I'm interested in. I needed two passes through the script before I could get it
+to work. It seems that having an Apple Watch completely changes how the XML
+records are organized. Before, the zip file just contained a single filename.
+Now, it has *bunches* of structured data, in several files and directories.
 
 
 ## 2020-07-22
