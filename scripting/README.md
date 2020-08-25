@@ -27,8 +27,8 @@ insider attack.
 
 ## 2020-01-27
 
-Let's move the [BASH][] Hints and Tricks page into the README, and stick it all up
-front.
+Let's move the [BASH][] Hints and Tricks page into the README, and stick it all
+up front.
 
 [BASH]: http://www.tldp.org/LDP/Bash-Beginners-Guide/html/index.html
 
