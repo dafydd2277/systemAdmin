@@ -1,5 +1,11 @@
 # BASH Scripting
 
+## 2020-08-25
+
+I've added a Python script to pick out and manipulate XML record entries from
+an Apple Health data download, to summarize information I'm interested in.
+
+
 ## 2020-07-22
 
 "[Real SysAdmins Don't Sudo][nosudo]"
