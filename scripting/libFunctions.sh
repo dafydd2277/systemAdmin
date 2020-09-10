@@ -3,11 +3,11 @@
 # This file can be called by copying it into your ${HOME} as a dot
 # file, and sourcing it from .bash_profile, like this.
 #
-# `source .functions`
+# `source .libFunctions.sh`
 #
 # or picking it straight out of this project, like this.
 #
-# `source <( curl -ksS https://github.com/dafydd2277/systemAdmin/raw/master/scripting/functions )`
+# `source <( curl -ksS https://github.com/dafydd2277/systemAdmin/raw/master/scripting/libFunctions.sh )`
 
 
 # Create a backup of a file using a date stamp extension to the file
