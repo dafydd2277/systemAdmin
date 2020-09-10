@@ -28,6 +28,75 @@ fn_archive () {
   fi
 }
 
+
+# fn_get_disk_uuids
+#
+# A previous customer used Oracle ASM by assigning UUIDs to their ASM
+# disks, and then using UDEV rules to assign those disks to
+# /dev/disk/asm/$name, where $name was set as a UDEV matching rule for
+# the discovered UUID. While this customer didn't use multipathing, I
+# crafted the function to allow for that option.
+#
+# Usage: `fn_get_disk_uuids`
+fn_git_disk_uuids () {
+DEBUG=true
+declare -A a_uuids
+declare -A a_udev_env
+
+  for f_dev in $( cd /dev; ls -1 sd* )
+  do
+
+    if [ $DEBUG ]
+    then
+      echo -n "${f_dev} - "
+    fi
+
+    s_id_serial=$( /sbin/udevadm info --query=all --name=/dev/${f_dev} \
+                   | grep 'ID_SERIAL=' \
+                   | cut -d"=" -f 2
+                 )
+
+     if [ $DEBUG ]
+     then
+       echo "${s_id_serial}"
+     fi
+
+     a_uuids[${f_dev}]=${s_id_serial}
+
+     ls -1 /dev/disk/by-id/*${a_uuids[${f_dev}]}* | grep -q mpath
+    if [ $? -eq 0 ]
+    then
+      a_udev_env[${f_dev}]='DM_UUID'
+    else
+      a_udev_env[${f_dev}]='ID_SERIAL'
+    fi
+  done
+
+
+  for f_dev in $( cd /dev; ls -1 sd* )
+  do
+    echo "${f_dev} - ${a_udev_env[${f_dev}]} - ${a_uuids[${f_dev}]} - "
+
+    #  multipath -ll | grep ${a_uuids[${f_dev}]} | egrep '^mpath.*' | cut -d' ' -f3
+    multipath -ll | grep ${a_uuids[${f_dev}]}
+    echo
+  done
+
+  # Then, construct the UDEV rule to match on one of these:
+  #
+  # ENV{ID_SERIAL}=="${a_uuids[${f_dev}]}"
+  # ENV{DM_UUID}=="mpath-${a_uuids[${f_dev}]}"
+  #
+  # Additional useful information might come from
+  #
+  # for f_dm in $( ls -1 /dev/dm* )
+  # do
+  #   echo ${f_dm}
+  #   lsblk ${f_dm}
+  # done
+}
+
+
 # fn_git_branch
 #
 # I don't remember where fn_git_branch() and fn_git_color() came from.
