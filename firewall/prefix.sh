@@ -90,6 +90,7 @@ ${e_iptables} --append INPUT ! --in-interface lo \
 
 
 # Block the "SACK panic"
+# See https://isc.sans.edu/diary/What+You+Need+To+Know+About+TCP+%22SACK+Panic%22/25046
 ${e_iptables} --append INPUT --protocol tcp \
   --match conntrack --ctstate NEW \
   --match tcpmss ! --mss 536:65535 \
