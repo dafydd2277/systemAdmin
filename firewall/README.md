@@ -9,10 +9,23 @@ to handle the problem of host-based firewalls on individual hosts
 within the enterprise. Most of these hosts only have a single
 interface, and most of these hosts have a single, well defined job. So,
 I wrote a central script, here called `body.sh`, that contains the
-custom `iptables` rules for the server type, and I have `body.sh` call
-`prefix.sh` and `suffix.sh` for the global rules that would apply to
-each host.
+custom `iptables` rules for a specific server type, and I have
+`body.sh` call `prefix.sh` and `suffix.sh` for the global rules that
+would apply to every host.
 
+## 2020-11-23
+
+I'm starting to look at converting the firewall files from iptables
+to nftables. I like the semi-scripting functionality of the files in
+`/etc/nftables`. This functionality simplifies configuration through
+services like Puppet, where we can just use `file{}` resources to
+apply configurations, instead of something more complicated. At least,
+I hope. I need to find the execution order of files in
+`/etc/nftables`, quickly.
+
+I'm starting with the [nftables wiki][1].
+
+[1]: https://wiki.nftables.org/wiki-nftables/index.php/Main_Page
 
 ## 2019-08-03
 
