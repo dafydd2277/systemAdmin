@@ -1,5 +1,26 @@
 # BASH Scripting
 
+## 2021-03-21
+
+When entering long commands, eg. commands with many arguments, here's an idea.
+Set your editor variables:
+
+```bash
+export EDITOR=vim
+export VISUAL=vim
+export FCEDIT=vim
+```
+
+Then, you can do `<CTRL>-x <CTRL>-e` to open a command editor for your
+longer or more convoluted shell commands. Once you have the command to your
+liking, save and close the editor and the command will execute. If it breaks,
+you can then run the bash built-in command `fc` to open the last command in
+the editor specified in `FCEDIT` for modifications. (Go look up the the
+`fc` command in the [bash (5)][bash] man page. It will simplify your life!)
+
+[bash]: https://linux.die.net/man/1/bash
+
+
 ## 2020-08-25
 
 I've added a Python script, `parseExport.py` that picks out and manipulates
