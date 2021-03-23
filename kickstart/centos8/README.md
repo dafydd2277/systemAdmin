@@ -136,5 +136,14 @@ in the middle of my forehead?...)
 [JRTI]: https://www.space.com/28445-spacex-elon-musk-drone-ships-names.html
 
 
+### Burn the USB Flash Drive
+
+```
+dd if=${df_dest_iso} \
+  of=${d_usb_device} \
+  bs=4096 \
+  status=progress
+```
+
 Once the dd is complete, you can remove the USB flash drive and attempt to use
 it to install the OS on another computer.
