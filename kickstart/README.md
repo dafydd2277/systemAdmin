@@ -15,7 +15,8 @@ stray from the path. The `mkisofs` command is unforgiving of experimentation.
 - [Creating Kickstart Files for RHEL 8][rhel8ks]
 - [RHEL 8 Burning an ISO to a USB Flash Drive][burniso]
 
-[blog]: [blog]: https://www.redhat.com/sysadmin/optimized-iso-image
+
+[blog]: https://www.redhat.com/sysadmin/optimized-iso-image
 [burniso]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/sect-making-usb-media
 [rhel8ks]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_installation/creating-kickstart-files_installing-rhel-as-an-experienced-user
 
