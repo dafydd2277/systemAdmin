@@ -177,3 +177,24 @@ dd if=${df_dest_iso} \
 
 Once the dd is complete, you can remove the USB flash drive and attempt to use
 it to install the OS on another computer.
+
+
+## Other Information
+
+- I wrote two posts on the [Unix StackExchange][use] board about adding a
+kickstart file to a CentOS 8 ISO.
+  - "[Verified good `mkisofs` for CentOS 8?][use01]"
+  - "[CentOS 8 Custom ISO - Adding `ks=cdrom:/ks.cfg` Hangs the Installer][use02]"
+
+- The issue with the installer needing network sources is heading in the
+direction of becoming a bug at http://bugzilla.redhat.com/. I'll link to that
+after I've put my ducks in a row and written the bug.
+
+- Even with all this work going on, the kickstart file apparently *still*
+leaves disk partition questions for the graphical installer. So, I need to go
+through that tedium anyway. I'll keep working on that, too.
+
+[use]: https://unix.stackexchange.com/
+[use01]: https://unix.stackexchange.com/questions/640232/verified-good-mkisofs-for-centos-8
+[use02]: https://unix.stackexchange.com/questions/641277/centos-8-custom-iso-adding-ks-cdrom-ks-cfg-hangs-the-installer
+
