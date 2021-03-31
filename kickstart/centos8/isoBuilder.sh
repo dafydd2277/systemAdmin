@@ -43,6 +43,9 @@ then
   exit 1
 fi
 
+
+yum -y install isomd5sum syslinux pykickstart
+
 ksvalidator ${df_kickstart}
 if [ $? != 0 ]
 then
@@ -58,7 +61,8 @@ fi
 rm -rf ${df_dest_iso}
 mount -o loop ${df_source_iso} ${d_source_iso_mountpoint}
 rm -rf ${d_build_dir}/*
-time cp -avRfp ${d_source_iso_mountpoint}/* ${d_build_dir}
+
+time cp -aRfp ${d_source_iso_mountpoint}/* ${d_build_dir}
 cp -vf ${df_kickstart} ${d_build_dir}/ks.cfg
 
 
@@ -76,6 +80,8 @@ diff \
   ${d_build_dir}/EFI/BOOT/grub.cfg.orig \
   ${d_build_dir}/EFI/BOOT/grub.cfg
 
+# Checkpoint
+#exit
 
 cd ${d_build_dir}
 time mkisofs \
@@ -96,6 +102,9 @@ time mkisofs \
 isohybrid --uefi ${df_dest_iso}
 time implantisomd5 ${df_dest_iso}
 
+# Checkpoint
+#exit
 
 umount ${d_usb_device}1
 time dd if=${df_dest_iso} of=${d_usb_device} status=progress
+

@@ -55,7 +55,14 @@ about as small as you should go. Set the other options as you need. Once
 you have a key, tell git about it.
 
 ```
-git config --global user.signingkey 0A46826A
+$ gpg2 --list-keys
+/home/<user>/.gnupg/pubring.gpg
+--------------------------------
+pub   2048R/7B66950F 2021-03-30
+uid                  REAL NAME (COMMENT) <EMAIL>
+sub   2048R/596E743D 2021-03-30
+
+git config --global user.signingkey 7B66950F
 ```
 
 Then, when you commit a change, the `-S` argument tells git to GPG sign
@@ -63,12 +70,25 @@ the key. **However**, `gpg` assumes the password entry will be a GUI
 window. If you're working from a shell or an SSH session, you need to
 use the second example to get a `curses` text-based password entry panel.
 
-```
+```bash
 git commit -S
 
 GPG_TTY=$(tty) git commit -S
 ```
 
+If you want to submit your public key to https://www.github.com/ or
+https://www.gitlab.com, you can use this command to print out an
+ascii-armored version of your public key.
+
+```bash
+$ gpg2 --export -a 7B66950F
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+##### KEY TEXT #####
+-----END PGP PUBLIC KEY BLOCK-----
+
+```
 
 [20200123a]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
 
