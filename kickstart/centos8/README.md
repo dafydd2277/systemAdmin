@@ -5,27 +5,15 @@ an ISO. The idea was to have most of what you need, and then to use the visual
 installer for the remainder. Unfortunately, I got caught up in a limitation of
 the kickstart format. Let's start with
 [Installing RHEL as an Experienced User][redhat01] for kickstart options with
-the RHEL 8 family of operating systems. The limitation with using a kickstart
-in an ISO is that the `repo` command doesn't accept `file://` scheme URLs. It
-only works with network type schemes like `http://`, `https://` etc. This means
-you cannot have the kickstart installation file scan for the packages in the
-ISO file or burned flash drive.
+the RHEL 8 family of operating systems. The challenge I'm facing is that
+having a kickstart file seems to eliminate using the ISO-burned USB drive as
+the installation source. The installer seems to require a valid network
+configuration and `repo` directives pointing to network-based package sources.
+I'm still working on that, and may open a bug with Red Hat.
 
-(At some point, I might experiment with removing the package directories from
-the ISO file to speed creation.)
-
-If you insert a kickstart file into an ISO file, that kickstart file will need
-to include a `network` directive to gain access to any repositories out
-on your network and one or more `repo` directives for package locations. The
-need to include a `network` directive implies either limiting your customized
-ISO to single interface systems, or building fully customized ISOs/flash drives
-for system type you need. (With the `isoBuilder.sh` script in this directory,
-that's not actually hard. It's just time consuming to write out the file and
-possibly burn it to a storage device.)
-
-The good news is that I ran through these steps so many times in testing, that
-I gave up and wrote the `isoBuilder.sh` script in this directory to automate
-everything.
+The good news is that I ran through the ISO build steps so many times in
+testing, that I gave up and wrote the `isoBuilder.sh` script in this directory
+to automate everything.
 
 [redhat01]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_installation/kickstart-commands-and-options-reference_installing-rhel-as-an-experienced-user#user_kickstart-commands-for-system-configuration
 

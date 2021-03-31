@@ -46,12 +46,6 @@ fi
 
 yum -y install isomd5sum syslinux pykickstart
 
-ksvalidator ${df_kickstart}
-if [ $? != 0 ]
-then
-  exit 1
-fi
-
 if [ ! -d ${d_build_dir} ]
 then
   mkdir -p ${d_build_dir}
