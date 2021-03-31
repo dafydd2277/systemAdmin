@@ -33,6 +33,10 @@ everything.
 
 ### Set your Environment
 
+Note that you'll need enough filesystem space to handle essentially *three*
+copies of your ISO file. The source ISO file, the directory for the files
+copied out of the source ISO file, and the modified ISO file.
+
 ```
 yum install isomd5sum syslinux pykickstart
 
@@ -97,9 +101,10 @@ cp ${df_kickstart} ${d_iso_build}/ks.cfg
 ###  Modify the Boot Files
 
 These two commands will add `inst.ks=hd:LABEL=${s_source_label}` to the end
-of each `append` line in the menu section of `${d_build_dir}/isolinux.cfg` and
-the end of each `linuxefi` line in `${d_iso_build}/EFI/BOOT/grub.cfg`. Then,
-the respective `diff` commands will verify the modifications.
+of each `append` line in the menu section of
+`${d_build_dir}/isolinux/isolinux.cfg` and the end of each `linuxefi` line in
+`${d_iso_build}/EFI/BOOT/grub.cfg`. Then, the respective `diff` commands will
+verify the modifications.
 
 ```
 sed --in-place=.orig \
