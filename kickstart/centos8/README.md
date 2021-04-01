@@ -1,5 +1,15 @@
 # Adding a Kickstart File to an ISO
 
+> :warning: I'm tracking my challenges with using the USB flash drive as a
+local installation source in issue #1. The introductory paragraph has a brief
+summary. I'll clear this warning when the issue is resolved.
+
+> :warning: My test system has a UEFI controller will let me boot my USB flash
+drive either as a BIOS device or as a UEFI device. When booting UEFI, the
+kickstart file is skipped and a normal interactive installation is started. I
+suspect my changes to `EFI/BOOT/grub.cfg` are not yet correct. I'll clear this
+message when that is fixed.
+
 This started out as an attempt to add deliberately incomplete kickstart file to
 an ISO. The idea was to have most of what you need, and then to use the visual
 installer for the remainder. Unfortunately, I got caught up in a limitation of
