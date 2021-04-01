@@ -1,7 +1,7 @@
 # Adding a Kickstart File to an ISO
 
 > :warning: I'm tracking my challenges with using the USB flash drive as a
-local installation source in issue #1. The introductory paragraph has a brief
+local installation source in [issue #1][sysAdmin01]. The introductory paragraph has a brief
 summary. I'll clear this warning when the issue is resolved.
 
 > :warning: My test system has a UEFI controller will let me boot my USB flash
@@ -26,6 +26,8 @@ testing, that I gave up and wrote the `isoBuilder.sh` script in this directory
 to automate everything.
 
 [redhat01]: https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/performing_an_advanced_rhel_installation/kickstart-commands-and-options-reference_installing-rhel-as-an-experienced-user#user_kickstart-commands-for-system-configuration
+[sysAdmin01]: https://github.com/dafydd2277/systemAdmin/issues/1
+
 
 ## Steps
 
