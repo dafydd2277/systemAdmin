@@ -1,0 +1,130 @@
+#version=RHEL8
+#
+# Find "CHANGEME" in these example configuration lines for some suggested
+# things to include with a default setup.
+
+# X Window System configuration information
+xconfig  --startxonboot
+
+# License agreement
+eula --agreed
+
+# Use the graphical installer
+graphical
+
+# Use CDROM installation media
+cdrom
+
+#repo --name="BaseOS" --baseurl=file:///run/media/repo/BaseOS
+# Test 0331-1102 FAILED - Forced network setup.
+#network --device=link --activate --onboot=yes --bootproto=dhcp --noipv6
+#repo --name="AppStream" --baseurl=file:///run/media/repo/AppStream
+#repo --name="baseos" --baseurl=http://centos.mirror.lstn.net/8.3.2011/BaseOS/x86_64/os/
+
+# Test 0331-1345 - SUCCESS - INSTALLATION SUMMARY /dev/sdb found to be an installation source.
+#network --device=link --activate --onboot=yes --bootproto=dhcp --noipv6
+#repo --name="appstream" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=AppStream&infra=$infra
+#repo --name="baseos" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=BaseOS&infra=$infra
+#repo --name="EPEL" --metalink=https://mirrors.fedoraproject.org/metalink?repo=epel-$releasever&arch=$basearch&infra=$infra&content=$contentdir
+
+# Test 0331-2000
+#network --device=link --activate --onboot=yes --bootproto=dhcp --noipv6
+#repo --name="appstream" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=AppStream&infra=$infra
+#repo --name="baseos" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=BaseOS&infra=$infra
+
+# Test 0401-0740
+#network --device=link --activate --onboot=yes --bootproto=dhcp --noipv6
+#repo --name="appstream" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=AppStream&infra=$infra
+
+# Test 0401-1046
+#network --device=link --activate --onboot=yes --bootproto=dhcp --noipv6
+#repo --name="appstream" --mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=AppStream&infra=$infra
+
+# Test 0401-1204
+#repo --name="appstream" --baseurl=file:///run/media/boot/AppStream
+
+# Test 0401-1430
+network --device=link --no-activate --onboot=no --bootproto=dhcp --noipv6
+repo --name="appstream" --baseurl=file:///run/media/boot/AppStream
+
+# Run the Setup Agent on first boot
+firstboot --enable
+
+# System services
+services --enabled="chronyd"
+
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+
+# System language
+lang en_US.UTF-8
+
+# System timezone
+timezone America/Los_Angeles --isUtc
+
+# Network settings
+
+# Root password
+# Use this python command to encrypt your password:
+# python -c 'import crypt,getpass;pw=getpass.getpass();print(crypt.crypt(pw) if (pw==getpass.getpass("Confirm: ")) else exit())'
+rootpw --iscrypted CHANGEME
+
+# Admin User
+# (Don't use an obvious username, like "admin." Any step you can take to make
+# a black hat hacker's job harder is a good step.)
+user --groups=wheel --name=athelete --password=CHANGEME --iscrypted --gecos="Admin User"
+
+
+# Partition clearing information
+zerombr
+ignoredisk --only-use=sda
+clearpart --initlabel --drives=sda --all
+
+# Disk partitioning information
+part /boot     --fstype="ext4" --ondisk=sda --size=2048
+part /boot/efi --fstype="vfat" --ondisk=sda --recommended
+part swap      --fstype="swap" --ondisk=sda --hibernation
+
+part pv.01 --fstype="lvmpv" --ondisk=sda
+volgroup vgRoot --pesize=4096 pv.01
+logvol /              --fstype="xfs" --size=8192  --name=root        --vgname=vgRoot
+logvol /home          --fstype="xfs" --size=16384 --name=home        --vgname=vgRoot
+logvol /opt           --fstype="xfs" --size=8192  --name=opt         --vgname=vgRoot
+logvol /tmp           --fstype="xfs" --size=8192  --name=tmp         --vgname=vgRoot
+logvol /usr           --fstype="xfs" --size=8192  --name=usr         --vgname=vgRoot
+logvol /var           --fstype="xfs" --size=8192  --name=var         --vgname=vgRoot
+logvol /var/log       --fstype="xfs" --size=16384 --name=varLog      --vgname=vgRoot
+logvol /var/log/audit --fstype="xfs" --size=16384 --name=varLogAudit --vgname=vgRoot
+
+
+
+%packages
+@^graphical-server-environment
+@container-management
+@debugging
+@development
+@graphical-admin-tools
+@headless-management
+@legacy-unix
+@network-file-system-client
+@performance
+@remote-desktop-clients
+@remote-system-management
+@rpm-development-tools
+@scientific
+@security-tools
+@system-tools
+@web-server
+kexec-tools
+
+
+%end
+
+%addon ADDON_placeholder --enable --reserve-mb=auto
+%end
+
+%anaconda
+pwpolicy root --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+pwpolicy user --minlen=6 --minquality=1 --notstrict --nochanges --emptyok
+pwpolicy luks --minlen=6 --minquality=1 --notstrict --nochanges --notempty
+%end
