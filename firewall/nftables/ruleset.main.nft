@@ -1,0 +1,188 @@
+#!/usr/sbin/nft -f
+
+define EXT_IF = enp4s0
+define INT_IF = enp5s5
+
+table ip filter {
+  chain INPUT {
+    type filter hook input priority 0; policy drop;
+
+    # Accept anything from the `lo` interface.
+    iifname "lo" counter accept
+
+    # Drop attempts to use 127.0.0.1 from interfaces that are not
+    # localhost.
+    # (Why have explicit drop rules when the policy is to drop? Because
+    # that prevents these packets from reaching the logging rules at
+    # the bottom of the chain.)
+    iifname != "lo" ip saddr 127.0.0.0/8 counter drop
+    iifname != "lo" ip daddr 127.0.0.0/8 counter drop
+
+    # Drop fragmented packets.
+    ip frag-off & 0x1fff != 0 counter drop
+
+    # Drop incoming malformed NULL packets.
+    tcp flags & (fin|syn|rst|psh|ack|urg) == 0x0 counter drop
+
+    # Drop incoming "XMAS" packets
+    tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop
+
+    # Drop new incoming packets with FIN/RST/ACK but not SYN
+    ct state new  tcp flags & (fin|syn|rst|ack) != syn counter drop
+
+    # Accept established connections.
+    ct state related,established counter accept
+
+    # Acctp RST,ACK and PSH,ACK acknowledgements.
+    tcp flags & (fin|syn|rst|psh|ack|urg) == rst|ack counter accept
+    tcp flags & (fin|syn|rst|psh|ack|urg) == psh|ack counter accept
+
+    # Drop SSH from outside. Accept it from inside.
+    iifname $EXT_IF tcp dport 22 counter drop
+    iifname $INT_IF tcp dport 22 counter accept
+
+    # Drop internal IP addresses coming in the external interface.
+    iifname $EXT_IF ip saddr 127.0.0.0/8 counter drop
+    iifname $EXT_IF ip saddr 10.0.0.0/8 counter drop
+    iifname $EXT_IF ip saddr 172.16.0.0/12 counter drop
+    iifname $EXT_IF ip saddr 192.168.0.0/16 counter drop
+    iifname $EXT_IF ip saddr 224.0.0.0/3 counter drop
+
+    # Accept SMTP, including outbound relay.
+    tcp dport { 25, 995 } counter accept
+
+    # Accept DNS.
+    tcp dport 53 counter accept
+    udp dport 53 counter accept
+
+    # Accept HTTP/S.
+    tcp dport { 80, 443 } counter accept
+
+    # Drop broadcasts not already accepted.
+    pkttype broadcast counter drop
+
+    # Rate limit anything not already accepted.
+    ip protocol tcp limit rate 1/second burst 100 packets counter accept
+
+    # Drop ECHO packets.
+    tcp dport 7 counter drop
+
+    # Drop BOOTP client broadcasts
+    udp dport 67-68 counter drop
+    udp dport 137-138 counter drop
+
+    # Drop NETBIOS discovery packets
+    udp dport 445 counter drop
+
+    # Drop hlserver broadcasts
+    udp dport 1947 counter drop
+
+    # Drop Apple Multicast DNS
+    udp dport 5353 counter drop
+
+    # Drop Dropbox LAN Sync broadcasts.
+    # (See See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
+    pkttype broadcast udp dport 17500 counter drop
+
+    # Accept pings. Drop all other ICMP.
+    icmp type echo-request counter accept
+    icmp type any counter drop
+
+    # Drop packets explicitly sent to the multicast "broadcast"
+    # destination.
+    ip daddr 224.0.0.1 counter drop
+
+    # Log the remainder before we drop them.
+    limit rate 4/minute burst 5 packets counter log prefix \"Dropped by nftables: \" level info
+
+    # Politely drop packets to privileged ports.
+    udp dport 0-1024 counter reject
+    tcp dport 0-1024 counter reject
+  }
+
+
+  chain FORWARD {
+    type filter hook forward priority 0; policy drop;
+
+    # Forward outbound packets.
+    iifname $INT_IF oifname $EXT_IF counter accept
+
+    # Forward inbound replies.
+    iifname $EXT_IF oifname $INT_IF ct state related,established counter accept
+  }
+
+
+  chain OUTPUT {
+    type filter hook output priority 0; policy accept;
+  }
+}
+
+
+table ip nat {
+  chain PREROUTING {
+    type nat hook prerouting priority -100; policy accept;
+  }
+
+  chain INPUT {
+    type nat hook input priority 100; policy accept;
+  }
+
+  chain OUTPUT {
+    type nat hook output priority -100; policy accept;
+  }
+
+  chain POSTROUTING {
+    type nat hook postrouting priority 100; policy accept;
+  
+    oifname $EXT_IF counter masquerade
+  }
+}
+
+
+table ip mangle {
+  chain PREROUTING {
+    type filter hook prerouting priority -150; policy accept;
+  }
+
+  chain INPUT {
+    type filter hook input priority -150; policy accept;
+  }
+
+  chain FORWARD {
+    type filter hook forward priority -150; policy accept;
+  }
+
+  chain OUTPUT {
+    type route hook output priority -150; policy accept;
+  }
+
+  chain POSTROUTING {
+    type filter hook postrouting priority -150; policy accept;
+  }
+}
+
+
+table ip security {
+  chain INPUT {
+    type filter hook input priority 0; policy accept;
+  }
+
+  chain FORWARD {
+    type filter hook forward priority 0; policy accept;
+  }
+
+  chain OUTPUT {
+    type filter hook output priority 0; policy accept;
+  }
+}
+
+table ip raw {
+  chain PREROUTING {
+    type filter hook prerouting priority -300; policy accept;
+  }
+
+  chain OUTPUT {
+    type filter hook output priority -300; policy accept;
+  }
+}
+

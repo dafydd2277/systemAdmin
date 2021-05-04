@@ -1,0 +1,13 @@
+iifname "lo" counter packets 2 bytes 100 accept
+iifname != "lo" ip saddr 127.0.0.0/8 counter packets 0 bytes 0 drop
+iifname != "lo" ip daddr 127.0.0.0/8 counter packets 0 bytes 0 drop
+ip frag-off & 8191 != 0 counter packets 0 bytes 0 drop
+tcp flags & (fin | syn | rst | psh | ack | urg) == 0x0 counter packets 0 bytes 0 drop
+tcp flags & (fin | syn | rst | psh | ack | urg) == fin | syn | rst | psh | ack | urg counter packets 0 bytes 0 drop
+ct state established,related counter packets 85 bytes 5860 accept
+ct state new tcp flags & (fin | syn | rst | ack) != syn counter packets 0 bytes 0 drop
+tcp flags & (fin | syn | rst | ack) != syn ct state new counter packets 0 bytes 0 drop
+tcp flags & (fin | syn | rst | psh | ack | urg) == rst | ack counter packets 0 bytes 0 accept
+tcp flags & (fin | syn | rst | psh | ack | urg) == psh | ack counter packets 0 bytes 0 accept
+tcp dport 22 counter packets 0 bytes 0 accept
+

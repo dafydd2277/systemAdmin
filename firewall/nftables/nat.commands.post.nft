@@ -1,0 +1,18 @@
+add rule ip filter INPUT pkttype broadcast counter drop
+add rule ip filter INPUT ip protocol tcp limit rate 1/second burst 100 packets counter accept
+add rule ip filter INPUT tcp dport 7 counter drop
+add rule ip filter INPUT udp dport 67-68 counter drop
+add rule ip filter INPUT udp dport 137-138 counter drop
+add rule ip filter INPUT udp dport 445 counter drop
+add rule ip filter INPUT udp dport 1947 counter drop
+add rule ip filter INPUT udp dport 5353 counter drop
+    # Drop Dropbox LAN Sync broadcasts.
+    # (See See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
+add rule ip filter INPUT pkttype broadcast udp dport 17500 counter drop
+add rule ip filter INPUT icmp type echo-request counter accept
+add rule ip filter INPUT icmp type any counter drop
+add rule ip filter INPUT ip daddr 224.0.0.1 counter drop
+add rule ip filter INPUT limit rate 4/minute burst 5 packets counter log prefix \"Dropped by nftables: \" level info
+add rule ip filter INPUT udp dport 0-1024 counter reject
+add rule ip filter INPUT tcp dport 0-1024 counter reject
+
