@@ -47,17 +47,18 @@ systemctl start nftables
 You could even do `systemctl mask <service>` instead of `systemctl
 disable <service>` if you wanted to be thorough.
 
-Finally, I may get around to turning the boiler plain tables and chains
-at the end of each of the `main` rulesets into includes of their own.
-Not today, though.
+Finally, I may get around to turning the boiler plate tables and chains
+at the end of each of the `main` rule or command sets into includes of
+their own. Not today, though.
+
 
 ## References
 
 - [nftables.org][nftorg]
-  - [Configuring Chains][configChains]
+  - [Configuring Chains][nftChains]
   - [Firewall Example][nftFirewall]
   - [Port Knocking][nftKnockd], if you're into that. (Obscurity !=
-  security)
+  security. I'd rather set up a double-certificate VPN.)
   - [Scripting][nftScripting]
   - [Sets][nftSets]
 - [Red Hat - Getting Started with nftables][rhNft]
