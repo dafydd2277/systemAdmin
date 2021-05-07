@@ -69,10 +69,10 @@ diff \
 
 sed --in-place=.orig \
   "/linuxefi/ s%$% inst.ks=hd:LABEL=${s_source_label}%" \
-  ${d_build_dir}/EFI/BOOT/grub.cfg
+  ${d_build_dir}/EFI/BOOT/BOOT.conf
 diff \
-  ${d_build_dir}/EFI/BOOT/grub.cfg.orig \
-  ${d_build_dir}/EFI/BOOT/grub.cfg
+  ${d_build_dir}/EFI/BOOT/BOOT.conf.orig \
+  ${d_build_dir}/EFI/BOOT/BOOT.conf
 
 # Checkpoint
 #exit
