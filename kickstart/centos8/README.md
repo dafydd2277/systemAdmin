@@ -9,7 +9,7 @@ Second, the remaining `*.cfg` files demonstrate how that kickstart
 file may be broken up using the `include` command to allow
 combinations of configuration elements for a specific `hostname` along
 with generic elements that could apply to any host in your enterprise.
-For those, start by looking at `hostname.ks.cfg` for how the `include`
+For those, start by looking at `hostname/ks.cfg` for how the `include`
 commands can be used to combine generic and host-specific kickstart
 commands.
 
