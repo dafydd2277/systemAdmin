@@ -15,18 +15,18 @@ shopt -s dotglob
 df_source_iso=/tmp/CentOS-8.3.2011-x86_64-dvd1.iso
 d_source_iso_mountpoint=/mnt
 
-# The full path to your customized kickstart file.
-df_kickstart=/tmp/custom-ks.cfg
-
-# The write-out location of the modified ISO file.
-df_dest_iso=/tmp/CentOS-8.3-2011-x86_64-ks.iso
-
 # The directory used for expanding the source ISO into its component
 # files.
 d_build_dir=/tmp/iso
 
+# The full path to your customized kickstart file.
+df_kickstart=/tmp/custom-ks.cfg
+
+# The write-out location of the modified ISO file.
+df_dest_iso=/tmp/CentOS-8.3-2011-x86_64-dve1-ks.iso
+
 # And the device that will receive the `dd` output of the modified ISO.
-d_usb_device=/dev/sdb
+d_usb_device=/dev/disk/by-path/<unambiguous path to device>
 
 
 ###
@@ -41,6 +41,16 @@ s_source_label=$(blkid \
                 ${df_source_iso} \
                 | grep LABEL \
                 | cut -d= -f2)
+
+# The string to add to the BIOS config to point to the ks file.
+# This includes specifying how to start the network for remote loading.
+# See https://anaconda-test.readthedocs.io/en/latest/boot-options.html
+s_bios_add="ip=auto inst.ks=hd:LABEL=${s_source_label}"
+
+# The string to add to the UEFI config to point to the ks file.
+# This includes specifying how to start the network for remote loading.
+s_uefi_add="ip=auto inst.ks=hd:LABEL=${s_source_label}"
+#s_uefi_add="ifname=eth0:<mac> ip=<ip>::[gateway]:[netmask]:[hostname]:[ifname] inst.ks=hd:LABEL=${s_source_label}"
 
 
 ###
@@ -82,14 +92,14 @@ cp -vf ${df_kickstart} ${d_build_dir}/ks.cfg
 # customized kickstart files. Then, examine the diffs to make sure the
 # changes are correct.
 sed --in-place=.orig \
-  "/append/ s%$% inst.ks=hd:LABEL=${s_source_label}%" \
+  "/append/ s%$% ${s_bios_add}%" \
   ${d_build_dir}/isolinux/isolinux.cfg
 diff \
   ${d_build_dir}/isolinux/isolinux.cfg.orig \
   ${d_build_dir}/isolinux/isolinux.cfg
 
 sed --in-place=.orig \
-  "/linuxefi/ s%$% inst.ks=hd:LABEL=${s_source_label}%" \
+  "/linuxefi/ s%$% ${s_uefi_add}%" \
   ${d_build_dir}/EFI/BOOT/BOOT.conf
 diff \
   ${d_build_dir}/EFI/BOOT/BOOT.conf.orig \
