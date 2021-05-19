@@ -36,7 +36,7 @@ ${e_iptables} --append INPUT --protocol udp \
 ${e_iptables} --append INPUT --protocol udp \
   --match udp --destination-port 5060 --jump DROP
 ${e_iptables} --append INPUT --protocol tcp \
-  --match udp --destination-port 5060 --jump DROP
+  --match tcp --destination-port 5060 --jump DROP
 
 # Drop Apple Multicast DNS
 ${e_iptables} --append INPUT --protocol udp \
