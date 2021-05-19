@@ -32,7 +32,13 @@ ${e_iptables} --append INPUT --protocol udp \
   --match udp --destination-port 1947 \
   --jump DROP
 
-# Blcok Apple Multicast DNS
+# Drop Session Initiation Protocol
+${e_iptables} --append INPUT --protocol udp \
+  --match udp --destination-port 5060 --jump DROP
+${e_iptables} --append INPUT --protocol tcp \
+  --match udp --destination-port 5060 --jump DROP
+
+# Drop Apple Multicast DNS
 ${e_iptables} --append INPUT --protocol udp \
   --match udp --destination-port 5353 --jump DROP
 
