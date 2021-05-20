@@ -5,12 +5,16 @@ udp dport 67-68 counter drop
 udp dport 137-138 counter drop
 udp dport 445 counter drop
 udp dport 1947 counter drop
+tcp dport 5060 counter drop
+udp dport 5060 counter drop
 udp dport 5353 counter drop
+# Drop Dropbox LAN Sync broadcasts.
+# (See See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
 pkttype broadcast udp dport 17500 counter drop
 icmp type echo-request counter accept
-icmp type any counter drop
+ip protocol icmp counter drop
 ip daddr 224.0.0.1 counter drop
-limit rate 4/minute burst 5 packets counter log prefix \"Dropped by nftables: \" level info
+limit rate 4/minute burst 5 packets counter log prefix "Dropped by nftables: " level info
 udp dport 0-1024 counter reject
 tcp dport 0-1024 counter reject
 

@@ -1,7 +1,7 @@
 #!/usr/sbin/nft -f
 
-define EXT_IF = enp4s0
-define INT_IF = enp5s5
+define EXT_IF = CHANGEME_EXTERNAL_INTERFACE
+define INT_IF = CHANGEME_INTERNAL_INTERFACE
 
 add table ip filter
 add chain ip filter INPUT { type filter hook input priority 0; policy drop; }
@@ -43,11 +43,6 @@ add chain ip mangle FORWARD { type filter hook forward priority -150; policy acc
 add chain ip mangle OUTPUT { type route hook output priority -150; policy accept; }
 add chain ip mangle POSTROUTING { type filter hook postrouting priority -150; policy accept; }
 
-
-add table ip security
-add chain ip security INPUT { type filter hook input priority 0; policy accept; }
-add chain ip security FORWARD { type filter hook forward priority 0; policy accept; }
-add chain ip security OUTPUT { type filter hook output priority 0; policy accept; }
 
 add table ip raw
 add chain ip raw PREROUTING { type filter hook prerouting priority -300; policy accept; }

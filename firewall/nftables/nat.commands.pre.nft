@@ -1,6 +1,5 @@
-# (Why have explicit drop rules when the policy is to drop? Because
-# that prevents these packets from reaching the logging rules at
-# the bottom of the chain.)
+# ( Why have "drop" rules when the policy is "drop?" To drop
+# packets we don't need to have logged. )
 add rule ip filter INPUT iifname "lo" counter accept
 add rule ip filter INPUT iifname != "lo" ip saddr 127.0.0.0/8 counter drop
 add rule ip filter INPUT iifname != "lo" ip daddr 127.0.0.0/8 counter drop
@@ -11,6 +10,6 @@ add rule ip filter INPUT ct state new  tcp flags & (fin|syn|rst|ack) != syn coun
 add rule ip filter INPUT ct state related,established counter accept
 add rule ip filter INPUT tcp flags & (fin|syn|rst|psh|ack|urg) == rst|ack counter accept
 add rule ip filter INPUT tcp flags & (fin|syn|rst|psh|ack|urg) == psh|ack counter accept
+add rule ip filter INPUT iifname $INT_IF counter accept
 add rule ip filter INPUT iifname $EXT_IF tcp dport 22 counter drop
-add rule ip filter INPUT iifname $INT_IF tcp dport 22 counter accept
 

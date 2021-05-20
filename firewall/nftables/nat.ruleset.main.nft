@@ -70,18 +70,6 @@ table ip mangle {
 }
 
 
-table ip security {
-  chain INPUT {
-    type filter hook input priority 0; policy accept;
-  }
-  chain FORWARD {
-    type filter hook forward priority 0; policy accept;
-  }
-  chain OUTPUT {
-    type filter hook output priority 0; policy accept;
-  }
-}
-
 table ip raw {
   chain PREROUTING {
     type filter hook prerouting priority -300; policy accept;
