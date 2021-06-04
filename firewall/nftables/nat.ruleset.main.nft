@@ -4,46 +4,54 @@ define EXT_IF = CHANGEME_EXTERNAL_INTERFACE
 define INT_IF = CHANGEME_INTERNAL_INTERFACE
 
 table ip filter {
-  chain INPUT {
+  chain input {
     type filter hook input priority 0; policy drop;
 
-    include "/etc/nftables/nat.ruleset.pre.nft"
+    include "/etc/nftables/nat.filterinput.pre.nft"
 
+    # Drop "internal network" source IP addresses coming in on the
+    # external network.
     iifname $EXT_IF ip saddr 127.0.0.0/8 counter drop
     iifname $EXT_IF ip saddr 10.0.0.0/8 counter drop
     iifname $EXT_IF ip saddr 172.16.0.0/12 counter drop
     iifname $EXT_IF ip saddr 192.168.0.0/16 counter drop
     iifname $EXT_IF ip saddr 224.0.0.0/3 counter drop
+
+    # Accept SMTP
     tcp dport { 25, 995 } counter accept
+
+    # Accept DNS
     tcp dport 53 counter accept
     udp dport 53 counter accept
+
+    # Accept HTTP/S
     tcp dport { 80, 443 } counter accept
 
-    include "/etc/nftables/nat.ruleset.post.nft"
+    include "/etc/nftables/nat.filterinput.post.nft"
   }
-  chain FORWARD {
+  chain forward {
     type filter hook forward priority 0; policy drop;
 
     iifname $INT_IF oifname $EXT_IF counter accept
     iifname $EXT_IF oifname $INT_IF ct state related,established counter accept
   }
-  chain OUTPUT {
+  chain output {
     type filter hook output priority 0; policy accept;
   }
 }
 
 
 table ip nat {
-  chain PREROUTING {
+  chain prerouting {
     type nat hook prerouting priority -100; policy accept;
   }
-  chain INPUT {
+  chain input {
     type nat hook input priority 100; policy accept;
   }
-  chain OUTPUT {
+  chain output {
     type nat hook output priority -100; policy accept;
   }
-  chain POSTROUTING {
+  chain postrouting {
     type nat hook postrouting priority 100; policy accept;
   
     oifname $EXT_IF counter masquerade
@@ -51,31 +59,31 @@ table ip nat {
 }
 
 
-table ip mangle {
-  chain PREROUTING {
-    type filter hook prerouting priority -150; policy accept;
-  }
-  chain INPUT {
-    type filter hook input priority -150; policy accept;
-  }
-  chain FORWARD {
-    type filter hook forward priority -150; policy accept;
-  }
-  chain OUTPUT {
-    type route hook output priority -150; policy accept;
-  }
-  chain POSTROUTING {
-    type filter hook postrouting priority -150; policy accept;
-  }
-}
+#table ip mangle {
+#  chain prerouting {
+#    type filter hook prerouting priority -150; policy accept;
+#  }
+#  chain input {
+#    type filter hook input priority -150; policy accept;
+#  }
+#  chain forward {
+#    type filter hook forward priority -150; policy accept;
+#  }
+#  chain output {
+#    type route hook output priority -150; policy accept;
+#  }
+#  chain postrouting {
+#    type filter hook postrouting priority -150; policy accept;
+#  }
+#}
 
 
-table ip raw {
-  chain PREROUTING {
-    type filter hook prerouting priority -300; policy accept;
-  }
-  chain OUTPUT {
-    type filter hook output priority -300; policy accept;
-  }
-}
+#table ip raw {
+#  chain prerouting {
+#    type filter hook prerouting priority -300; policy accept;
+#  }
+#  chain output {
+#    type filter hook output priority -300; policy accept;
+#  }
+#}
 

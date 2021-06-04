@@ -1,15 +1,36 @@
+# Accept anything from the `lo` interface.
 # ( Why have "drop" rules when the policy is "drop?" To drop
 # packets we don't need to have logged. )
 iifname "lo" counter accept
+
+# Drop attempts to use 127.0.0.1 from interfaces that are not
+# localhost.
+# (Why have explicit drop rules when the policy is to drop? Because
+# that prevents these packets from reaching the logging rules at
+# the bottom of the chain.)
 iifname != "lo" ip saddr 127.0.0.0/8 counter drop
 iifname != "lo" ip daddr 127.0.0.0/8 counter drop
+
+# Drop fragmented packets.
 ip frag-off & 0x1fff != 0 counter drop
+
+# Drop incoming malformed NULL packets.
 tcp flags & (fin|syn|rst|psh|ack|urg) == 0x0 counter drop
+
+# Drop incoming "XMAS" packets
 tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg counter drop
-ct state new  tcp flags & (fin|syn|rst|ack) != syn counter drop
+
+# Drop new incoming packets with FIN/RST/ACK but not SYN
+ct state new tcp flags & (fin|syn|rst|ack) != syn counter drop
+
+# Accept established connections.
 ct state related,established counter accept
+
+# Accept RST/ACK and PSH/ACK acknowledgements.
 tcp flags & (fin|syn|rst|psh|ack|urg) == rst|ack counter accept
 tcp flags & (fin|syn|rst|psh|ack|urg) == psh|ack counter accept
+
+# Accept SSH from internal interfaces only.
 iifname $INT_IF counter accept
 iifname $EXT_IF tcp dport 22 counter drop
 

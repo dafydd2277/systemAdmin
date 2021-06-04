@@ -1,20 +1,43 @@
+# Drop broadcasts not already accepted.
 pkttype broadcast counter drop
-ip protocol tcp limit rate 1/second burst 100 packets counter accept
+
+# Drop ECHO packets.
 tcp dport 7 counter drop
+
+# Drop BOOTP client broadcasts
 udp dport 67-68 counter drop
 udp dport 137-138 counter drop
+
+# Drop NETBIOS discovery packets
 udp dport 445 counter drop
+
+# Drop hlserver broadcasts
 udp dport 1947 counter drop
+
+# Drop VOIP SIP packets
+# (No reason for the firewall to see them.)
 tcp dport 5060 counter drop
 udp dport 5060 counter drop
+
+# Drop Apple Multicast DNS
 udp dport 5353 counter drop
+
 # Drop Dropbox LAN Sync broadcasts.
 # (See See https://help.dropbox.com/installs-integrations/sync-uploads/lan-sync-overview)
 pkttype broadcast udp dport 17500 counter drop
+
+# Accept pings. Drop all other ICMP.
 icmp type echo-request counter accept
-ip protocol icmp counter drop
+icmp type any counter drop
+
+# Drop packets explicitly sent to the multicast "broadcast"
+# destination.
 ip daddr 224.0.0.1 counter drop
+
+# Log the remainder before we drop them.
 limit rate 4/minute burst 5 packets counter log prefix "Dropped by nftables: " level info
+
+# Politely drop packets to privileged ports.
 udp dport 0-1024 counter reject
 tcp dport 0-1024 counter reject
 
