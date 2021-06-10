@@ -23,7 +23,7 @@ pkttype broadcast udp dport 17500 counter drop
 
 # Accept pings. Drop all other ICMP.
 icmp type echo-request counter accept
-icmp type any counter drop
+ip protocol icmp counter drop
 
 # Drop packets explicitly sent to the multicast "broadcast"
 # destination.
