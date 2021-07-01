@@ -1,5 +1,28 @@
 # NFTABLES
 
+## 2021-07-01
+
+The nftables firewall has a debug mode. For example,
+
+```
+nft --debug all add rule nat postrouting ip daddr 192.168.10.3 tcp port 80 dnat 10.10.10.10:80
+```
+
+will give you a huge info dump on how nftables sets up the rule.
+
+After experimentation,
+
+```
+nft --debug netlink ...
+```
+
+gives me reasonable results about how the rule gets crafted internally.
+See https://github.com/google/nftables/issues/5,
+https://man.archlinux.org/man/nft.8, and
+https://wiki.nftables.org/wiki-nftables/index.php/Output_text_modifiers
+for more information.
+
+
 ## 2021-05-03
 
 This is initial work on nftables. Most of this will be translation of
