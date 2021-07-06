@@ -47,13 +47,11 @@ in your list that may have a container of the same name.
 
 - [Docker Compose Tutorial][ref91]
 - [Kubernetes Tutorials][ref92]
-- [Podman Tutorials][ref93]
-  - [Container networking][ref94]
+- [Podman Tutorial][ref93]
 
 [ref91]: https://docs.docker.com/compose/gettingstarted/
 [ref92]: https://kubernetes.io/docs/tutorials/
-[ref93]:
-[ref94]: https://www.redhat.com/sysadmin/container-networking-podman
+[ref93]: https://www.redhat.com/sysadmin/container-networking-podman
 
 
 ## Ephemera
