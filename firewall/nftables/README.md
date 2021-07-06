@@ -1,5 +1,23 @@
 # NFTABLES
 
+## 2021-07-05
+
+1) The nftables firewall also has a [trace mode][ref210705a]. It will
+follow matching packets through nftables. In my case, it came in
+handy for tracking down why my local system couldn't talk to the on
+board container network. Forcing `127.0.0.1` to only appear through the
+`lo` interface means that address couldn't also be used by the
+container bridge interface. By tracing the path of `127.0.0.1` through
+`lo` **and** the bridge interface, I could see requests reach the
+container, and replies get dropped on return.
+1) Looking at how [packets flow through nftables][ref210705b], let's
+move most of the broken packet rules into `prerouting` and save
+ourselves a little bit of processing time.
+
+[ref210705a]: https://wiki.nftables.org/wiki-nftables/index.php/Ruleset_debug/tracing
+[ref210705b]: https://wiki.nftables.org/wiki-nftables/index.php/Netfilter_hooks
+
+
 ## 2021-07-01
 
 The nftables firewall has a debug mode. For example,
