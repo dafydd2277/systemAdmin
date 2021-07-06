@@ -4,13 +4,22 @@ define EXT_IF = CHANGEME_EXTERNAL_INTERFACE
 define INT_IF = CHANGEME_INTERNAL_INTERFACE
 
 table ip filter {
+  chain prerouting {
+    type filter hook prerouting priority -300; policy accept;
+
+    include "/etc/nftables/nat.filterprerouting.nft"
+  }
+	
   chain input {
     type filter hook input priority 0; policy drop;
 
-    include "/etc/nftables/nat.filterinput.pre.nft"
 
-    # Drop "internal network" source IP addresses coming in on the
-    # external network.
+    # Accept SSH from internal interfaces only.
+    iifname $INT_IF counter accept
+    iifname $EXT_IF tcp dport 22 counter drop
+
+    # Drop "private network" source IP addresses coming in on the
+    # external network. (See RFC 1918, Sections 2 and 3.)
     iifname $EXT_IF ip saddr 127.0.0.0/8 counter drop
     iifname $EXT_IF ip saddr 10.0.0.0/8 counter drop
     iifname $EXT_IF ip saddr 172.16.0.0/12 counter drop

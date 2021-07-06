@@ -34,6 +34,3 @@ ct state related,established counter accept
 tcp flags & (fin|syn|rst|psh|ack|urg) == rst|ack counter accept
 tcp flags & (fin|syn|rst|psh|ack|urg) == psh|ack counter accept
 
-# Accept SSH
-tcp dport 22 counter packets 0 bytes 0 accept
-

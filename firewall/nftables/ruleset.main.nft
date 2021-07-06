@@ -1,10 +1,17 @@
 #!/usr/sbin/nft -f
 
 table ip filter {
+	chain prerouting {
+		type filter hook prerouting priority -300; policy accept;
+
+    include "/etc/nftables/filterprerouting.nft"
+	}
+	
   chain input {
     type filter hook input priority 0; policy drop;
 
-    include "/etc/nftables/filterinput.pre.nft"
+    # Accept SSH
+    tcp dport 22 counter packets 0 bytes 0 accept
 
     # Accept HTTP/S.
     tcp dport { 80, 443 } counter accept

@@ -35,7 +35,3 @@ ct state related,established counter accept
 tcp flags & (fin|syn|rst|psh|ack|urg) == rst|ack counter accept
 tcp flags & (fin|syn|rst|psh|ack|urg) == psh|ack counter accept
 
-# Accept SSH from internal interfaces only.
-iifname $INT_IF counter accept
-iifname $EXT_IF tcp dport 22 counter drop
-
