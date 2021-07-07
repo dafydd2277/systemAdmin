@@ -1,0 +1,54 @@
+---
+version: 5
+
+defaults:
+  datadir: "data"
+  data_hash: yaml_data  # Use the built-in YAML backend.
+
+hierarchy:
+  - name: "per-node data"
+    path: "nodes/%{trusted.certname}.yaml"
+
+  - name: "per role data"
+    path: "roles/%{trusted_role_hiera}.yaml"
+
+  - name: "per-environment"
+    lookup_key: eyaml_lookup_key
+    path: "environments/%{environment}.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/puppetserver/keys/private_key.pkcs7.pem
+      pkcs7_public_key: /etc/puppetlabs/puppetserver/keys/public_key.pkcs7.pem
+
+  - name: "Per-DNSDomain"
+    lookup_key: eyaml_lookup_key
+    path: "domain/%{domain_hiera}.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/puppetserver/keys/private_key.pkcs7.pem
+      pkcs7_public_key: /etc/puppetlabs/puppetserver/keys/public_key.pkcs7.pem
+
+  - name: "Per-OS.name.major_release"
+    lookup_key: eyaml_lookup_key
+    path: "os/%{facts.kernel}/%{facts.os.name}-%{facts.os.release.major}.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/puppetserver/keys/private_key.pkcs7.pem
+      pkcs7_public_key: /etc/puppetlabs/puppetserver/keys/public_key.pkcs7.pem
+
+  - name: "Per OS.name"
+    lookup_key: eyaml_lookup_key
+    path: "os/%{facts.kernel}/%{facts.os.name}.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/puppetserver/keys/private_key.pkcs7.pem
+      pkcs7_public_key: /etc/puppetlabs/puppetserver/keys/public_key.pkcs7.pem
+
+  - name: "Per  kernel common"
+    lookup_key: eyaml_lookup_key
+    path: "os/%{facts.kernel}/common.eyaml"
+    options:
+      pkcs7_private_key: /etc/puppetlabs/puppetserver/keys/private_key.pkcs7.pem
+      pkcs7_public_key: /etc/puppetlabs/puppetserver/keys/public_key.pkcs7.pem
+
+  - name: "Per-OS defaults"
+    path: "os/%{facts.os.family}.yaml"
+
+  - name: "Common data"
+    path: "common.yaml"

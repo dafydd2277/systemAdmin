@@ -1,5 +1,12 @@
 # Puppet Code
 
+## 2021-07-06
+
+Add a sanitized versions of `size.pp` and `hiera.yaml`. I wasn't part of the
+setup, so parts of this are a little obscure to me. I'll figure it out,
+eventually.
+
+
 ## 2020-01-08
 
 Add a sysctl module.
