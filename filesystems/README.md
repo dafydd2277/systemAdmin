@@ -3,6 +3,12 @@
 The individual files have notes on their topics, for now.
 
 
+## 2021-07-06
+
+A link on recovering a LUKS volume password:
+https://www.cyberciti.biz/security/how-to-backup-and-restore-luks-header-on-linux/
+
+
 ## 2021-03-18
 
 Extending a logical volume, as root. Run with the `--test` argument first,
