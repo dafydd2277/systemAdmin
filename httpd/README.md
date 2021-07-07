@@ -1,3 +1,9 @@
+# Basic Notes
+
+>2021-07-06 - This is going to be turned into configuration for a containerized
+instance in the next couple months. I hope.
+
+
 ## Installation
 
 - Install the packages.
@@ -8,7 +14,9 @@ yum -y install httpd httpd-manual mod_ssl
 
 - Adjust the firewall.
 
-Remember that the `external` zone has `masquerade` on by default. And, you don't want the host externally accessible via SSH. Manage this host from the internal network only.
+Remember that the `external` zone has `masquerade` on by default. And, you
+don't want the host externally accessible via SSH. Manage this host from the
+internal network only.
 
 ```
 firewall-cmd \
@@ -26,9 +34,7 @@ firewall-cmd \
 ```
 
 
-
 ## Force redirection of all traffic to https.
-
 
 From http://httpd.apache.org/docs/2.2/rewrite/avoid.html
 
@@ -36,7 +42,7 @@ From http://httpd.apache.org/docs/2.2/rewrite/avoid.html
 <VirtualHost *:80>
 ServerName www.example.com
 Redirect / https://www.example.com/
-</VirtualHost > 
+</VirtualHost >
 
 <VirtualHost *:443>
 ServerName www.example.com
@@ -45,7 +51,15 @@ ServerName www.example.com
 </VirtualHost >
 ```
 
-Each virtual host would have to have a similar `<VirtualHost *:80>` redirection block.
+Each virtual host would have to have a similar `<VirtualHost *:80>`
+redirection block.
+
+
+## Showing directories based on source IP address
+
+- https://serverfault.com/a/776231
+- https://blogs.apache.org/httpd/entry/new_in_httpd_2_4
+- http://httpd.apache.org/docs/2.4/expr.html
 
 
 ## GNU Terry Pratchett
@@ -59,4 +73,3 @@ Add the header `X-Clacks-Overhead: GNU Terry Pratchett` to every response.
   header set X-Clacks-Overhead "GNU Terry Pratchett"
 </IfModule>
 ```
-
