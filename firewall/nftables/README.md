@@ -1,5 +1,68 @@
 # NFTABLES
 
+## 2021-07-21
+
+List a table without translating numeric values, and specifying the
+"handle" of each element.
+
+```
+nft -na list table filter
+```
+
+This produces results something like this:
+
+```
+table ip filter { # handle 44
+	chain prerouting { # handle 1
+		type filter hook prerouting priority -300; policy accept;
+		iifname "lo" counter accept # handle 7
+		iifname "enp5s5" ip saddr 127.0.0.0/8 counter drop # handle 8
+		iifname "enp4s0" ip saddr 127.0.0.0/8 counter drop # handle 9
+		iifname "enp5s5" ip daddr 127.0.0.0/8 counter drop # handle 10
+		iifname "enp4s0" ip daddr 127.0.0.0/8 counter drop # handle 11
+		ip frag-off & 8191 != 0 counter drop # handle 12
+		tcp flags & (0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20) == 0x0 counter drop # handle 13
+		tcp flags & (0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20) == 0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20 counter drop # handle 14
+		ct state 0x8 tcp flags & (0x1 | 0x2 | 0x4 | 0x10) != 0x2 counter drop # handle 15
+		ct state 0x2,0x4 counter accept # handle 16
+		tcp flags & (0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20) == 0x4 | 0x10 counter packets accept # handle 17
+		tcp flags & (0x1 | 0x2 | 0x4 | 0x8 | 0x10 | 0x20) == 0x8 | 0x10 counter accept # handle 18
+	}
+
+	chain input { # handle 2
+		type filter hook input priority 0; policy drop;
+		iifname "$EXT_IF" ip saddr 127.0.0.0/8 counter drop # handle 20
+		iifname "$EXT_IF" ip saddr 10.0.0.0/8 counter drop # handle 21
+		iifname "$EXT_IF" ip saddr 172.16.0.0/12 counter drop # handle 22
+		iifname "$EXT_IF" ip saddr 192.168.0.0/16 counter drop # handle 23
+		iifname "$EXT_IF" ip saddr 224.0.0.0/3 counter drop # handle 24
+		iifname "$INT_IF" counter accept # handle 25
+		iifname "$EXT_IF" tcp dport 22 counter drop # handle 26
+```
+
+This allows you to delete a rule,
+
+```
+nft delete rule filter input handle 25
+```
+
+insert a rule above a handle,
+
+```
+nft insert rule filter input position 26 iifname "$INT_IF" counter accept 
+```
+
+or after a handle.
+
+```
+nft add rule filter input position 24 iifname "$INT_IF" counter accept 
+```
+
+[More information here][20210705a].
+
+[20210705a]: https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management
+
+
 ## 2021-07-05
 
 1) The nftables firewall also has a [trace mode][ref210705a]. It will
