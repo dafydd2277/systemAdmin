@@ -2,6 +2,8 @@
 
 ## 2021-07-21
 
+### Modifying Rule Sets on a Live System
+
 List a table without translating numeric values, and specifying the
 "handle" of each element.
 
@@ -60,7 +62,19 @@ nft add rule filter input position 24 iifname "$INT_IF" counter accept
 
 [More information here][20210705a].
 
+
+### Resetting Counters
+
+To reset all counters in a rule set, execute this:
+
+```
+nft reset counters
+```
+
+[More information here][20210705b].
+
 [20210705a]: https://wiki.nftables.org/wiki-nftables/index.php/Simple_rule_management
+[20210705b]: https://wiki.nftables.org/wiki-nftables/index.php/Counters
 
 
 ## 2021-07-05
