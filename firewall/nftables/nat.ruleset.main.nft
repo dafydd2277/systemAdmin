@@ -14,15 +14,9 @@ table ip filter {
     type filter hook input priority 0; policy drop;
 
 
-    # Accept SSH from internal interfaces only.
+    # Accept everything from the internal interface, and don't waste
+		# resources counting those packets.
     iifname $INT_IF counter accept
-    iifname $EXT_IF tcp dport 22 counter drop
-
-    # After troubleshooting slow http/s downloads onto my firewall,
-    # I found that explicitly accepting return packets with a "source"
-    # port of http/s resolved the slow down. This only seems to be an
-    # issue with firewall/masquerade systems.
-    iifname $EXT_IF tcp sport { 80, 443 } counter accept
 
     # Drop "private network" source IP addresses coming in on the
     # external network. (See RFC 1918, Sections 2 and 3.)
@@ -31,6 +25,15 @@ table ip filter {
     iifname $EXT_IF ip saddr 172.16.0.0/12 counter drop
     iifname $EXT_IF ip saddr 192.168.0.0/16 counter drop
     iifname $EXT_IF ip saddr 224.0.0.0/3 counter drop
+
+    # After troubleshooting slow http/s downloads onto my firewall,
+    # I found that explicitly accepting return packets with a "source"
+    # port of http/s resolved the slow down. This only seems to be an
+    # issue with firewall/masquerade systems.
+    iifname $EXT_IF tcp sport { 80, 443 } counter accept
+
+    # Accept SSH from internal interfaces only.
+    iifname $EXT_IF tcp dport 22 counter drop
 
     # Accept SMTP
     tcp dport { 25, 995 } counter accept
