@@ -9,7 +9,7 @@ table ip filter {
 
     include "/etc/nftables/nat.filterprerouting.nft"
   }
-	
+  
   chain input {
     type filter hook input priority 0; policy drop;
 
@@ -17,6 +17,12 @@ table ip filter {
     # Accept SSH from internal interfaces only.
     iifname $INT_IF counter accept
     iifname $EXT_IF tcp dport 22 counter drop
+
+    # After troubleshooting slow http/s downloads onto my firewall,
+    # I found that explicitly accepting return packets with a "source"
+    # port of http/s resolved the slow down. This only seems to be an
+    # issue with firewall/masquerade systems.
+    iifname $EXT_IF tcp sport { 80, 443 } counter accept
 
     # Drop "private network" source IP addresses coming in on the
     # external network. (See RFC 1918, Sections 2 and 3.)
