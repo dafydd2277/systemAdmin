@@ -22,7 +22,7 @@ fn_archive () {
   if [ ! -z "${df_target}" ]
   then
     local s_lastmod=$( stat -c '%Y' ${df_target} )
-    local s_datestamp=$( date -d @${s_lastmod} "+%Y%m%d" )
+    local s_datestamp=$( date -d @${s_lastmod} "+%Y%m%d_%H%M%S" )
 
     cp -pv ${df_target} ${df_target}.${s_datestamp}
   fi
