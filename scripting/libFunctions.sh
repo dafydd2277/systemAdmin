@@ -7,7 +7,7 @@
 #
 # or picking it straight out of this project, like this.
 #
-# `source <( curl -ksS https://github.com/dafydd2277/systemAdmin/raw/master/scripting/libFunctions.sh )`
+# `source <( curl -ksS https://raw.githubusercontent.com/dafydd2277/systemAdmin/main/scripting/libFunctions.sh )`
 
 
 # Create a backup of a file using a date stamp extension to the file
@@ -187,7 +187,7 @@ fn_randomChars () {
   
   # Make sure the start string is at least 512 characters longer than
   # the middle cut.
-  if [ (( ${i_middle_cut} + 512 )) >= ${i_start} ]
+  if (( $( expr ${i_middle_cut} + 512 ) -ge ${i_start} ))
   then
     i_start=$(( ${i_middle_cut} + 512 ))
   fi
