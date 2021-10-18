@@ -21,11 +21,11 @@ https://mariadb.com/resources/blog/how-to-connect-python-programs-to-mariadb/
 ```
 def application ( environment, start_response ):
   status = '200 OK'
-  output = str(environment)
+  response = str(environment)
 
   response_headers = [
                        ( 'Content-Type', 'text/plain' ),
-                       ( 'Content-Length', str(len(output)) ),
+                       ( 'Content-Length', str(len(response)) ),
                        ( 'X-Clacks-Overhead', 'GNU Terry Pratchett' )
                      ]
 
