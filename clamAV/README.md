@@ -32,4 +32,5 @@ echo ${s_eicar64} | base64 -d - >${df_testfile}
 
 [211031a]: https://docs.clamav.net/faq/faq-cvd.html#im-running-clamav-on-a-lot-of-clients-on-my-local-network-can-i-serve-the-cvd-files-from-a-local-server-so-that-each-client-doesnt-have-to-download-them-from-your-servers
 [211031b]: https://en.wikipedia.org/wiki/EICAR_test_file
+[211031c]: https://en.wikipedia.org/wiki/Base64
 
