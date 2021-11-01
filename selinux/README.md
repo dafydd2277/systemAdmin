@@ -1,5 +1,11 @@
 # SELinux
 
+## 2021-10-31
+
+`sesetbool antivirus_can_scan_system 1` to allow a virus scanner to
+scan all files. The scanner still needs to run as root.
+
+
 ## 2021-05-11
 
 The RHEL 7 STIG requires that system administrators have a SELinux
@@ -23,7 +29,6 @@ explain that setting, with no larger description.
 
 
 ## 2020-01-27
-<!-- ----1----5----2----5----3----5----4----5----5----5----6----5----7----5- -->
 `selinux_local_module.sh ${te_file}` will take a `.te` file like
 `local_mysql.te`, compile it, and install it into the local SELinux
 configuration on a host. The script `local_mysql.sh` makes some
