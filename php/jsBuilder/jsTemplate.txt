@@ -1,0 +1,28 @@
+var isValid = true;
+
+/* phpSetElements */
+
+if (window.addEventListener) {
+/* phpAddEventListeners */
+}
+else if (window.attachEvent) {
+/* phpAttachEvents */
+}
+else {
+/* phpEvents */
+}
+
+function validateForm () {
+/* phpValidateForm */
+}
+
+function validateText (element) {
+	var strText = element.value;
+	// Operate on strText...
+}
+
+function validateDOB  (element) {
+	var dateDOB = element.value;
+	// Operate on dateDOB...
+}
+

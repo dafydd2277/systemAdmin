@@ -1,0 +1,130 @@
+var isValid = true;
+
+var formName = document.getElementById['formName'];
+var userName = document.getElementById['userName'];
+var password1 = document.getElementById['password1'];
+var password2 = document.getElementById['password2'];
+var firstName = document.getElementById['firstName'];
+var lastName = document.getElementById['lastName'];
+var birthdate = document.getElementById['birthdate'];
+var street1 = document.getElementById['street1'];
+var street2 = document.getElementById['street2'];
+var city = document.getElementById['city'];
+var state = document.getElementById['state'];
+var zip = document.getElementById['zip'];
+var phone = document.getElementById['phone'];
+var email = document.getElementById['email'];
+
+if (window.addEventListener) {
+	formName.addEventListener('submit', validateForm, false);
+	userName.addEventListener('focus', clean(userName), false);
+	userName.addEventListener('blur', validateText(userName), false);
+	password1.addEventListener('focus', clean(password1), false);
+	password1.addEventListener('blur', validateText(password1), false);
+	password2.addEventListener('focus', clean(password2), false);
+	password2.addEventListener('blur', validatePasswords(password2), false);
+	firstName.addEventListener('focus', clean(firstName), false);
+	firstName.addEventListener('blur', validateText(firstName), false);
+	lastName.addEventListener('focus', clean(lastName), false);
+	lastName.addEventListener('blur', validateText(lastName), false);
+	birthdate.addEventListener('focus', clean(birthdate), false);
+	birthdate.addEventListener('blur', validateDOB(birthdate), false);
+	street1.addEventListener('focus', clean(street1), false);
+	street1.addEventListener('blur', validateText(street1), false);
+	street2.addEventListener('focus', clean(street2), false);
+	street2.addEventListener('blur', validateText(street2), false);
+	city.addEventListener('focus', clean(city), false);
+	city.addEventListener('blur', validateText(city), false);
+	state.addEventListener('focus', clean(state), false);
+	state.addEventListener('blur', validateText(state), false);
+	zip.addEventListener('focus', clean(zip), false);
+	zip.addEventListener('blur', validateZip(zip), false);
+	phone.addEventListener('focus', clean(phone), false);
+	phone.addEventListener('blur', validatePhone(phone), false);
+	email.addEventListener('focus', clean(email), false);
+	email.addEventListener('blur', validateEmail(email), false);
+}
+else if (window.attachEvent) {
+	formName.attachEvent('onsubmit', validateForm);
+	userName.attachEvent('onfocus', clean(userName);
+	userName.attachEvent('onblur', validateText(userName);
+	password1.attachEvent('onfocus', clean(password1);
+	password1.attachEvent('onblur', validateText(password1);
+	password2.attachEvent('onfocus', clean(password2);
+	password2.attachEvent('onblur', validatePasswords(password2);
+	firstName.attachEvent('onfocus', clean(firstName);
+	firstName.attachEvent('onblur', validateText(firstName);
+	lastName.attachEvent('onfocus', clean(lastName);
+	lastName.attachEvent('onblur', validateText(lastName);
+	birthdate.attachEvent('onfocus', clean(birthdate);
+	birthdate.attachEvent('onblur', validateDOB(birthdate);
+	street1.attachEvent('onfocus', clean(street1);
+	street1.attachEvent('onblur', validateText(street1);
+	street2.attachEvent('onfocus', clean(street2);
+	street2.attachEvent('onblur', validateText(street2);
+	city.attachEvent('onfocus', clean(city);
+	city.attachEvent('onblur', validateText(city);
+	state.attachEvent('onfocus', clean(state);
+	state.attachEvent('onblur', validateText(state);
+	zip.attachEvent('onfocus', clean(zip);
+	zip.attachEvent('onblur', validateZip(zip);
+	phone.attachEvent('onfocus', clean(phone);
+	phone.attachEvent('onblur', validatePhone(phone);
+	email.attachEvent('onfocus', clean(email);
+	email.attachEvent('onblur', validateEmail(email);
+}
+else {
+	formName.onsubmit = validateForm;
+	userName.onfocus = clean(userName);
+	userName.onblur = validateText(userName);
+	password1.onfocus = clean(password1);
+	password1.onblur = validateText(password1);
+	password2.onfocus = clean(password2);
+	password2.onblur = validatePasswords(password2);
+	firstName.onfocus = clean(firstName);
+	firstName.onblur = validateText(firstName);
+	lastName.onfocus = clean(lastName);
+	lastName.onblur = validateText(lastName);
+	birthdate.onfocus = clean(birthdate);
+	birthdate.onblur = validateDOB(birthdate);
+	street1.onfocus = clean(street1);
+	street1.onblur = validateText(street1);
+	street2.onfocus = clean(street2);
+	street2.onblur = validateText(street2);
+	city.onfocus = clean(city);
+	city.onblur = validateText(city);
+	state.onfocus = clean(state);
+	state.onblur = validateText(state);
+	zip.onfocus = clean(zip);
+	zip.onblur = validateZip(zip);
+	phone.onfocus = clean(phone);
+	phone.onblur = validatePhone(phone);
+	email.onfocus = clean(email);
+	email.onblur = validateEmail(email);
+}
+
+function validateForm () {
+	isValid = validateText(userName) ? isValid : false;
+	isValid = validateText(password1) ? isValid : false;
+	isValid = validatePasswords(password2) ? isValid : false;
+	isValid = validateText(firstName) ? isValid : false;
+	isValid = validateText(lastName) ? isValid : false;
+	isValid = validateDOB(birthdate) ? isValid : false;
+	isValid = validateText(street1) ? isValid : false;
+	isValid = validateText(street2) ? isValid : false;
+	isValid = validateText(city) ? isValid : false;
+	isValid = validateText(state) ? isValid : false;
+	isValid = validateZip(zip) ? isValid : false;
+	isValid = validatePhone(phone) ? isValid : false;
+	isValid = validateEmail(email) ? isValid : false;
+}
+
+function validateText (element) {
+	var strText = element.value;
+	// Operate on strText...
+}
+
+function validateDOB  (element) {
+	var dateDOB = element.value;
+	// Operate on dateDOB...
+}
