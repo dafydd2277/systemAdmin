@@ -47,7 +47,7 @@ In git 2.x, [you can sign your commits][20200123a] with a private GPG key. This
 verifies that a commit came from you. To start, create a GPG key.
 
 ```
-gpg2 --gen-key
+gpg2 --full-generate-key
 ```
 
 Select `RSA and RSA` and a key size. These days, a key size of `2048` is
