@@ -19,6 +19,9 @@ git config --global user.email <email>
 # branch of the same name..
 git config --global push.default matching
 
+# Set a global editor for commit messages
+git config --global core.editor /usr/bin/vim
+
 # Helpful aliases
 # For the first one, see https://github.com/crc8/GitVersionTree or
 # http://stackoverflow.com/questions/1838873/visualizing-branch-topology-in-git
