@@ -4,7 +4,7 @@
 
 The chronyd equivalent of `ntpq -pn` is `chronyc sources -v`. (I don't
 believe I needed this long to make that note, this being at least the
-third time I had to go look that up! :eyes:)
+third time I had to go look that up! :rolling_eyes:)
 
 
 ## 2021-07-06
