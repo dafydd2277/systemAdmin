@@ -20,7 +20,7 @@ git config --global user.email <email>
 git config --global push.default matching
 
 # Set a global editor for commit messages
-git config --global core.editor /usr/bin/vim
+git config --global core.editor "/usr/bin/env vim"
 
 # Helpful aliases
 # For the first one, see https://github.com/crc8/GitVersionTree or
@@ -172,4 +172,3 @@ git log -p <filename>
 
 [diff]: https://linux.die.net/man/1/diff
 [patch]: https://linux.die.net/man/1/patch
-

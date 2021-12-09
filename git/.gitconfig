@@ -1,0 +1,23 @@
+[user]
+	name = John Doe
+	email = jdoe@example.com
+  signingkey = 0123456789ABCDEF
+[push]
+	default = matching
+[alias]
+	br = branch
+	co = checkout
+	cm = commit -s -S
+	gr = log --graph --full-history --all --date=short --color --pretty=tformat:\"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s%x20%x1b[33m(%an)%x1b[0m\"
+	pl = pull
+	ps = push
+	st = status
+[color]
+	ui = auto
+	status = true
+[core]
+	editor = /usr/bin/env vim
+[init]
+	defaultBranch = main
+[pull]
+	ff = only
