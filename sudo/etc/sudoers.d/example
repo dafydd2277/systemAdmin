@@ -1,7 +1,7 @@
-# This is a single example for lots of ideas. Actual files in /etc
-# sudoers.d should be as minimalist as possible. Use whole files for
-different user/group/privilege sets. Then, management becomes as
-simple as a Puppet `file{}` resource, or similar tool.
+# This is a single example for lots of ideas. Actual files in
+# /etc/sudoers.d should be as minimalist as possible. Use whole files
+# for different user/group/privilege sets. Then, management becomes as
+# simple as a Puppet `file{}` resource, or similar tool.
 
 
 # Aliases
