@@ -2,6 +2,11 @@
 
 ## 2021-12-15
 
+### Add an Example File
+
+Follow the path down `etc`.
+
+
 ### Syntax checking sudoers
 
 Check while editing:

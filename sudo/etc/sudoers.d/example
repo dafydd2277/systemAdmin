@@ -1,0 +1,32 @@
+# This is a single example for lots of ideas. Actual files in /etc
+# sudoers.d should be as minimalist as possible. Use whole files for
+different user/group/privilege sets. Then, management becomes as
+simple as a Puppet `file{}` resource, or similar tool.
+
+
+# Aliases
+
+User_Alias TIMEKEEPERS = jdoe, rsmith
+User_Alias TIMEDAEMON = ntp
+
+Host_Alias NTPHOSTS = ntp1, ntp2
+
+Cmnd_Alias NTPCMD = chronyc
+
+
+# Privilege Sets
+# Format:
+# USERREF	HOSTREF=(TARGETUSERREF) CMDREF
+
+# These entries allow members of the TIMEKEEPSERS alias or members of
+# the AD group called `ad_timekeepers` to run the set of commands in
+# NTPCMD as the user TIMEDAEMON. Notice that using the AD group means
+# the TIMEKEEPERS alias above doesn't need to be edited every time
+# someone gains or loses the privilege set.
+%ad_timekeepers NTPHOSTS=(TIMEDAEMON) NTPCMD
+TIMEKEEPERS			NTPHOSTS=(TIMEDAEMON) NTPCMD
+
+# This entry allows members of the AD group called `ad_wheel` to have
+# the same set of privileges as the local group `wheel`.
+%ad_wheel				ALL=(ALL) ALL
+ 
