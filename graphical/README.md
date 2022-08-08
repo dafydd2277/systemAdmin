@@ -5,10 +5,14 @@
 ### XDMCP
 
 We'll start this with how to configure GDM to permit XDMCP by 
-modifying [custom.conf][] and restarting GDM. This will allow
-any XDMCP client to connect. The biggest advantage XDMCP has over VNC
-is that a VNC server requires a customized start process and ongoing
-maintenance.
+modifying `/etc/gdm/custom.conf` using [the example above][custom.conf]
+and restarting GDM. This will allow any XDMCP client to connect. The
+biggest advantage XDMCP has over VNC is that a VNC server requires a
+customized start process and ongoing maintenance.
+
+If you're still on RHEL 6, why? But, you can do `init 3` followed by
+`init 5` to restart GDM. On modern versions, the command is
+`systemctl restart gdm`.
 
 [custom.conf]: ./custom.conf
 
