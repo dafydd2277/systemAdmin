@@ -7,9 +7,9 @@ configured for the kind of bond you're setting up.
 
 
 ### References
-[Network Manager](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-starting_networkmanager)
-[nmcli bonding](https://www.thegeekdiary.com/centos-rhel-7-how-to-create-an-interface-bonding-nic-teaming-using-nmcli/)
-[DHCP](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/configuring_the_dhcp_client_behavior)
+[Network Manager](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-starting_networkmanager)  
+[nmcli bonding](https://www.thegeekdiary.com/centos-rhel-7-how-to-create-an-interface-bonding-nic-teaming-using-nmcli/)  
+[DHCP](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/configuring_the_dhcp_client_behavior)  
 
 ### Commands
 
@@ -45,7 +45,7 @@ nmcli con add type bond \
 
 For LACP, use these bond options:
 
-`mode=802.3ad,miimon=100,lacp_rate=fast,xmit_hash_policy=layer2+3`
+`mode=802.3ad,miimon=100,xmit_hash_policy=layer3+4`
 
 
 ```
@@ -57,10 +57,9 @@ nmcli con
 ```
 
 `nmcli con`, without further options, will list the current connections.
-`nmcli dev show` will list devices.
+`nmcli dev` will list devices.
 
-The active slave and dhcp timeout settings aren't needed for LACP or static
-IP addresses, respectively.
+The active slave option is only needed for `active-passive`.
 
 ```
 nmcli dev mod ${BONDNAME} \
@@ -70,7 +69,7 @@ nmcli con
 
 systemctl restart network
 
-ip address show dev ${BONDNAME}
+ip addr show dev ${BONDNAME}
 ```
 
 If you want the bond to be static, use the following. This can be done
@@ -80,14 +79,14 @@ after the above commands. You're just changing existing settings.
 nmcli con mod $BONDNAME \
   ipv4.method static \
   ipv4.dhcp-timeout "" \
-  ipv4.address 139.181.76.135/22 \
-  ipv4.gateway 139.181.79.254 \
-  ipv4.dns 147.34.2.16,137.202.23.16,137.202.187.16
+  ipv4.address 192.168.1.10/22 \
+  ipv4.gateway 192.168.1.1 \
+  ipv4.dns 192.168.1.1,192.168.1.2
 
 nmcli con show $BONDNAME
 
 systemctl restart network
 
-ip address show dev ${BONDNAME}
+ip addr show dev ${BONDNAME}
 ```
 
