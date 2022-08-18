@@ -5,6 +5,8 @@
 The first important note is to make sure that the switch is also
 configured for the kind of bond you're setting up.
 
+Next, note that `nmcli` only needs enough letters for a keyword to be unique. So, `con`nection, `dev`ice, `del`ete, `mod`ify.
+
 
 ### References
 [Network Manager](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/networking_guide/sec-starting_networkmanager)  
