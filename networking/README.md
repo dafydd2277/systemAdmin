@@ -44,8 +44,8 @@ supported in RHEL 7 and later for bonds.
 grep ifnames /etc/default/grub
 ```
 
-If the line exists, back up the file and edit `/etc/default/grub` to
-remove the line. Then,
+If the setting exists, back up the file and edit `/etc/default/grub` to
+remove the setting. Then,
 
 ```
 grub2-mkconfig -o /boot/grub2/grub.cfg
