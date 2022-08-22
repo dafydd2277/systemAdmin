@@ -33,7 +33,7 @@ cd /etc/sysconfig/network-scripts
 
 for file in ifcfg*
 do
-  mv -vi ${file} ${file}.back
+  mv -vi ${file} ${file}.bak
 done
 ```
 
