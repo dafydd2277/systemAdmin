@@ -31,10 +31,14 @@ fi
 # Kernel strings to search for via `rpm`.
 a_kernel_strings=( \
 kernel \
+kernel-core \
 kernel-firmware \
-kenerl-headers \
 kernel-debug \
 kernel-devel \
+kernel-headers \
+kernel-modules \
+kernel-tools \
+kernel-tools-libs \
 kernel-uek \
 kernel-uek-firmware \
 kernel-uek-headers \
