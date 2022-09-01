@@ -120,7 +120,8 @@ nmcli con mod ${BONDNAME} \
   ipv4.dhcp-timeout "" \
   ipv4.address 192.168.1.10/22 \
   ipv4.gateway 192.168.1.1 \
-  ipv4.dns 192.168.1.1,192.168.1.2
+  ipv4.dns 192.168.1.1,192.168.1.2 \
+  ipv4.dns-search cleveland.example.com,world.example.com,example.com
 
 nmcli con show ${BONDNAME}
 
