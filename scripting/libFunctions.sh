@@ -200,6 +200,80 @@ fn_randomChars () {
 }
 
 
+# Use a function to set the shell environment. This improves
+# portability.
+#
+# Usage: `fn_set_environment`
+fn_set_environment () {
+  fn_profile_set_history
+
+  set -o vim
+
+  export PATH=${PATH}:/usr/lib/python/site-packages
+
+  # This tells other commands which editor to use when editing files.
+  export EDITOR="$( /usr/bin/which vim )"
+  export VISUAL=${EDITOR}
+  export FCEDIT=${EDITOR}
+
+  # This allows GPG to collect passwords from SSH sessions.
+  export GPG_TTY=$(tty)
+
+  # Set a bunch of useful aliases that don't always appear.
+  alias dstat='dstat -tclypmsnd --nfs3 5'
+  alias egrep='egrep --color=auto'
+  alias fgrep='fgrep --color=auto'
+  alias grep='grep --color=auto'
+  alias l.='LC_COLLATE=C ls -d .* --color=auto'
+  alias ll='LC_COLLATE=C ls -al'
+  alias lld='LC_COLLATE=C ls -ald'
+  alias ls='LC_COLLATE=C ls --color=auto'
+  alias python3='/usr/bin/python3.8'
+  alias vi='vim'
+  alias view='vim -R'
+  alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
+  alias xzegrep='xzegrep --color=auto'
+  alias xzfgrep='xzfgrep --color=auto'
+  alias xzgrep='xzgrep --color=auto'
+  alias zegrep='zegrep --color=auto'
+  alias zfgrep='zfgrep --color=auto'
+  alias zgrep='zgrep --color=auto'
+
+}
+
+
+# Get current swap usage for all running processes.
+#
+# Usage: `fn_swap_by_process`
+fn_swap_by_process () {
+
+  local i_sum=0
+  local i_overall=0
+
+  local d_test
+  for d_test in $( find /proc/ -maxdepth 1 -type d -regex "^/proc/[0-9]+" )
+  do
+    local i_pid=$( echo ${d_test} | cut -d / -f 3 )
+    local s_progname=$( ps -p ${i_pid} -o comm --no-headers )
+  
+    local i_swap
+    for i_swap in $( grep VmSwap ${d_test}/status 2>/dev/null | awk '{ print $2 }' )
+    do
+      let i_sum=${i_sum}+${i_swap}
+    done
+  
+#    if (( ${i_sum} > 0 )); then
+      printf "PID %6i swapped %8i KB (%s).\n" ${i_pid} ${i_sum} ${s_progname}
+#    fi
+  
+    let i_overall=${i_overall}+${i_sum}
+    i_sum=0
+  done
+  
+  printf "Overall swap used: %8i KB.\n" ${i_overall}
+}
+
+
 # Run tcpdump processes on every interface. The output is to STDOUT
 # with the interface name as a leading string. (This function
 # requires RHEL 7 and `nmcli`.)
