@@ -13,7 +13,7 @@ https://www.cyberciti.biz/security/how-to-backup-and-restore-luks-header-on-linu
 
 Extending a logical volume, as root. Run with the `--test` argument first,
 to make sure everything works. Then, re-execute without that argument. Look at
-the man pages for details. The `fc` bash built-in is handing for editing the
+the man pages for details. The `fc` bash built-in is handy for editing the
 commands for the second pass.
 
 ```bash
@@ -27,6 +27,18 @@ vgextend --verbose \
   /dev/sdc
 
 lvextend --size +12g \
+  --resizefs \
+  --verbose \
+  --test \
+  vgRoot/home
+
+```
+
+If you're adding the entire new disk to the LV, use this.
+
+```
+
+lvextend --extents +100%FREE \
   --resizefs \
   --verbose \
   --test \
