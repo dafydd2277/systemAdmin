@@ -9,6 +9,9 @@
 #
 # curl http://${server}/removeOldKernels.sh | /bin/bash
 #
+# or
+# source <( curl http://${server}/removeOldKernels.sh )
+#
 # 2016-02-10
 # Created script
 #
@@ -76,6 +79,8 @@ if [ ! -z "${s_packages}" ]
 then
   yum -y remove ${s_packages}
 fi
+
+set +x
  
 # How stuffed is /boot, now?
 df -h /boot
