@@ -19,81 +19,41 @@
 fn_archive () {
   local df_target=${1:-}
   
-  if [ ! -z "${df_target}" ]
+  if [ "${df_target}" ]
   then
     local s_lastmod=$( stat -c '%Y' ${df_target} )
     local s_datestamp=$( date -d @${s_lastmod} "+%Y%m%d_%H%M%S" )
+
+    if [ -d "${df_target}" ]
+    then
+      mv -v ${df_target} ${df_target}.${s_datestamp}
+      return
+    fi
 
     cp -pv ${df_target} ${df_target}.${s_datestamp}
   fi
 }
 
 
-# fn_get_disk_uuids
+# fn_count_days
 #
-# A previous customer used Oracle ASM by assigning UUIDs to their ASM
-# disks, and then using UDEV rules to assign those disks to
-# /dev/disk/asm/$name, where $name was set as a UDEV matching rule for
-# the discovered UUID. While this customer didn't use multipathing, I
-# crafted the function to allow for that option.
+# This function will take start and end dates, and count the number of
+# days between them.
+# The core of this function was swiped from
+# https://stackoverflow.com/questions/4946785/how-to-find-the-difference-in-days-between-two-dates
 #
-# Usage: `fn_get_disk_uuids`
-fn_git_disk_uuids () {
-DEBUG=true
-declare -A a_uuids
-declare -A a_udev_env
+# fn_count_days <start date> <end date>
+fn_count_days () {
+  if [ "$#" -ne 2 ]
+  then
+    echo "fn_count_days: illegal number of arguments"
+    exit 1
+  fi
 
-  for f_dev in $( cd /dev; ls -1 sd* )
-  do
+  local s_start_date=${1}
+  local s_end_date=${2}
 
-    if [ $DEBUG ]
-    then
-      echo -n "${f_dev} - "
-    fi
-
-    s_id_serial=$( /sbin/udevadm info --query=all --name=/dev/${f_dev} \
-                   | grep 'ID_SERIAL=' \
-                   | cut -d"=" -f 2
-                 )
-
-     if [ $DEBUG ]
-     then
-       echo "${s_id_serial}"
-     fi
-
-     a_uuids[${f_dev}]=${s_id_serial}
-
-     ls -1 /dev/disk/by-id/*${a_uuids[${f_dev}]}* | grep -q mpath
-    if [ $? -eq 0 ]
-    then
-      a_udev_env[${f_dev}]='DM_UUID'
-    else
-      a_udev_env[${f_dev}]='ID_SERIAL'
-    fi
-  done
-
-
-  for f_dev in $( cd /dev; ls -1 sd* )
-  do
-    echo "${f_dev} - ${a_udev_env[${f_dev}]} - ${a_uuids[${f_dev}]} - "
-
-    #  multipath -ll | grep ${a_uuids[${f_dev}]} | egrep '^mpath.*' | cut -d' ' -f3
-    multipath -ll | grep ${a_uuids[${f_dev}]}
-    echo
-  done
-
-  # Then, construct the UDEV rule to match on one of these:
-  #
-  # ENV{ID_SERIAL}=="${a_uuids[${f_dev}]}"
-  # ENV{DM_UUID}=="mpath-${a_uuids[${f_dev}]}"
-  #
-  # Additional useful information might come from
-  #
-  # for f_dm in $( ls -1 /dev/dm* )
-  # do
-  #   echo ${f_dm}
-  #   lsblk ${f_dm}
-  # done
+  return $(( ($(date --date="${s_end_date}" +%s) - $(date --date="${s_start_date}" +%s) )/86400 ))
 }
 
 
@@ -154,11 +114,39 @@ fn_git_color () {
   fi
 }
 
+
+# fn_psuser
+#
+# List the processes owned by a specific user.
+#
+# Usage: `fn_psuser <user>`
+fn_psuser () {
+  if [ "$1" ]
+  then
+    ps \
+      --forest \
+      --format pid,ppid,stat,stime,tty,cmd \
+      --user "$1"
+  fi
+}
+
+
+# fn_procs
+#
+# Get the number of processor cores on a system.
+# Usage: `fn_procs`
+fn_procs () {
+  grep -c processor /proc/cpuinfo
+}
+
+
 # fn_profile_set_history
 #
 # This function will set your bash history. If you have a
 # centralized home directory (typically via NFS), your
 # history files will be separated by hostname.
+#
+# Usage: `fn_profile_set_history`
 fn_profile_set_history () {
   shopt -s histappend
   shopt -s histverify
@@ -174,6 +162,30 @@ fn_profile_set_history () {
     export HISTFILESIZE=10000
     export HISTTIMEFORMAT='%F %T - '
   fi
+}
+
+
+# fn_profile_set_git
+#
+# Starting with gpg2 2.2.x, gpg keys are stored in a different format.
+# If you're working with keys from gpg2 2.0.x ~and~ keys from higher
+# versions, you'll have different keys with different IDs source from
+# different files. This function is to identify which keys are useable
+# on a particular system/version.
+fn_profile_set_git () {
+  #set -x
+  case $( gpg2 --version | grep GnuPG | awk '{print $3}' | cut -c-3 ) in
+    2.0)
+      export GIT_CONFIG_GLOBAL="${HOME}/.gitconfig"
+      ;;
+    2.1 | 2.3 )
+      export GIT_CONFIG_GLOBAL="${HOME}/.gitconfignew"
+      ;;
+    * )
+      export GIT_CONFIG_GLOBAL="${HOME}/.gitconfig"
+      ;;
+  esac
+  #set +x
 }
 
 
@@ -205,14 +217,16 @@ fn_randomChars () {
 #
 # Usage: `fn_set_environment`
 fn_set_environment () {
-  fn_profile_set_history
 
-  set -o vim
+  fn_profile_set_history
+  fn_profile_set_git
+
+  set -o vi
 
   export PATH=${PATH}:/usr/lib/python/site-packages
 
   # This tells other commands which editor to use when editing files.
-  export EDITOR="$( /usr/bin/which vim )"
+  export EDITOR=$( /usr/bin/which vim )
   export VISUAL=${EDITOR}
   export FCEDIT=${EDITOR}
 
@@ -228,7 +242,6 @@ fn_set_environment () {
   alias ll='LC_COLLATE=C ls -al'
   alias lld='LC_COLLATE=C ls -ald'
   alias ls='LC_COLLATE=C ls --color=auto'
-  alias python3='/usr/bin/python3.8'
   alias vi='vim'
   alias view='vim -R'
   alias which='(alias; declare -f) | /usr/bin/which --tty-only --read-alias --read-functions --show-tilde --show-dot'
@@ -300,6 +313,18 @@ fn_tcpdump_all () {
       | sed 's/^/[ '"${s_if}"' ] /' 2>/dev/null &
   done
 }
+
+
+# Start a TigerVNC server.
+#
+# Usage: `fn_vncserver <server number>`
+fn_vncserver () {
+  local i_serverNumber=${1:-11}
+
+  e_vncs=$( /usr/bin/which vncserver )
+
+#  ${e_vncs} :${i_serverNumber} -geometry 1024x768
+  ${e_vncs} :${i_serverNumber}
 
 
 # Search the network for hosts with an uncertain FQDN.
