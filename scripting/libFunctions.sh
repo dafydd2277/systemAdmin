@@ -325,6 +325,7 @@ fn_vncserver () {
 
 #  ${e_vncs} :${i_serverNumber} -geometry 1024x768
   ${e_vncs} :${i_serverNumber}
+}
 
 
 # Search the network for hosts with an uncertain FQDN.
