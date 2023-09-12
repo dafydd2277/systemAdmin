@@ -71,7 +71,7 @@ get_cpu_and_memory () {
 
 if [ ! -d ${d_dest} ]
 then
-  mkdir -p ${d_desk}
+  mkdir -p ${d_dest}
 fi
 chmod 1777 ${d_dest}
 
