@@ -7,8 +7,8 @@
 ### STATIC VARIABLES
 ###
 
-s_fromAddr='davbar95@tanium.wv.mentorg.com'
-s_toAddr='david.barr@siemens.com'
+s_fromAddr='abuse@apple.com'
+s_toAddr='abuse@gmail.com'
 
 
 ###
