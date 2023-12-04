@@ -7,16 +7,17 @@
 ### STATIC VARIABLES
 ###
 
-s_fromAddr='abuse@apple.com'
-s_toAddr='abuse@gmail.com'
+i_smtpPort=25
 
 
 ###
 ### DYNAMIC VARIABLES
 ###
 
+# smtpCheck.sh <server> <from> <to>
 s_smtpHost=${1:-localhost}
-s_smtpPort=${2:-25}
+s_fromAddr=${2:-abuse@apple.com}
+s_toAddr=${3:-abuse@gmail.com}
 s_ehlo=$( hostname --fqdn )
 
 
@@ -42,7 +43,7 @@ checkStatus () {
 ### MAIN
 ###
 
-exec 3<>/dev/tcp/${s_smtpHost}/${s_smtpPort}
+exec 3<>/dev/tcp/${s_smtpHost}/${i_smtpPort}
 
 read -u 3 sts line
 checkStatus "${sts}" "${line}" 220
