@@ -268,9 +268,10 @@ And, verify the request looks right.
 ```bash
 openssl req -text -noout -in ${df_host_req}
 
+cat ${df_host_req}
 ```
 
-Now, you can send off your Certificate Signing Request to an
+Now, you can send off the contents of `${df_host_req}` to
 someone like [SSL For Free][sslforfree] and get your signed certificate
 back. For public facing hosts, this is best. On the other hand, you can
 also create your own Certificate Authority for internal use.
