@@ -199,7 +199,7 @@ fn_randomChars () {
   
   # Make sure the start string is at least 512 characters longer than
   # the middle cut.
-  if (( $( expr ${i_middle_cut} + 512 ) -ge ${i_start} ))
+  if [[ $( expr ${i_middle_cut} + 512 ) -ge ${i_start} ]]
   then
     i_start=$(( ${i_middle_cut} + 512 ))
   fi

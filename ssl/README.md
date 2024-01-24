@@ -54,9 +54,9 @@ cat <<"EOSYSCONFIG" >${df_ssl_sysconfig}
 # These are local file and directory locations for SSL elements.
 
 # Create a short hostname variable.
-s_hostname_s=$( hostname -s )
+s_hostname=$( hostname -s )
 s_domain=$( hostname -d )
-export s_hostname_s s_domain
+export s_hostname s_domain
 
 
 # Secure directory
@@ -69,15 +69,15 @@ df_host_passphrase=${d_root_ssl}/host_passphrase.txt
 export df_host_passphrase
 
 # The private key for this host's certificates and requests.
-df_host_key=${d_cert_root}/private/${s_hostname_s}.${s_domain}.key
+df_host_key=${d_cert_root}/private/${s_hostname}.${s_domain}.key
 export df_host_key
 
 # The host certificate request.
-df_host_req=${d_cert_root}/${s_hostname_s}.${s_domain}.req
+df_host_req=${d_cert_root}/${s_hostname}.${s_domain}.req
 export df_host_req
 
 # The host certificate file.
-df_host_cert=${d_cert_root}/certs/${s_hostname_s}.${s_domain}.pem
+df_host_cert=${d_cert_root}/certs/${s_hostname}.${s_domain}.pem
 export df_host_cert
 
 # The CA certificate, once we get it.
@@ -103,8 +103,8 @@ i_expire_days=720
 s_cert_country_code="US"
 s_cert_state="WA"
 s_cert_city="Seattle"
-s_cert_org="Private"
-s_cert_org_unit="Data Center"
+s_cert_org="Company Name"
+s_cert_org_unit="Internal Team"
 s_cert_org_email="abuse@google.com"
 
 export i_expire_days
@@ -145,7 +145,7 @@ host, the NSSDB will expect the host certificate to have a passphrase
 associated with it. Use this option for that scenario.
 
 ```bash
-source <(curl -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/master/scripting/functions)
+source <( curl -sS https://raw.githubusercontent.com/dafydd2277/systemAdmin/main/scripting/libFunctions.sh )
 
 fn_randomChars 38 > ${df_host_passphrase}
 
@@ -164,7 +164,7 @@ config sections are now required in an x509 certificate.
 Also, note that the `[alt_names]` entry below includes options you
 frequently won't need. Include any CNAME aliases that will point to
 this system. Rarely, you'll need to request a wildcard alias
-( `*.${s_hostname_s}.${s_domain}` ) to allow for multiple granular URIs
+( `*.${s_hostname}.${s_domain}` ) to allow for multiple granular URIs
 that will come to this host. Remember to keep the `DNS.1`,
 `DNS.2`, etc., in order, without skipping ordinals. For a deep dive
 into how to build a certificate configuration file, see the
@@ -198,15 +198,15 @@ L=${s_cert_city}
 O=${s_cert_org}
 OU=${s_cert_org_unit}
 emailAddress=${s_cert_org_email}
-CN=${s_hostname_s}.${s_domain}
+CN=${s_hostname}.${s_domain}
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = ${s_hostname_s}.${s_domain}
+DNS.1 = ${s_hostname}.${s_domain}
 DNS.2 = <CNAME>.${s_domain}
-DNS.3 = *.${s_hostname_s}.${s_domain}
+DNS.3 = *.${s_hostname}.${s_domain}
 
 EOF
 
@@ -243,15 +243,15 @@ L=${s_cert_city}
 O=${s_cert_org}
 OU=${s_cert_org_unit}
 emailAddress=${s_cert_org_email}
-CN=${s_hostname_s}.${s_domain}
+CN=${s_hostname}.${s_domain}
 
 [ req_ext ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = ${s_hostname_s}.${s_domain}
+DNS.1 = ${s_hostname}.${s_domain}
 DNS.2 = <CNAME>.${s_domain}
-DNS.3 = *.${s_hostname_s}.${s_domain}
+DNS.3 = *.${s_hostname}.${s_domain}
 
 EOF
 
