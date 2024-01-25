@@ -1,5 +1,28 @@
 # BASH Scripting
 
+## 2024-01-25
+
+First, set the shell environment your [crontab (5)][240125a] uses. Add these
+lines to the top of your crontab file:
+
+```
+SHELL=/bin/bash
+BASH_ENV="/home/<user>/.bashrc"
+```
+
+I found the hint in [this ServerFault answer][240125b].
+
+Second, if you have an email destination for messages that mostly get
+ignored and you want to keep the file trim, try this crontab entry:
+
+```
+05 00 * * * lastMonth=$( date --date="last month" +%d-%b-%Y ); echo "d ( sentbefore ${lastMonth} )" | mailx -N -f /var/spool/mail/<file>
+```
+
+[240125a]: https://linux.die.net/man/5/crontab
+[240125b]: https://serverfault.com/a/678414/140864
+
+
 ## 2021-03-21
 
 When entering long commands, eg. commands with many arguments, here's an idea.
@@ -16,7 +39,7 @@ longer or more convoluted shell commands. Once you have the command to your
 liking, save and close the editor and the command will execute. If it breaks,
 you can then run the bash built-in command `fc` to open the last command in
 the editor specified in `FCEDIT` for modifications. (Go look up the the
-`fc` command in the [bash (5)][bash] man page. It will simplify your life!)
+`fc` command in the [bash][] man page. It will simplify your life!)
 
 [bash]: https://linux.die.net/man/1/bash
 
