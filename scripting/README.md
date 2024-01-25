@@ -62,15 +62,17 @@ David Both raises some good philosophical points about how running all
 privileged commands through `sudo` is a mis-use of the command. I largely agree
 with him. I want to note an important caveat and use case, though. In strongly
 audited environments, locking the root account and requiring `sudo` for all
-privileged commands, or even `sudo su - root`, creates an audit trail of the
-operations SysAdmins are running. That audit trail can then be immediately
-logged to a location controlled by other SysAdmins, and remains available for
-forensic analysis of a system whose breakage may have been malicious.
+privileged commands, or even `sudo su - root`,
+[creates an audit trail][240125c] of the operations SysAdmins are running.
+That audit trail can then be immediately logged to a location controlled
+by other SysAdmins, and remains available for forensic analysis of a
+system whose breakage may have been malicious.
 
 Remember, the most common sort of attack on an information system is an
 insider attack.
 
 [nosudo]: http://www.both.org/?p=960
+[240125c]: https://github.com/dafydd2277/systemAdmin/blob/main/sudo/README.md#2021-07-06
 
 
 ## 2020-01-27
