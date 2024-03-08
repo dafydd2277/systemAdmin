@@ -97,7 +97,7 @@ f_testvariation=$( echo "((${i_max}-${i_min})/${f_mean})*100" | bc -l )
 printf -v s_mean '%3.3f' ${f_mean}
 printf -v s_variance '%6.3f' ${f_variance}
 printf -v s_stddev '%3.3f' ${f_stddev}
-printf -v s_testvariation '%3.0f' ${f_testvariation}
+printf -v s_testvariation '%3.2f' ${f_testvariation}
 
 # Print the results
 echo
