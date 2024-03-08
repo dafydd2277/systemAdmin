@@ -100,6 +100,7 @@ cat <<"EOSYSCONFIG" >>${df_ssl_sysconfig}
 
 # X.509 information for the host certificate.
 i_expire_days=720
+i_default_bits=2048    # 4096-bit keys are starting to become popular, too.
 s_cert_country_code="US"
 s_cert_state="WA"
 s_cert_city="Seattle"
@@ -178,14 +179,14 @@ private key.
 
 ```bash
 openssl req -new \
-  -days ${i-expire_days} \
+  -days ${i_expire_days} \
   -out ${df_host_req} \
   -newkey rsa \
   -keyout ${df_host_key} \
   -config <(
 cat <<-EOF
 [req]
-default_bits = 2048
+default_bits = ${i_default_bits}
 prompt = no
 default_md = sha1
 req_extensions = req_ext
@@ -230,7 +231,7 @@ openssl req -new \
   -config <(
 cat <<-EOF
 [req]
-default_bits = 2048
+default_bits = ${i_default_bits}
 prompt = no
 default_md = sha1
 req_extensions = req_ext
