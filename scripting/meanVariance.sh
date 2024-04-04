@@ -68,12 +68,14 @@ do
 
   i_sum=$( echo ${i_sum}+${i_value} | bc -l )
   
-  if [ ${i_value} -lt ${i_min} ]
+  is_less=$(echo "${i_value} < ${i_min}" | bc)
+  if [ ${is_less} -eq 1 ]
   then
     i_min=${i_value}
   fi
 
-  if [ ${i_value} -gt ${i_max} ]
+  is_greater=$(echo "${i_value} > ${i_max}" | bc)
+  if [ ${is_greater} -eq 1 ]
   then
     i_max=${i_value}
   fi
@@ -91,13 +93,15 @@ done
 
 f_variance=$( echo "${i_sumofsquares}/${numberOfEntries}" | bc -l )
 f_stddev=$( echo "sqrt(${i_sumofsquares}/${numberOfEntries})" | bc -l )
-f_testvariation=$( echo "((${i_max}-${i_min})/${f_mean})*100" | bc -l )
+f_testvariation1=$( echo "((${i_max}-${i_min})/${f_mean})*100" | bc -l )
+f_testvariation2=$( echo "(${f_stddev}/${f_mean})*100" | bc -l )
 
 # Convert to usable strings
 printf -v s_mean '%3.3f' ${f_mean}
 printf -v s_variance '%6.3f' ${f_variance}
 printf -v s_stddev '%3.3f' ${f_stddev}
-printf -v s_testvariation '%3.2f' ${f_testvariation}
+printf -v s_testvariation1 '%3.2f' ${f_testvariation1}
+printf -v s_testvariation2 '%3.2f' ${f_testvariation2}
 
 # Print the results
 echo
@@ -129,6 +133,9 @@ printf "%-21s: %8s seconds is %-11s.\n" \
   "${s_stddev}" \
   "$( timestring ${s_stddev} )"
 printf "%-21s: %8s%%, calculated as ((Max - Min)/Mean)*100.\n" \
-  "Testing Variation" \
-  "${s_testvariation}"
+  "Testing Variation 1" \
+  "${s_testvariation1}"
+printf "%-21s: %8s%%, calculated as (StdDev/Mean)*100.\n" \
+  "Testing Variation 2" \
+  "${s_testvariation2}"
 
