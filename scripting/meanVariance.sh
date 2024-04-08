@@ -100,11 +100,22 @@ do
   value=${values[${key}]}
   printf -v indivDev '%3.3f' \
     "$( echo "(${value}-${statMean})/${stdDev}" | bc -l )"
-  printf '%2s: %4s seconds is %11s and %6s standard deviations from the mean.\n' \
+
+  NORMAL=$(tput sgr0)
+  is_less=$(echo "${value} < ${statMean}" | bc -l )
+  if [ ${is_less} -eq 1 ]
+  then
+    RED=$(tput setaf 1)
+  else
+    RED=$(tput sgr0)
+  fi
+
+  printf "%2s: %4s seconds is %11s and ${RED}%6s${NORMAL} %33s\n" \
     "$(( ${key} + 1 ))" \
     "${value}" \
     "$( timestring ${value} )" \
-    "${indivDev}"
+    "${indivDev}" \
+    "standard deviations from the mean."
 done
 
 
