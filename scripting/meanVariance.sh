@@ -38,70 +38,75 @@ then
 fi
 
 
-declare -t a_values
-i_max=0
-i_min=10000
-i_sum=0
-i_sumofsquares=0
+declare -t values
+maxValue=0
+minValue=99999
+sumOfValues=0
+sumOfSquares=0
 numberOfEntries=0
 
-
-echo "Returned values:"
-while IFS= read -r i_value
+# Get the values
+while IFS= read -r value
 do
-
-  if [[ ${i_value} =~ ^$ ]]
+  # Skip blank lines and comments.
+  if [[ ${value} =~ ^$ ]] || [[ ${value} =~ ^# ]]
   then
     continue
   fi
 
-  if [[ ${i_value} =~ ^# ]]
+  # Add the value to the array.
+  values+=( ${value} )
+
+  # Get the smallest value.
+  is_less=$(echo "${value} < ${minValue}" | bc)
+  if [ ${is_less} -eq 1 ]
   then
-    continue
+    minValue=${value}
+  fi
+
+  # Get the largest value.
+  is_greater=$(echo "${value} > ${maxValue}" | bc)
+  if [ ${is_greater} -eq 1 ]
+  then
+    maxValue=${value}
   fi
 
   numberOfEntries=$((${numberOfEntries}+1))
-  a_values+=( ${i_value} )
-  s_hms=$( timestring ${i_value} )
-  printf '%2s: %4s seconds is %11s.\n' "${numberOfEntries}" \
-    "${i_value}" "${s_hms}"
-
-  i_sum=$( echo ${i_sum}+${i_value} | bc -l )
-  
-  is_less=$(echo "${i_value} < ${i_min}" | bc)
-  if [ ${is_less} -eq 1 ]
-  then
-    i_min=${i_value}
-  fi
-
-  is_greater=$(echo "${i_value} > ${i_max}" | bc)
-  if [ ${is_greater} -eq 1 ]
-  then
-    i_max=${i_value}
-  fi
+  sumOfValues=$( echo ${sumOfValues}+${value} | bc -l )
 done < "${sourceFile}"
 
+# Calculate the values and create printable strings.
+statMean=$( echo ${sumOfValues}/${numberOfEntries} | bc -l )
+printf -v s_mean '%3.3f' ${statMean}
 
-# Calculate the values
-f_mean=$( echo ${i_sum}/${numberOfEntries} | bc -l )
-
-i_sumofsquares=0
-for i_value in ${a_values[*]}
+for value in ${values[@]}
 do
-  i_sumofsquares=$( echo "${i_sumofsquares}+(${i_value}-${f_mean})^2" | bc -l )
+  sumOfSquares=$( echo "${sumOfSquares}+(${value}-${statMean})^2" | bc -l )
 done
 
-f_variance=$( echo "${i_sumofsquares}/${numberOfEntries}" | bc -l )
-f_stddev=$( echo "sqrt(${i_sumofsquares}/${numberOfEntries})" | bc -l )
-f_testvariation1=$( echo "((${i_max}-${i_min})/${f_mean})*100" | bc -l )
-f_testvariation2=$( echo "(${f_stddev}/${f_mean})*100" | bc -l )
+statRange=$( echo "${maxValue}-${minValue}" | bc -l )
+statVariance=$( echo "${sumOfSquares}/${numberOfEntries}" | bc -l )
+printf -v s_variance '%6.3f' ${statVariance}
+stdDev=$( echo "sqrt(${statVariance})" | bc -l )
+printf -v s_stddev '%3.3f' ${stdDev}
+testVariation1=$( echo "${statRange}/${statMean}*100" | bc -l )
+printf -v s_testvariation1 '%3.2f' ${testVariation1}
+testVariation2=$( echo "${stdDev}/${statMean}*100" | bc -l )
+printf -v s_testvariation2 '%3.2f' ${testVariation2}
 
-# Convert to usable strings
-printf -v s_mean '%3.3f' ${f_mean}
-printf -v s_variance '%6.3f' ${f_variance}
-printf -v s_stddev '%3.3f' ${f_stddev}
-printf -v s_testvariation1 '%3.2f' ${f_testvariation1}
-printf -v s_testvariation2 '%3.2f' ${f_testvariation2}
+echo "Returned values:"
+for key in ${!values[@]}
+do
+  value=${values[${key}]}
+  printf -v indivDev '%3.3f' \
+    "$( echo "(${value}-${statMean})/${stdDev}" | bc -l )"
+  printf '%2s: %4s seconds is %11s and %6s standard deviations from the mean.\n' \
+    "$(( ${key} + 1 ))" \
+    "${value}" \
+    "$( timestring ${value} )" \
+    "${indivDev}"
+done
+
 
 # Print the results
 echo
@@ -110,16 +115,20 @@ printf "%-21s: %8s\n" \
   "${numberOfEntries}"
 printf "%-21s: %8s seconds is %-11s.\n" \
   "Minimum Elapsed" \
-  "${i_min}" \
-  "$( timestring ${i_min} )"
+  "${minValue}" \
+  "$( timestring ${minValue} )"
 printf  "%-21s: %8s seconds is %-11s.\n" \
   "Maximum Elapsed" \
-  "${i_max}" \
-  "$( timestring ${i_max} )"
+  "${maxValue}" \
+  "$( timestring ${maxValue} )"
+printf  "%-21s: %8s seconds is %-11s.\n" \
+  "Range (Max - Min)" \
+  "${statRange}" \
+  "$( timestring ${statRange} )"
 printf "%-21s: %8s seconds is %-11s, plus job switching time.\n" \
   "Total Elapsed" \
-  "${i_sum}" \
-  "$( timestring ${i_sum} )"
+  "${sumOfValues}" \
+  "$( timestring ${sumOfValues} )"
 printf "%-21s: %8s seconds is %-11s.\n" \
   "Statistical Mean" \
   "${s_mean}" \
@@ -132,7 +141,7 @@ printf "%-21s: %8s seconds is %-11s.\n" \
   "Standard Deviation" \
   "${s_stddev}" \
   "$( timestring ${s_stddev} )"
-printf "%-21s: %8s%%, calculated as ((Max - Min)/Mean)*100.\n" \
+printf "%-21s: %8s%%, calculated as (Range/Mean)*100.\n" \
   "Testing Variation 1" \
   "${s_testvariation1}"
 printf "%-21s: %8s%%, calculated as (StdDev/Mean)*100.\n" \
