@@ -79,10 +79,26 @@ done < "${sourceFile}"
 statMean=$( echo ${sumOfValues}/${numberOfEntries} | bc -l )
 printf -v s_mean '%3.3f' ${statMean}
 
+# Get the sum of squares.
 for value in ${values[@]}
 do
   sumOfSquares=$( echo "${sumOfSquares}+(${value}-${statMean})^2" | bc -l )
 done
+
+# Get the median
+if (( ${numberOfEntries} % 2 == 1 ))
+then
+  # Odd number of entries.
+  j=$( echo "(${numberOfEntries}/2)+1" | bc )
+  j=$( echo "(${numberOfEntries}/2)" | bc )
+  statMedian=${values[j]}
+else
+  # Even number of entries
+  j=$((${numberOfEntries}/2))
+  k=$((j-1))
+  statMedian=$( echo "(${values[j]}+${values[k]})/2" | bc -l )
+fi
+printf -v s_median '%4.1f' ${statMedian}
 
 statRange=$( echo "${maxValue}-${minValue}" | bc -l )
 statVariance=$( echo "${sumOfSquares}/${numberOfEntries}" | bc -l )
@@ -144,6 +160,10 @@ printf "%-21s: %8s seconds is %-11s.\n" \
   "Statistical Mean" \
   "${s_mean}" \
   "$( timestring ${s_mean} )"
+printf "%-21s: %8s seconds is %-11s.\n" \
+  "Statistical Median" \
+  "${s_median}" \
+  "$( timestring ${s_median} )"
 #printf "%-21s: %10s seconds is %-11s.\n" \
 #  "Statistical Variance" \
 #  "${s_variance}" \
