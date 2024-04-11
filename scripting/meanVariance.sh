@@ -49,7 +49,10 @@ numberOfEntries=0
 while IFS= read -r value
 do
   # Skip blank lines and comments.
-  if [[ ${value} =~ ^$ ]] || [[ ${value} =~ ^# ]]
+  # https://www.baeldung.com/linux/regex-inside-if-clause
+  # https://unix.stackexchange.com/a/47585/31778
+  # https://en.wikibooks.org/wiki/Regular_Expressions/POSIX-Extended_Regular_Expressions#Character_classes
+  if [[ ${value} =~ ^$ ]] || [[ ${value} =~ ^[[:blank:]]*# ]]
   then
     continue
   fi
@@ -58,6 +61,7 @@ do
   values+=( ${value} )
 
   # Get the smallest value.
+  # https://www.gnu.org/software/bc/manual/html_chapter/bc_3.html#SEC11
   is_less=$(echo "${value} < ${minValue}" | bc)
   if [ ${is_less} -eq 1 ]
   then
@@ -90,7 +94,6 @@ if (( ${numberOfEntries} % 2 == 1 ))
 then
   # Odd number of entries.
   j=$( echo "(${numberOfEntries}/2)+1" | bc )
-  j=$( echo "(${numberOfEntries}/2)" | bc )
   statMedian=${values[j]}
 else
   # Even number of entries
@@ -113,10 +116,15 @@ printf -v s_testvariation2 '%3.2f' ${testVariation2}
 echo "Returned values:"
 for key in ${!values[@]}
 do
+  # The individual deviation of a value is
+  # (value - mean)/StdDev.
   value=${values[${key}]}
   printf -v indivDev '%3.3f' \
     "$( echo "(${value}-${statMean})/${stdDev}" | bc -l )"
 
+  # If the value is less than the mean, print it to screen in red, to
+  # highlight and distinguish the values less than the mean from the
+  # values greater than the mean.
   NORMAL=$(tput sgr0)
   is_less=$(echo "${value} < ${statMean}" | bc -l )
   if [ ${is_less} -eq 1 ]
@@ -126,6 +134,7 @@ do
     RED=$(tput sgr0)
   fi
 
+  # And print out each individual value.
   printf "%2s: %4s seconds is %11s and ${RED}%6s${NORMAL} %33s\n" \
     "$(( ${key} + 1 ))" \
     "${value}" \
@@ -135,7 +144,7 @@ do
 done
 
 
-# Print the results
+# Then, print the summary statistics.
 echo
 printf "%-21s: %8s\n" \
   "Number of entries" \
@@ -172,10 +181,12 @@ printf "%-21s: %8s seconds is %-11s.\n" \
   "Standard Deviation" \
   "${s_stddev}" \
   "$( timestring ${s_stddev} )"
+# Note that variabilty test 1 is much more sensitive to outliers than
+# variability test 2 is.
 printf "%-21s: %8s%%, calculated as (Range/Mean)*100.\n" \
-  "Testing Variation 1" \
+  "Variability 1" \
   "${s_testvariation1}"
 printf "%-21s: %8s%%, calculated as (StdDev/Mean)*100.\n" \
-  "Testing Variation 2" \
+  "Variability 2" \
   "${s_testvariation2}"
 
