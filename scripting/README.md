@@ -186,7 +186,7 @@ for a 4GB pseudo-random text file. If you want genuinely random
 
 ```
 base64 -i /dev/urandom \
-  head -c 4294967296 > 4GBOfRandom.asc
+  | head -c 4294967296 > 4GBOfRandom.asc
 
 ```
 
