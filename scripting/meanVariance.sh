@@ -113,7 +113,8 @@ printf -v s_testvariation1 '%3.2f' ${testVariation1}
 testVariation2=$( echo "${stdDev}/${statMean}*100" | bc -l )
 printf -v s_testvariation2 '%3.2f' ${testVariation2}
 
-echo "Returned values:"
+echo "Returned values. \"Indiv. Dev.\" is (Value-Mean)/StdDev."
+printf "%-5s  %-5s  %-11s  %-11s\n" "Entry" "Value" "HMS" "Indiv. Dev."
 for key in ${!values[@]}
 do
   # The individual deviation of a value is
@@ -135,12 +136,12 @@ do
   fi
 
   # And print out each individual value.
-  printf "%2s: %4s seconds is %11s and ${RED}%6s${NORMAL} %33s\n" \
+
+  printf "%5s: %5s  %11s  ${RED}%6s${NORMAL}\n" \
     "$(( ${key} + 1 ))" \
     "${value}" \
     "$( timestring ${value} )" \
-    "${indivDev}" \
-    "standard deviations from the mean."
+    "${indivDev}"
 done
 
 
