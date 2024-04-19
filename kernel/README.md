@@ -3,9 +3,10 @@
 ## Troubleshooting
 
 If a process is behaving badly (eg. entering
-[process state D][240419a] and no leaving), the [`/proc`][240419b]
+[process state D][240419a] and not leaving), the [`/proc`][240419b]
 pseudo-filesystem has tools to help start troubleshooting. The most
-interesting is `/proc/$pid/stack`.
+interesting is `/proc/$pid/stack`. Let's give ourselves a process to
+look at.
 
 ```bash
 [ user@sandbox ~ ] $ sleep 3600 &
@@ -26,8 +27,9 @@ the state by doing this:
 State:  S (sleeping)
 ```
 
-Now, what does the processes instruction look like while in this state?
-Well, you can find that out from the `/proc` pseudo-filesystem as well.
+Now, what does the process's instruction stack look like while in this
+state? Well, you can find that out from the `/proc` pseudo-filesystem
+as well.
 
 ```bash
 [ user@sandbox ~ ] $ sudo cat /proc/359297/stack
