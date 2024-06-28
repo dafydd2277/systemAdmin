@@ -215,6 +215,8 @@ fn_randomChars () {
 # Use a function to set the shell environment. This improves
 # portability.
 #
+# https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+#
 # Usage: `fn_set_environment`
 fn_set_environment () {
 
@@ -222,6 +224,7 @@ fn_set_environment () {
   fn_profile_set_git
 
   set -o vi
+  set -u
 
   export PATH=${PATH}:/usr/lib/python/site-packages
 
