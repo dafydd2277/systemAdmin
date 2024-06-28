@@ -1,0 +1,535 @@
+#!/bin/bash
+#set -x
+set -u
+trap 'echo "${scriptName}: failed at line ${LINENO}" >&2' ERR
+
+###
+### REFERENCES
+###
+
+# This is based on "FIFO-based semaphores,"
+# https://unix.stackexchange.com/a/216475/31778
+#
+# and an example of `set -u`, `trap`, and `getopt` to manage the
+# script. ("set -e" doesn't combine very well with the use of
+# FIFO-based semaphores. If I `set -e`, I only get one round of
+# $numProcs semaphores and an endless hang.)
+# https://gist.github.com/dermoth/21db99452e6e02319df766a97868dcd4
+
+
+###
+### STATIC VARIABLES
+###
+
+# Set the defaults
+defExclusionsFile="./exclusions"
+defHostsFile="./hosts"
+defNumProcs=200
+defOutDir="./out"
+defScriptFile="./script.sh"
+defTimeout=120
+
+sshOpts="-q -o UserKnownHostsFile=/dev/null \
+  -o StrictHostKeyChecking=no \
+  -o ConnectTimeout=30 \
+  -o BatchMode=yes \
+  -o ForwardX11=no \
+  -o ForwardX11Trusted=no"
+
+
+###
+### DYNAMIC VARIABLES
+###
+
+scriptName=${0##*/}
+pid=$$
+
+debug=0
+exclusionsFile="${defExclusionsFile}"
+hostsFile="${defHostsFile}"
+numProcs=${defNumProcs}
+outDir="${defOutDir}"
+scriptFile="${defScriptFile}"
+timeout=${defTimeout}
+
+
+###
+### FUNCTIONS
+###
+
+helpText () {
+ cat <<EOT
+
+${scriptName} [options] - Run a script on multiple hosts
+
+None of these options are required. The given default values will be
+used if not overriden.
+  -d, --debug
+    Increased output, using either one or two `-d` arguments..
+  -e <file>, --excclusions <file>
+    List of hosts to exclude from getting the script.
+    Default: ${defExclusionsFile}
+  --help
+    Print this help text and exit.
+  -h <file>, --hosts <file>
+    List of hosts to get the script. Excluded hosts will be removed
+    from this list before running.
+    Default: ${defHostsFile}
+  -n <integer>, --numProcs <integer>
+    Number of parallel processes to run. Default: ${defNumProcs}
+  -o <output dir>, --output <output dir>
+    Directory to place the results for each host.
+    Default: ${defOutDir}
+  -s <file>, --script <file>
+    The script to run on the destination hosts. Default: ${defScriptFile}
+  -t <integer>, --timeout <integer>
+    Timeout for individual connections, as understood by the coreutils
+    "timeout" command. Default: ${defTimeout}
+
+EOT
+}
+
+
+# Initialize a semaphore with a given number of tokens
+open_sem () {
+  mkfifo pipe-$$
+  exec 3<>pipe-$$
+  rm pipe-$$
+  local i=$1
+  for((;i>0;i--)); do
+    printf %s 000 >&3
+  done
+}
+
+
+# Does the host respond to ping?
+ping_the_host () {
+  local target=$1
+  local msg=""
+
+  ping -c 1 ${target} >/dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+    msg="PING ALERT:NO PING RESPONSE"
+    echo "${msg}" \
+      >> ${outDir}/${target}
+    echo ${target} >> ${hostsFile}.${scriptName}.failedPing
+  else
+    echo ${target} >>${hostsFile}.${scriptName}.test22.${pid}
+  fi
+  if [ ${debug} -ge 2 ] && [ ! -z  "${msg}" ]
+  then
+    echo "${target}:${msg}"
+  fi
+}
+
+
+# Process lists of hostnames, either regular hosts or exclusions.
+process_list () {
+  local infile=$1
+  local outfile=$2
+
+  cp -fp ${infile} ${outfile}
+
+  # Delete all lines not starting with valid hostname characters.
+  # This will also delete commented lines.
+  sed -i '/^[^a-zA-Z]/d' ${outfile}
+  
+  # Delete every domain part.
+  sed -i 's/\..*//' ${outfile}
+  
+  # Delete the first whitespace and everything after.
+  sed -i 's/\s.*//' ${outfile}
+  
+  # Make everything lower case.
+  sed -i 's/.*/\L&/g' ${outfile}
+  
+  # Delete blank lines.
+  sed -i '/^$/d' ${outfile}
+  
+  # Sort the list and eliminate duplicates.
+  sort -uo ${outfile}{,}
+}
+
+
+# Function to kick off individual SSH connections.
+run_on () {
+  local target=$1
+  local msg=""
+
+  timeout --kill-after=10s ${timeout} \
+    ssh ${sshOpts} \
+      ${target} 'bash -s' \
+      < ${scriptFile} \
+      > ${outDir}/${target} \
+      2> /dev/null
+  result=$?
+  case ${result} in
+    0)
+      true
+      ;;
+    124)
+      msg="SSH ALERT:TIMEOUT COMMAND ERROR ${result}"
+      echo "${msg}" \
+        >> ${outDir}/${target}
+      echo ${target} >> ${hostsFile}.${scriptName}.failedSSH
+      ;;
+    255)
+      msg="SSH ALERT:SSH COMMAND ERROR ${result}"
+      echo "${msg}" \
+        >> ${outDir}/${target}
+      echo ${target} >> ${hostsFile}.${scriptName}.failedSSH
+      ;;
+    *)
+      msg="SSH ALERT:SCRIPT ERROR ${result}"
+      echo "${msg}" \
+        >> ${outDir}/${target}
+      echo ${target} >> ${hostsFile}.${scriptName}.failedSSH
+      ;;
+  esac
+  if [ ${debug} -ge 2 ] && [ ! -z "${msg}" ]
+  then
+    echo "${target}:${msg}"
+  fi
+}
+
+
+# Run the given command asynchronously and pop/push tokens
+run_with_lock () {
+  # this read waits until there is something to read
+  read -u 3 -n 3 x && ((0==x)) || exit $x
+  (
+    ( "$@"; )
+  # push the return code of the command to the semaphore
+  #printf '%.3d' $? >&3
+  printf %s 000 >&3
+  )&
+}
+
+
+# Does the target have an A record in DNS?
+test_dns () {
+  local target=$1
+  local msg=0
+
+  host ${target} >/dev/null 2>&1
+  if [ $? -ne 0 ]
+  then
+    msg="DNS ALERT:NO DNS RECORD"
+    echo "${msg}" \
+      >> ${outDir}/${target} 
+    echo ${target} >> ${hostsFile}.${scriptName}.failedDNS
+  else
+    echo ${target} >>${hostsFile}.${scriptName}.testPing.${pid}
+  fi
+  if [ ${debug} -ge 2 ] && [ 0 != "${msg}" ]
+  then
+    echo "${target}:${msg}"
+  fi
+}
+
+
+# Does the host respond to ping?
+test_port_22 () {
+  local target=$1
+  local msg=""
+
+  local result=$( nmap -p22 ${target} | egrep '^22' | awk '{print $2}' )
+  if [ -z "${result}" ]
+  then
+    msg="NMAP ALERT:PORT 22 NOT FOUND"
+    echo "${msg}" \
+      >> ${outDir}/${target}
+    echo ${target} >> ${hostsFile}.${scriptName}.failedPort22
+  elif [ "open" != ${result} ]
+  then
+    msg="SSH ALERT:PORT 22 UNAVAILABLE"
+    echo "${msg}" \
+      >> ${outDir}/${target}
+    echo ${target} >> ${hostsFile}.${scriptName}.failedPort22
+  else
+    echo ${target} >>${hostsFile}.${scriptName}.testSSH.${pid}
+  fi
+  if [ ${debug} -ge 2 ] && [ ! -z  "${msg}" ]
+  then
+    echo "${target}:${msg}"
+  fi
+}
+
+
+###
+### MAIN
+###
+
+# Test for the coreutils package.
+result=0
+rpm -q coreutils >/dev/null 2>&1
+result=$?
+rpm -q util-linux >/dev/null 2>&1
+result=$?
+
+if [ ${result} -ne 0 ]
+then
+  cat <<EOT
+This script requires the 'comm' and 'timeout' commands from the
+coreutils package, and the 'getopt' command from the util-linux
+package. Please install those packages before continuing.
+
+EOT
+fi
+
+rm -fv ${hostsFile}.${scriptName}.failedDNS \
+${hostsFile}.${scriptName}.failedPing \
+${hostsFile}.${scriptName}.failedPort22 \
+${hostsFile}.${scriptName}.failedSSH
+
+
+opts=$( getopt --name "${scriptName}" \
+        --options de:h:n:o:s:t: \
+        --longoptions debug,exclusions:,help,hosts:,numprocs:,out:,script:,timeout: \
+        -- "$@" ) \
+         || helpText
+eval set -- "$opts"
+
+while (($#))
+do
+  case $1 in
+    -d|--debug)      ((++debug));;
+    -e|--exclusions) exclusionsFile=$2; shift;;
+    --help)          helpText; exit 0;;
+    -h|--hosts)      hostsFile=$2; shift;;
+    -n|--numprocs)   numProcs=$2; shift;;
+    -o|--out)        outDir=$2; shift;;
+    -s|--script)     scriptFile=$2; shift;;
+    -t|--timeout)    timeout=$2; shift;;
+    --)              shift; break;;
+    # Without "set -e" + ERR trap, replace "false" with an error message and exit.
+    *)               false  # Should not happen under normal conditions
+  esac
+  shift
+done
+
+if [ ${debug} -ge 1 ]
+then
+  echo; echo
+
+  ${exclusionsFile+echo "Exclusions file is set: '$exclusionsFile'"}
+  ${hostsFile+echo "Hosts file is set: '$hostsFile'"}
+  ${numProcs+echo "Number of Processes is set: '$numProcs'"}
+  ${outDir+echo "Output directory is set: '$outDir'"}
+  ${scriptFile+echo "Script file is set: '$scriptFile'"}
+  ${timeout+echo "Timeout is set: '$timeout'"}
+  for i in debug
+  do
+    echo "${i^} value is ${!i}"
+  done
+fi
+
+# Verify the script file.
+if [ -f "${scriptFile}" ]
+then
+  if [ ${debug} -ge 1 ]
+  then
+    echo
+    echo "Using ${scriptFile}."
+  fi
+else
+  echo
+  echo "ERROR: ${scriptFile} not found!"
+  echo
+  helpText
+  exit 1
+fi
+
+# Process the list of hosts to work on.
+if [ -f "${hostsFile}" ]
+then
+  if [ ${debug} -ge 1 ]
+  then
+    echo
+    echo "Using ${hostsFile}."
+  fi
+else
+  echo
+  echo "ERROR: ${hostsFile} not found!"
+  echo
+  helpText
+  exit 1
+fi
+
+rawNumHosts=$( cat ${hostsFile} | wc -l )
+if [ ${debug} -ge 1 ]
+then
+  echo
+  echo "Found ${hostsFile} with ${rawNumHosts} entries."
+  echo "Cleaning up ${hostsFile} and copying result to ${hostsFile}.${scriptName}"
+fi
+
+process_list ${hostsFile} ${hostsFile}.${scriptName}
+
+
+# Process the list of exclusions.
+if [ -f "${exclusionsFile}" ]
+then
+  if [ ${debug} -ge 1 ]
+  then
+    rawNumExclusions=$( cat ${exclusionsFile} | wc -l )
+    echo
+    echo "Found ${exclusionsFile} with ${rawNumExclusions} entries."
+    echo "Cleaning up ${exclusionsFile} and copying result to ${exclusionsFile}.${scriptName}"
+  fi
+  process_list ${exclusionsFile} ${exclusionsFile}.${scriptName}
+
+  if [ ${debug} -ge 1 ]
+  then
+    echo "Excluding ${rawNumExclusions} entries from testing."
+  fi
+  comm -23 ${hostsFile}.${scriptName} ${exclusionsFile}.${scriptName} > ${hostsFile}.${scriptName}.${pid}
+else
+  if [ ${debug} -ge 1 ]
+  then
+    echo
+    echo "No ${exclusionsFile} found."
+    echo "Using ${hostsFile}.${scriptName} without exclusions."
+  fi
+
+  cp ${hostsFile}.${scriptName}  ${hostsFile}.${scriptName}.${pid}
+fi
+
+# Set up the output directory
+if [ -d ${outDir} ]
+then
+  if [ ${debug} -ge 1 ]
+  then
+    echo
+    echo "Found ${outDir} for results files. Removing current contents."
+  fi
+  rm -f ${outDir}/*
+else
+  if [ ${debug} -ge 1 ]
+  then
+    echo
+    echo "Creating new ${outDir} for results files."
+  fi
+
+  mkdir --parents ${outDir}
+fi
+
+
+# Set the semaphores
+open_sem ${numProcs}
+
+
+# Test for DNS entries
+totalLines=$( egrep -cv '^$|^#' ${hostsFile}.${scriptName}.${pid} )
+counter=0
+echo
+date
+echo "Testing ${totalLines} names for DNS entries."
+for target in $( egrep -v '^$|^#' ${hostsFile}.${scriptName}.${pid} )
+do
+  run_with_lock test_dns ${target}
+  printf "\r$((counter+=1))/${totalLines}"
+done
+# Wait for the commands to finish and clear the last printf.
+wait; echo
+
+if [ -f ${hostsFile}.${scriptName}.failedDNS ]
+then
+  failedDNS=$( wc -l ${hostsFile}.${scriptName}.failedDNS \
+               2>/dev/null \
+               | awk '{print $1}' )
+else
+  failedDNS=0
+fi
+if [ ${totalLines} -eq ${failedDNS} ]
+then
+  echo;echo "NO DNS ENTRIES WERE FOUND FOR ANY GIVEN NAME. EXITING."
+  exit 1
+fi
+
+testPing=$( wc -l ${hostsFile}.${scriptName}.testPing.${pid} \
+            | awk '{print $1}')
+echo
+date
+echo "${failedDNS} names did not have DNS entries."
+echo "Testing ${testPing} names for ping response."
+counter=0
+for target in $( cat ${hostsFile}.${scriptName}.testPing.${pid} )
+do
+  run_with_lock ping_the_host ${target}
+  printf "\r$((counter+=1))/${testPing}"
+done
+# Wait for the commands to finish and clear the last printf.
+wait; echo
+
+# Loop through the target hosts.
+if [ -f ${hostsFile}.${scriptName}.failedPing ]
+then
+  failedPing=$( wc -l ${hostsFile}.${scriptName}.failedPing \
+                2>/dev/null \
+                | awk '{print $1}' )
+else
+  failedPing=0
+fi
+
+if [ ${testPing} -eq ${failedPing} ]
+then
+  echo;echo "NO HOSTS RETURNED PING. EXITING."
+  exit 1
+fi
+
+
+# Test Port 22 for Access
+test22=$( wc -l ${hostsFile}.${scriptName}.test22.${pid} \
+            | awk '{print $1}')
+echo
+date
+echo "${failedPing} names did not return ping."
+echo "Testing ${test22} names for open port 22."
+counter=0
+for target in $( cat ${hostsFile}.${scriptName}.test22.${pid} )
+do
+  run_with_lock test_port_22 ${target}
+  printf "\r$((counter+=1))/${test22}"
+done
+# Wait for the commands to finish and clear the last printf.
+wait; echo
+
+# Loop through the target hosts.
+if [ -f ${hostsFile}.${scriptName}.failedPort22 ]
+then
+  failed22=$( wc -l ${hostsFile}.${scriptName}.failedPort22 \
+                2>/dev/null \
+                | awk '{print $1}' )
+else
+  failed22=0
+fi
+
+if [ ${test22} -eq ${failed22} ]
+then
+  echo;echo "NO HOSTS SHOWED PORT 22 OPEN. EXITING."
+  exit 1
+fi
+
+# Send the SSH Command to the remaining hosts.
+testSSH=$( wc -l ${hostsFile}.${scriptName}.testSSH.${pid} | awk '{print $1}' )
+echo
+date
+echo "${failed22} names do not have port 22 open."
+echo "Sending ${scriptFile} to ${testSSH} names."
+counter=0
+for target in $( cat ${hostsFile}.${scriptName}.testSSH.${pid} )
+do
+  run_with_lock run_on ${target}
+  printf "\r$((counter+=1))/${testSSH}"
+done
+# Wait for the commands to finish and clear the last printf.
+wait; echo; echo
+
+rm -f *.${pid}
+
+echo "Complete at $(date)."
+
+set +x
+
