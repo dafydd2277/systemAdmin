@@ -20,10 +20,16 @@ look at.
 ```
 
 So, my sleep process is in "Interruptable Sleep." You can also find
-the state by doing this:
+the state by assigning our target PID to a variable,
 
 ```bash
-[ user@sandbox ~ ] $ grep 'State' /proc/359297/status
+targetPID=359397
+```
+
+and doing this:
+
+```bash
+[ user@sandbox ~ ] $ grep 'State' /proc/${targetPID}/status
 State:  S (sleeping)
 ```
 
@@ -32,7 +38,7 @@ state? Well, you can find that out from the `/proc` pseudo-filesystem
 as well.
 
 ```bash
-[ user@sandbox ~ ] $ sudo cat /proc/359297/stack
+[ user@sandbox ~ ] $ sudo cat /proc/${targetPID}/stack
 [<0>] hrtimer_nanosleep+0x89/0x120
 [<0>] __x64_sys_nanosleep+0x96/0xd0
 [<0>] do_syscall_64+0x5b/0x1b0
