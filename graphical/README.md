@@ -1,5 +1,15 @@
 # Notes on Graphical Displays
 
+## 2024-07-02
+
+I've found recently that `xauth -i add ...` now wants the entire line,
+not just the key. So, the command now looks like
+
+```bash
+xauth -i add host050.int.example.com:11  MIT-MAGIC-COOKIE-1  a8404a54f1d05407726555d28cb4bf78
+```
+
+
 ## 2022-06-23
 
 ### XDMCP
