@@ -12,9 +12,9 @@ look at.
 [ user@sandbox ~ ] $ sleep 3600 &
 [1] 359297
 
-[ user@sandbox ~ ] $ ps a \
+[ user@sandbox ~ ] $ ps ax \
 >  | egrep '(STAT|sleep)' \
->  | grep -v grep
+>  | head
     PID TTY      STAT   TIME COMMAND
  359297 pts/1    S      0:00 sleep 3600
 ```
