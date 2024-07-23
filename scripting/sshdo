@@ -58,35 +58,32 @@ timeout=${defTimeout}
 ###
 
 helpText () {
- cat <<EOT
-
-${scriptName} [options] - Run a script on multiple hosts
-
-None of these options are required. The given default values will be
-used if not overriden.
-  -d, --debug
-    Increased output, using either one or two `-d` arguments..
-  -e <file>, --excclusions <file>
-    List of hosts to exclude from getting the script.
-    Default: ${defExclusionsFile}
-  --help
-    Print this help text and exit.
-  -h <file>, --hosts <file>
-    List of hosts to get the script. Excluded hosts will be removed
-    from this list before running.
-    Default: ${defHostsFile}
-  -n <integer>, --numProcs <integer>
-    Number of parallel processes to run. Default: ${defNumProcs}
-  -o <output dir>, --output <output dir>
-    Directory to place the results for each host.
-    Default: ${defOutDir}
-  -s <file>, --script <file>
-    The script to run on the destination hosts. Default: ${defScriptFile}
-  -t <integer>, --timeout <integer>
-    Timeout for individual connections, as understood by the coreutils
-    "timeout" command. Default: ${defTimeout}
-
-EOT
+  echo "${scriptName} [options] - Run a script on multiple hosts"
+  echo
+  echo "None of these options are required. The given default values will be"
+  echo "used if not overriden."
+  echo
+  echo "-d, --debug"
+  echo "    Increased output, using either one or two -d arguments.."
+  echo "-e <file>, --exclusions <file>"
+  echo "    List of hosts to exclude from getting the script."
+  echo "    Default: ${defExclusionsFile}"
+  echo "-u, --help, --usage"
+  echo "    Print this help text and exit."
+  echo "-h <file>, --hosts <file>"
+  echo "    List of hosts to get the script. Excluded hosts will be removed"
+  echo "    from this list before running."
+  echo "    Default: ${defHostsFile}"
+  echo "-n <integer>, --numProcs <integer>"
+  echo "    Number of parallel processes to run. Default: ${defNumProcs}"
+  echo "-o <output dir>, --output <output dir>"
+  echo "    Directory to place the results for each host."
+  echo "    Default: ${defOutDir}"
+  echo "-s <file>, --script <file>"
+  echo "    The script to run on the destination hosts. Default: ${defScriptFile}"
+  echo "-t <integer>, --timeout <integer>"
+  echo "    Timeout for individual connections, as understood by the coreutils"
+  echo "    \"timeout\" command. Default: ${defTimeout}"
 }
 
 
@@ -129,7 +126,28 @@ process_list () {
   local infile=$1
   local outfile=$2
 
-  cp -fp ${infile} ${outfile}
+  if [ ${debug} -ge 1 ]
+  then
+    numLinesIn=$( cat ${infile} | wc -l )
+    if [ ${numLinesIn} -eq 1 ]
+    then
+      entryString=entry
+    else
+      entryString=entries
+    fi
+    echo "Found ${infile} with ${numLinesIn} ${entryString}."
+  fi
+
+# Use `eval` to perform expansion of any BASH Sequence Expressions
+# https://unix.stackexchange.com/a/551056/31778
+  while IFS= read -r lineIn
+  do
+    for lineOut in $( eval "echo ${lineIn}" )
+    do
+      echo ${lineOut} >> ${outfile}
+    done
+  done < ${infile}
+
 
   # Delete all lines not starting with valid hostname characters.
   # This will also delete commented lines.
@@ -149,6 +167,12 @@ process_list () {
   
   # Sort the list and eliminate duplicates.
   sort -uo ${outfile}{,}
+
+  if [ ${debug} -ge 1 ]
+  then
+    numLinesOut=$( cat ${outfile} | wc -l )
+    echo "Processing ${infile} resulted in ${numLinesOut} expanded entries in ${outfile}."
+  fi
 }
 
 
@@ -166,6 +190,7 @@ run_on () {
   result=$?
   case ${result} in
     0)
+      msg="SSH SUCCESS"
       true
       ;;
     124)
@@ -276,17 +301,20 @@ coreutils package, and the 'getopt' command from the util-linux
 package. Please install those packages before continuing.
 
 EOT
+
+  exit 1
 fi
 
-rm -fv ${hostsFile}.${scriptName}.failedDNS \
-${hostsFile}.${scriptName}.failedPing \
-${hostsFile}.${scriptName}.failedPort22 \
-${hostsFile}.${scriptName}.failedSSH
+echo; echo "Cleaning up files from previous runs."
+rm -fv ${hostsFile}.${scriptName} \
+${hostsFile}.${scriptName}.* \
+${exclusionsFile}.${scriptName} \
+${exclusionsFile}.${scriptName}.*
 
 
 opts=$( getopt --name "${scriptName}" \
-        --options de:h:n:o:s:t: \
-        --longoptions debug,exclusions:,help,hosts:,numprocs:,out:,script:,timeout: \
+        --options de:h:n:o:s:t:u \
+        --longoptions debug,exclusions:,help,hosts:,numprocs:,out:,script:,timeout:usage \
         -- "$@" ) \
          || helpText
 eval set -- "$opts"
@@ -294,17 +322,16 @@ eval set -- "$opts"
 while (($#))
 do
   case $1 in
-    -d|--debug)      ((++debug));;
-    -e|--exclusions) exclusionsFile=$2; shift;;
-    --help)          helpText; exit 0;;
-    -h|--hosts)      hostsFile=$2; shift;;
-    -n|--numprocs)   numProcs=$2; shift;;
-    -o|--out)        outDir=$2; shift;;
-    -s|--script)     scriptFile=$2; shift;;
-    -t|--timeout)    timeout=$2; shift;;
-    --)              shift; break;;
-    # Without "set -e" + ERR trap, replace "false" with an error message and exit.
-    *)               false  # Should not happen under normal conditions
+    -d|--debug)         ((++debug));;
+    -e|--exclusions)    exclusionsFile=$2; shift;;
+    -u|--usage|--help)          helpText; exit 0;;
+    -h|--hosts)         hostsFile=$2; shift;;
+    -n|--numprocs)      numProcs=$2; shift;;
+    -o|--out)           outDir=$2; shift;;
+    -s|--script)        scriptFile=$2; shift;;
+    -t|--timeout)       timeout=$2; shift;;
+    --)                 shift; break;;
+    *)                  helpText; exit 1;;
   esac
   shift
 done
@@ -347,7 +374,7 @@ then
   if [ ${debug} -ge 1 ]
   then
     echo
-    echo "Using ${hostsFile}."
+    echo "Searching for ${hostsFile}."
   fi
 else
   echo
@@ -355,14 +382,6 @@ else
   echo
   helpText
   exit 1
-fi
-
-rawNumHosts=$( cat ${hostsFile} | wc -l )
-if [ ${debug} -ge 1 ]
-then
-  echo
-  echo "Found ${hostsFile} with ${rawNumHosts} entries."
-  echo "Cleaning up ${hostsFile} and copying result to ${hostsFile}.${scriptName}"
 fi
 
 process_list ${hostsFile} ${hostsFile}.${scriptName}
@@ -373,17 +392,12 @@ if [ -f "${exclusionsFile}" ]
 then
   if [ ${debug} -ge 1 ]
   then
-    rawNumExclusions=$( cat ${exclusionsFile} | wc -l )
     echo
-    echo "Found ${exclusionsFile} with ${rawNumExclusions} entries."
-    echo "Cleaning up ${exclusionsFile} and copying result to ${exclusionsFile}.${scriptName}"
+    echo "Searching for ${exclusionsFile}."
   fi
+
   process_list ${exclusionsFile} ${exclusionsFile}.${scriptName}
 
-  if [ ${debug} -ge 1 ]
-  then
-    echo "Excluding ${rawNumExclusions} entries from testing."
-  fi
   comm -23 ${hostsFile}.${scriptName} ${exclusionsFile}.${scriptName} > ${hostsFile}.${scriptName}.${pid}
 else
   if [ ${debug} -ge 1 ]
