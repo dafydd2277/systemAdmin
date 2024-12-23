@@ -28,6 +28,7 @@ defNumProcs=200
 defOutDir="./out"
 defScriptFile="./script.sh"
 defTimeout=120
+defgetFQDN=FQDNno
 
 sshOpts="-q -o UserKnownHostsFile=/dev/null \
   -o StrictHostKeyChecking=no \
@@ -51,6 +52,7 @@ numProcs=${defNumProcs}
 outDir="${defOutDir}"
 scriptFile="${defScriptFile}"
 timeout=${defTimeout}
+getFQDN=${defgetFQDN}
 
 
 ###
@@ -64,12 +66,10 @@ helpText () {
   echo "used if not overriden."
   echo
   echo "-d, --debug"
-  echo "    Increased output, using either one or two -d arguments.."
+  echo "    Increased output, using either one or two -d arguments."
   echo "-e <file>, --exclusions <file>"
   echo "    List of hosts to exclude from getting the script."
   echo "    Default: ${defExclusionsFile}"
-  echo "-u, --help, --usage"
-  echo "    Print this help text and exit."
   echo "-h <file>, --hosts <file>"
   echo "    List of hosts to get the script. Excluded hosts will be removed"
   echo "    from this list before running."
@@ -79,11 +79,16 @@ helpText () {
   echo "-o <output dir>, --output <output dir>"
   echo "    Directory to place the results for each host."
   echo "    Default: ${defOutDir}"
+  echo "-q, --fqdn"
+  echo "    After hosts are gathered and exclusions are removed,"
+  echo "    convert all hosts to FQDNs."
   echo "-s <file>, --script <file>"
   echo "    The script to run on the destination hosts. Default: ${defScriptFile}"
   echo "-t <integer>, --timeout <integer>"
   echo "    Timeout for individual connections, as understood by the coreutils"
   echo "    \"timeout\" command. Default: ${defTimeout}"
+  echo "-u, --help, --usage"
+  echo "    Print this help text and exit."
 }
 
 
@@ -123,6 +128,7 @@ ping_the_host () {
 
 # Process lists of hostnames, either regular hosts or exclusions.
 process_list () {
+set -x
   local infile=$1
   local outfile=$2
 
@@ -138,41 +144,50 @@ process_list () {
     echo "Found ${infile} with ${numLinesIn} ${entryString}."
   fi
 
-# Use `eval` to perform expansion of any BASH Sequence Expressions
-# https://unix.stackexchange.com/a/551056/31778
+  # Delete all lines not starting with valid hostname characters.
+  # This will also delete commented lines. Also, don't modify the
+  # original ${infile}. Write to and modify a ${pid} file to keep the
+  # original ${infile} whole.
+  sed '/^[^a-zA-Z0-9\-]/d' ${infile} > ${infile}.${pid}
+
+  # Delete blank lines.
+  sed -i '/^$/d' ${infile}.${pid}
+  
+  # Delete the first whitespace and everything after.
+  sed -i 's/\s.*//' ${infile}.${pid}
+
+  # Make everything lower case.
+  sed -i 's/.*/\L&/g' ${infile}.${pid}
+
+  # Delete localhost and/or localdomain
+  sed -i '/.*localhost.*/d' ${infile}.${pid}
+  sed -i '/.*localdomain.*/d' ${infile}.${pid}
+
+  # Use `eval` to perform expansion of any BASH Sequence Expressions
+  # https://unix.stackexchange.com/a/551056/31778
   while IFS= read -r lineIn
   do
     for lineOut in $( eval "echo ${lineIn}" )
     do
       echo ${lineOut} >> ${outfile}
     done
-  done < ${infile}
+  done < ${infile}.${pid}
 
 
-  # Delete all lines not starting with valid hostname characters.
-  # This will also delete commented lines.
-  sed -i '/^[^a-zA-Z]/d' ${outfile}
-  
   # Delete every domain part.
-  sed -i 's/\..*//' ${outfile}
-  
-  # Delete the first whitespace and everything after.
-  sed -i 's/\s.*//' ${outfile}
-  
-  # Make everything lower case.
-  sed -i 's/.*/\L&/g' ${outfile}
-  
-  # Delete blank lines.
-  sed -i '/^$/d' ${outfile}
+#  sed -i 's/\..*//' ${outfile}
   
   # Sort the list and eliminate duplicates.
   sort -uo ${outfile}{,}
+
+  rm ${infile}.${pid}
 
   if [ ${debug} -ge 1 ]
   then
     numLinesOut=$( cat ${outfile} | wc -l )
     echo "Processing ${infile} resulted in ${numLinesOut} expanded entries in ${outfile}."
   fi
+set +x
 }
 
 
@@ -181,12 +196,14 @@ run_on () {
   local target=$1
   local msg=""
 
+  echo -e "\n#####\nSCRIPT OUTPUT\n#####\n\n" \
+    >> ${outDir}/${target}
   timeout --kill-after=10s ${timeout} \
     ssh ${sshOpts} \
       ${target} 'bash -s' \
       < ${scriptFile} \
-      > ${outDir}/${target} \
-      2> /dev/null
+      >> ${outDir}/${target} \
+      2>&1
   result=$?
   case ${result} in
     0)
@@ -234,23 +251,48 @@ run_with_lock () {
 
 # Does the target have an A record in DNS?
 test_dns () {
+#set -x
   local target=$1
   local msg=0
-
-  host ${target} >/dev/null 2>&1
-  if [ $? -ne 0 ]
+  local lineOut=$( host ${target} )
+  if  [[ ${lineOut} =~ 'NXDOMAIN' ]]
   then
+   # Log an error.
     msg="DNS ALERT:NO DNS RECORD"
     echo "${msg}" \
       >> ${outDir}/${target} 
     echo ${target} >> ${hostsFile}.${scriptName}.failedDNS
+  elif [ 'FQDNyes' == "${getFQDN}" ]
+  then
+
+  # Send on the FQDN.
+    targetFQDN=$(  echo "${lineOut}" \
+      | tail -1 \
+      | sed 's/ has address.*//' \
+      | awk '{print $NF}')
+    echo ${targetFQDN} >> ${hostsFile}.${scriptName}.testPing.${pid}
+
+   # Note aliases in the out files.
+    if [[ ${lineOut} =~ 'alias' ]]
+    then
+      msg="DNS ALIAS:$(echo ${lineOut} | head -1 | awk '{print $1}')"
+      msg="${msg} is an alias for this host."
+      
+      echo ${msg} >> ${outDir}/${targetFQDN}
+      echo >> ${outDir}/${targetFQDN}
+    fi
+
   else
+  # Send on the simple hostname.
     echo ${target} >>${hostsFile}.${scriptName}.testPing.${pid}
   fi
-  if [ ${debug} -ge 2 ] && [ 0 != "${msg}" ]
+
+  # DEBUG 2 - Send error to STDOUT
+  if [ ${debug} -ge 2 ] && [ '' != "${msg}" ]
   then
     echo "${target}:${msg}"
   fi
+  set +x
 }
 
 
@@ -305,16 +347,9 @@ EOT
   exit 1
 fi
 
-echo; echo "Cleaning up files from previous runs."
-rm -fv ${hostsFile}.${scriptName} \
-${hostsFile}.${scriptName}.* \
-${exclusionsFile}.${scriptName} \
-${exclusionsFile}.${scriptName}.*
-
-
 opts=$( getopt --name "${scriptName}" \
-        --options de:h:n:o:s:t:u \
-        --longoptions debug,exclusions:,help,hosts:,numprocs:,out:,script:,timeout:usage \
+        --options de:h:n:o:s:qt:u \
+        --longoptions debug,exclusions:,fqdn,help,hosts:,numprocs:,out:,script:,timeout:usage \
         -- "$@" ) \
          || helpText
 eval set -- "$opts"
@@ -328,6 +363,7 @@ do
     -h|--hosts)         hostsFile=$2; shift;;
     -n|--numprocs)      numProcs=$2; shift;;
     -o|--out)           outDir=$2; shift;;
+    -q|--fqdn)          getFQDN=FQDNyes;;
     -s|--script)        scriptFile=$2; shift;;
     -t|--timeout)       timeout=$2; shift;;
     --)                 shift; break;;
@@ -335,12 +371,12 @@ do
   esac
   shift
 done
-
 if [ ${debug} -ge 1 ]
 then
   echo; echo
 
   ${exclusionsFile+echo "Exclusions file is set: '$exclusionsFile'"}
+  ${getFQDN+echo "Use FQDN is set: '$getFQDN'"}
   ${hostsFile+echo "Hosts file is set: '$hostsFile'"}
   ${numProcs+echo "Number of Processes is set: '$numProcs'"}
   ${outDir+echo "Output directory is set: '$outDir'"}
@@ -351,6 +387,13 @@ then
     echo "${i^} value is ${!i}"
   done
 fi
+
+echo; echo "Cleaning up files from previous runs."
+rm -fv ${hostsFile}.${scriptName} \
+${hostsFile}.${scriptName}.* \
+${exclusionsFile}.${scriptName} \
+${exclusionsFile}.${scriptName}.*
+
 
 # Verify the script file.
 if [ -f "${scriptFile}" ]
@@ -398,7 +441,9 @@ then
 
   process_list ${exclusionsFile} ${exclusionsFile}.${scriptName}
 
+  # Create the list of hosts to actually execute on.
   comm -23 ${hostsFile}.${scriptName} ${exclusionsFile}.${scriptName} > ${hostsFile}.${scriptName}.${pid}
+
 else
   if [ ${debug} -ge 1 ]
   then
@@ -407,6 +452,7 @@ else
     echo "Using ${hostsFile}.${scriptName} without exclusions."
   fi
 
+  # Create the list of hosts to actually execute on.
   cp ${hostsFile}.${scriptName}  ${hostsFile}.${scriptName}.${pid}
 fi
 
@@ -542,6 +588,16 @@ done
 wait; echo; echo
 
 rm -f *.${pid}
+
+# Handle an stty change in Alma 9.
+stty sane
+stty erase "^H"
+
+if [ $debug -ge 2 ]
+then
+  echo "Resetting tty settings:"
+  echo;echo
+fi
 
 echo "Complete at $(date)."
 
