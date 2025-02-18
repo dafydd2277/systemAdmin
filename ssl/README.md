@@ -99,7 +99,6 @@ Signing Request is a pain. So, let's set it in a variable.
 cat <<"EOSYSCONFIG" >>${df_ssl_sysconfig}
 
 # X.509 information for the host certificate.
-i_expire_days=720
 i_default_bits=2048    # 4096-bit keys are starting to become popular, too.
 s_cert_country_code="US"
 s_cert_state="WA"
@@ -108,7 +107,6 @@ s_cert_org="Company Name"
 s_cert_org_unit="Internal Team"
 s_cert_org_email="abuse@google.com"
 
-export i_expire_days
 export s_cert_country_code s_cert_state s_cert_city
 export s_cert_org s_cert_org_unit s_cert_org_email 
 
@@ -179,7 +177,6 @@ private key.
 
 ```bash
 openssl req -new \
-  -days ${i_expire_days} \
   -out ${df_host_req} \
   -newkey rsa \
   -keyout ${df_host_key} \
@@ -223,7 +220,6 @@ And, here's the command when the private key has to be encrypted.
 
 ```bash
 openssl req -new \
-  -days ${i_expire_days} \
   -out ${df_host_req} \
   -newkey rsa \
   -passout file:${df_host_passphrase} \
