@@ -35,7 +35,9 @@ sshOpts="-q -o UserKnownHostsFile=/dev/null \
   -o ConnectTimeout=30 \
   -o BatchMode=yes \
   -o ForwardX11=no \
-  -o ForwardX11Trusted=no"
+  -o ForwardX11Trusted=no \
+  -o ServerAliveInterval=1 \
+  -o ServerAliveCountMax=5"
 
 
 ###
